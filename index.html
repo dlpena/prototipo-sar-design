@@ -257,7 +257,7 @@ body.na-inicio #conteudo{padding-top:22px}
 .modulo .dado .r{font-size:13px;color:var(--tinta-2);margin-top:4px;max-width:30ch}
 .modulo .fatos{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--apagado);border-top:1px solid var(--linha);border-bottom:1px solid var(--linha);padding:8px 0}
 .modulo .fatos b{color:var(--tinta)}
-.modulo p{margin:0;font-size:14px;color:var(--tinta-2);line-height:1.5;text-align:justify;hyphens:auto}
+.modulo p{margin:0;font-size:14px;color:var(--tinta-2);line-height:1.5;text-align:left}
 .modulo .acao{align-self:flex-start}
 .modulo .sistemas{display:grid;gap:8px}
 .modulo .sis{font-size:13.5px}
@@ -2066,18 +2066,17 @@ function paginaInicio(){
       <article class="cartao modulo" aria-labelledby="m-sin" style="border-top-color:${COR_MOD.SIN}">
         ${miniMapa("sin")}
         <h2 id="m-sin">Sistema Interligado Nacional</h2>
-        <div class="dado"><div class="n num">${fmt(vSIN,1)}<small>%</small></div><div class="r">reservatório equivalente do SIN em ${dBR(ult)}</div></div>
+        <div class="dado"><div class="n num">${fmt(vSIN,1)}<small>%</small></div><div class="r">reservatório equivalente em ${dBR(ult)}</div></div>
         <div class="fatos"><span><b class="num">${RES.length}</b> usinas</span><span><b class="num">${ORDEM_BACIAS.length}</b> bacias</span><span>dados diários e horários</span></div>
-        <div class="txt"><p>${esc(T.sin[2])}</p></div>
+        <div class="txt"><p>Usinas hidrelétricas operadas sob coordenação do ONS: nível, vazões e volume útil, bacia a bacia.</p></div>
         <button type="button" class="acao" data-rota="sin">Entrar no módulo</button>
       </article>
       <article class="cartao modulo" aria-labelledby="m-ne" style="border-top-color:${COR_MOD.NE}">
         ${miniMapa("ne")}
         <h2 id="m-ne">Nordeste e Semiárido</h2>
-        <div class="dado"><div class="n num">${fmt(sNE.total.volume_pct,1)}<small>%</small></div><div class="r">do volume acumulado nos reservatórios com medição recente, em ${dBR(D.ne.data)}</div></div>
-        <div class="fatos"><span><b class="num">${fint(sNE.total.n)}</b> reservatórios acompanhados</span><span><b class="num">${fint(sNE.total.com_dado)}</b> com volume medido em ${D.ne.limiar_dias} dias</span><span>9 estados e Minas Gerais</span></div>
-        <div class="txt"><p>${esc(T.ne[0])}</p></div>
-        <p class="nota">${sNE.total.sem_info ? `${fint(sNE.total.sem_info)} reservatórios sem informação (sem medição há mais de ${D.ne.limiar_dias} dias).` : ""}</p>
+        <div class="dado"><div class="n num">${fmt(sNE.total.volume_pct,1)}<small>%</small></div><div class="r">volume acumulado em ${dBR(D.ne.data)}</div></div>
+        <div class="fatos"><span><b class="num">${fint(sNE.total.n)}</b> reservatórios</span><span><b class="num">${sNE.estados.filter(e => e.n).length}</b> estados</span><span>medições do último mês</span></div>
+        <div class="txt"><p>Açudes do Nordeste e do semiárido mineiro: volume armazenado, nível e situação de cada estado.</p></div>
         <button type="button" class="acao" data-rota="ne">Entrar no módulo</button>
       </article>
       <article class="cartao modulo" aria-labelledby="m-outros" style="border-top-color:${COR_MOD.OUTROS}">
@@ -2091,14 +2090,14 @@ function paginaInicio(){
             ${S.res.map(r => `<div class="l"><span>${esc(caso(r.nome))}</span><span class="num">${r.pct!=null ? fmt(r.pct,1)+"%" : fmt(r.cota,2)+" m"}</span></div>`).join("")}</div>`; }).join("") : `<div class="sis apagado"><b>Distrito Federal</b><span class="nota">Santa Maria, Descoberto e Paranoá</span></div>
           <div class="sis apagado"><b>Paraopeba</b><span class="nota">Rio Manso, Vargem das Flores e Serra Azul</span></div>`}
         </div>
-        <div class="txt">${paragrafo(T.outros[0])}</div>
+        <div class="txt"><p>Sistemas que abastecem São Paulo, o Distrito Federal e Belo Horizonte.</p></div>
         <button type="button" class="acao" data-rota="outros">Entrar no módulo</button>
       </article>
     </div>
     <section class="cartao faixa-dados" aria-labelledby="t-dados">
       <div>
         <h2 id="t-dados">Área de dados</h2>
-        <p>Séries de vários reservatórios de uma vez, na base diária ou horária, para o período e o formato que você escolher, e acesso por API para uso automático. O download de um reservatório ou de uma bacia continua disponível nas páginas de cada um.</p>
+        <p>Baixe as séries de vários reservatórios de uma vez, no período e no formato que escolher, ou acesse por API.</p>
       </div>
       <button type="button" class="acao" data-fora="Dados">Entrar na área de dados</button>
     </section>
