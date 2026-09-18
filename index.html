@@ -211,11 +211,19 @@ body.na-inicio .topo{padding-block:12px}
 .faixa-dados{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px 28px;padding:22px 28px;margin-top:22px}
 .faixa-dados h2{font-size:19px;color:var(--ana);margin:0 0 4px}
 .faixa-dados p{margin:0;color:var(--tinta-2);font-size:14px;max-width:90ch}
-.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:28px;padding:36px 40px 30px;margin-top:0;align-items:center}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;padding:40px 48px;margin-top:0;align-items:center}
 body.na-inicio #conteudo{padding-top:22px}
 .hero .sobre{margin:0 0 6px;font-size:13px;letter-spacing:.3px;color:var(--apagado)}
-.hero h1{font-size:38px;line-height:1.1;margin:0 0 16px}
+.hero h1{font-size:40px;line-height:1.08;margin:0 0 14px}
 .lead-hero{margin:0 0 12px;color:var(--tinta-2);font-size:15.5px;line-height:1.55;text-align:justify;hyphens:auto}
+.hero .lead-hero{font-size:18px;line-height:1.45;text-align:left;hyphens:manual;margin:0;max-width:34ch;text-wrap:balance}
+.hero .busca{margin-top:28px}
+.hero .busca input{padding:14px 16px;border-radius:10px;font-size:15.5px}
+.hero .busca .acao{border-radius:10px;padding:0 24px}
+.hero .nota{margin:10px 0 0}
+.sobre-sar{margin:26px 0 0;color:var(--tinta-2);font-size:14.5px;line-height:1.6}
+.sobre-sar h2{font-size:16px;color:var(--ana);margin:0 0 6px}
+.sobre-sar p{margin:0}
 .busca{position:relative;display:flex;gap:8px;margin-top:20px}
 .busca input{flex:1;font:15px var(--sans);padding:12px 14px;border:1.5px solid var(--linha-forte);border-radius:3px;min-width:0}
 .busca input:focus{border-color:var(--ana);outline:0}
@@ -227,8 +235,8 @@ body.na-inicio #conteudo{padding-top:22px}
 .res .n{font-weight:700;color:var(--ana)}
 .res .d{grid-row:2;font-size:12.5px;color:var(--apagado)}
 .res .m{grid-row:1 / span 2;align-self:center;font-size:11.5px;color:var(--ana);background:#E4EBF3;padding:2px 8px;border-radius:10px;white-space:nowrap}
-.hero-mapa{position:relative;background:var(--ana-gelo);border-radius:6px;padding:14px}
-.hero-mapa svg{display:block;width:100%;height:auto;max-height:520px}
+.hero-mapa{position:relative;background:transparent;padding:0}
+.hero-mapa svg{display:block;width:100%;height:auto;max-height:460px}
 .legenda-hero{position:absolute;left:18px;bottom:14px;display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--tinta-2)}
 .legenda-hero b{color:var(--ana);font-size:13px;margin-bottom:2px}
 .legenda-hero i{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin-right:6px;border:1px solid #fff}
@@ -2035,14 +2043,14 @@ function paginaInicio(){
       <div class="hero-txt">
         <p class="sobre">Agência Nacional de Águas e Saneamento Básico</p>
         <h1 id="t-hero">Sistema de Acompanhamento de Reservatórios</h1>
-        ${T.inicio.map(paragrafo).join("")}
+        <p class="lead-hero">Acompanhe, dia a dia, a operação dos principais reservatórios do Brasil.</p>
         <form class="busca" role="search" id="busca" autocomplete="off">
           <label class="sr" for="q">Buscar reservatório</label>
           <input id="q" type="search" placeholder="Buscar por nome, município, estado, bacia ou código" spellcheck="false">
           <button type="submit" class="acao">Buscar</button>
           <div class="resultados" id="resultados" hidden></div>
         </form>
-        <p class="nota">A busca cobre os três módulos: cada resultado mostra o módulo a que pertence.</p>
+        <p class="nota">A busca cobre os três módulos.</p>
       </div>
       <div class="hero-mapa" aria-hidden="true">
         <svg viewBox="0 0 ${D.sin.w} ${D.sin.h}">
@@ -2093,6 +2101,10 @@ function paginaInicio(){
         <p>Séries de vários reservatórios de uma vez, na base diária ou horária, para o período e o formato que você escolher, e acesso por API para uso automático. O download de um reservatório ou de uma bacia continua disponível nas páginas de cada um.</p>
       </div>
       <button type="button" class="acao" data-fora="Dados">Entrar na área de dados</button>
+    </section>
+    <section class="sobre-sar" aria-labelledby="t-sobre">
+      <h2 id="t-sobre">Sobre o SAR</h2>
+      <p>${esc(T.inicio[0])}</p>
     </section>
     <p class="nota fontes-inicio">Fontes: ${esc(D.fontes.equivalente)}; ${esc(I.ne.fonte)}; ${esc(I.fonte_cantareira)}. Textos introdutórios: páginas do SAR atual (gov.br/ana/sar), lidas em 17/09/2026.</p>`;
   $$("#conteudo [data-rota]").forEach(b => b.onclick = () => { location.hash = b.dataset.rota; });
