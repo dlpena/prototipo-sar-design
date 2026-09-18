@@ -1065,7 +1065,7 @@ function paginaSIN(){
   main.innerHTML = `
     <section class="cartao intro" aria-label="Sobre o módulo">
       <p>O Sistema Interligado Nacional (SIN) reúne as usinas hidrelétricas operadas sob coordenação do Operador Nacional do Sistema Elétrico (ONS). Parte delas tem reservatório de regularização, cujo volume útil permite armazenar água no período úmido para uso no período seco; as demais operam a fio d'água, sem capacidade de regularização significativa, e dependem das afluências naturais e da operação dos reservatórios a montante. A operação desses reservatórios considera a geração de energia, o controle de cheias e os usos múltiplos da água.</p>
-      <p>Esta página mostra quanta água o conjunto tem armazenada e como isso se compara com os anos anteriores. Cada bacia tem a sua página, com nível, afluência, defluência e volume útil de cada usina. São ${nRes} usinas em ${ORDEM_BACIAS.length} bacias, com dados diários informados pelo ONS.</p>
+      <p>Esta página mostra o armazenamento agregado do sistema e a sua comparação com os anos anteriores. Cada bacia tem a sua página, com nível, afluência, defluência e volume útil de cada usina. São ${nRes} usinas em ${ORDEM_BACIAS.length} bacias, com dados diários informados pelo ONS.</p>
     </section>
 
     <nav class="indice" aria-label="Seções da página">
@@ -1075,7 +1075,7 @@ function paginaSIN(){
     <section class="cartao secao" id="s-bacias" aria-labelledby="t-bacias">
       ${barraBaixar([["baixar-mapa-sin", "PNG", "Baixar o mapa das bacias como imagem"]])}
       <h2 id="t-bacias"><small>1</small>Bacias</h2>
-      <p class="sub">As usinas estão agrupadas nas mesmas ${ORDEM_BACIAS.length} bacias que o ONS usa para operar o sistema.<span class="dica">Passe o mouse para destacar e clique para abrir a página da bacia.</span></p>
+      <p class="sub">As usinas estão agrupadas em ${ORDEM_BACIAS.length} bacias, segundo a divisão adotada pelo ONS.<span class="dica">Passe o mouse para destacar e clique para abrir a página da bacia.</span></p>
     <div class="explorar">
       <div class="mapa-caixa" style="padding:0">
         <div id="mapa-sin" style="position:relative"></div>
@@ -1083,7 +1083,7 @@ function paginaSIN(){
       <div class="lista">
         <div class="cab">
           <p class="rotulo-sec" style="margin:0;font-size:15px">Bacias</p>
-          <p class="nota">Com reservatório: usinas com volume útil de regularização, para as quais o SAR acompanha o armazenamento. A fio d'água: usinas sem capacidade de regularização significativa, em que a defluência acompanha a afluência.</p>
+          <p class="nota">Com reservatório: usinas com volume útil de regularização, para as quais o SAR acompanha o armazenamento. A fio d'água: usinas sem capacidade de regularização significativa, para as quais o SAR acompanha nível e vazões.</p>
         </div>
         <div class="duas-tabelas">
           <div class="tab-box"><table id="tab-bacias">
@@ -1104,7 +1104,7 @@ function paginaSIN(){
 
     <section class="cartao secao" id="s-equiv" aria-labelledby="t-equiv">
       <h2 id="t-equiv"><small>2</small>Reservatório equivalente do SIN</h2>
-      <p class="sub">O volume útil de todas as usinas com reservatório, somado como se fosse um só e expresso em % do total: a medida de quanta água o SIN tem guardada.</p>
+      <p class="sub">O volume útil das usinas com reservatório, agregado num único reservatório equivalente e expresso em % do volume útil total, conforme a definição adotada no SAR: indica o armazenamento do SIN como um todo.</p>
     <div class="equiv">
       <div class="lado">
         <div class="valor num">${fmt(v0,1)}<small>%</small></div>
@@ -1121,21 +1121,21 @@ function paginaSIN(){
     <section class="cartao secao" id="s-ano" aria-labelledby="t-ano">
       ${barraBaixar([["baixar-equiv-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-ano"><small>3</small>Ao longo do ano</h2>
-      <p class="sub">O reservatório equivalente dia a dia, com o ano corrente em destaque sobre os quatro anteriores: mostra se o armazenamento está acima ou abaixo do que é comum para a época, e em que ritmo enche ou esvazia.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
+      <p class="sub">O reservatório equivalente dia a dia, com o ano corrente em destaque sobre os quatro anteriores: permite comparar o armazenamento atual com o da mesma época nesses anos e acompanhar o ritmo de enchimento e de deplecionamento.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div class="graf" id="g-equiv"></div>
     </section>
 
     <section class="cartao secao" id="s-dia" aria-labelledby="t-dia">
       ${barraBaixar([["baixar-barras-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-dia"><small>4</small>O mesmo dia em outros anos</h2>
-      <p class="sub">O reservatório equivalente na mesma data de cada ano: a comparação direta entre anos, sem o efeito da estação.</p>
+      <p class="sub">O reservatório equivalente na mesma data de cada ano disponível: comparação direta entre anos, sem o efeito da sazonalidade.</p>
       <div class="cab-graf" style="margin-bottom:6px"><span></span><label class="data-ref">Data de referência <input type="date" id="dia-ref" min="${ult.slice(0,4)}-01-01" max="${ult}" value="${ult}"></label></div>
       <div class="graf" id="g-barras"></div>
     </section>
 
     <section class="cartao secao" id="s-usinas" aria-labelledby="t-usinas">
       <h2 id="t-usinas"><small>5</small>Mapa das usinas</h2>
-      <p class="sub">Onde está cada usina e como ela estava no último dia disponível.<span class="dica">Passe o mouse ou clique num símbolo para ler o valor; use as camadas para escolher o mapa-base e os grupos.</span></p>
+      <p class="sub">Localização das usinas, com os dados do último dia disponível.<span class="dica">Passe o mouse ou clique num símbolo para ler o valor; use as camadas para escolher o mapa-base e os grupos.</span></p>
       ${barraBaixar([["baixar-kmz", "KMZ", "Baixar as usinas visíveis em KMZ (Google Earth)"]])}
       <p class="resumo-filtros" id="resumo-filtros"></p>
       <div id="mapa-situacao"></div>
