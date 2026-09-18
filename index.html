@@ -11,14 +11,18 @@
 <style>
 :root{
   color-scheme: light;
-  --ana:#283377; --ana-medio:#4A7FB0; --ana-claro:#92BAE3;
-  --ana-noite:#283377; --ana-bruma:#E7EAEE; --ana-gelo:#F3F4F6;
-  --tinta:#22262E; --tinta-2:#4B5260; --apagado:#6F7582;
-  --linha:#E2E4E8; --linha-forte:#C9CDD4; --fundo:#F6F6F7; --branco:#FFFFFF;
-  --terra-sin:#E1E5EA; --terra-fora:#F0F1F3; --hover:#4A7FB0;
+  /* tema B2: cores do manual da ANA (2020) — marinho 28/55/130, azul 0/147/221, claro 128/180/224 */
+  --ana:#1C3782; --ana-medio:#0B72C2; --ana-vivo:#0093DD; --ana-claro:#80B4E0;
+  --ana-noite:#13286B; --ana-bruma:#E4EEF8; --ana-gelo:#EEF3F9;
+  --tinta:#1B2532; --tinta-2:#3D4B5C; --apagado:#5B6B80;
+  --linha:#E3EAF2; --linha-forte:#C6D1DE; --fundo:#F4F7FA; --branco:#FFFFFF;
+  --terra-sin:#E1E5EA; --terra-fora:#F0F1F3; --hover:#0B72C2;
   --aviso:#8A5A00; --aviso-fundo:#FFF4D6;
-  --sans: Arial, "Liberation Sans", Helvetica, sans-serif;
+  --sans: Arial, "Liberation Sans", Helvetica, sans-serif;               /* família institucional (manual, p. 10) */
   --narrow: "Arial Narrow", "Liberation Sans Narrow", "Roboto Condensed", Arial, sans-serif;
+  --cond: "Arial Narrow", "Liberation Sans Narrow", "Roboto Condensed", Arial, sans-serif;
+  --raio:14px; --sombra:0 1px 2px rgba(28,55,130,.04),0 8px 24px rgba(28,55,130,.06);
+  --lateral:232px;
 }
 *{box-sizing:border-box}
 html,body{background:var(--fundo)}
@@ -42,26 +46,27 @@ button{font:inherit;color:inherit}
 .modulos button{background:transparent;border:0;color:var(--tinta-2);padding:12px 14px;cursor:pointer;font-size:14px;border-bottom:3px solid transparent}
 .modulos button:hover{color:var(--ana)}
 .modulos button[aria-current="page"]{color:var(--ana);border-bottom-color:var(--ana);font-weight:700}
-.area-titulo{background:#fff;border-bottom:1px solid var(--linha)}
+.area-titulo{background:transparent}
 .titulo-pag{padding-block:18px 20px}
 .trilha{font-size:13px;color:var(--apagado);margin:0 0 8px}
 .trilha a{color:var(--ana-medio);text-decoration:none}
 .trilha a:hover{text-decoration:underline}
 .trilha .sep{margin:0 8px;color:var(--linha-forte)}
-h1{font-size:30px;line-height:1.15;margin:0;font-weight:700;color:var(--ana);text-wrap:balance}
+h1{font:600 34px/1.1 var(--cond);letter-spacing:.005em;margin:0;color:var(--ana);text-wrap:balance}
 .lead{margin:6px 0 0;color:var(--tinta-2)}
-.carimbo{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;font-size:13px;color:var(--apagado)}
+.carimbo{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;font-size:12.5px;color:var(--apagado)}
+.carimbo span{background:#fff;border:1px solid var(--linha);border-radius:8px;padding:5px 11px}
 .carimbo b{color:var(--tinta)}
 
 /* ---------- corpo ---------- */
 main{padding-block:26px 60px}
 .rotulo-sec{font-size:17px;font-weight:700;color:var(--ana);margin:0 0 10px}
-.cartao{background:var(--branco);border-radius:4px;box-shadow:0 1px 2px rgba(20,42,102,.06),0 6px 24px rgba(20,42,102,.06)}
+.cartao{background:var(--branco);border-radius:var(--raio);border:1px solid var(--linha);box-shadow:var(--sombra)}
 .pad{padding:22px 26px}
 .indice{position:sticky;top:0;z-index:30;background:rgba(246,246,247,.96);backdrop-filter:blur(4px);border-bottom:1px solid var(--linha);margin:0 -24px 22px;padding:10px 24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .indice a{padding:5px 12px;border-radius:14px;font-size:13.5px;color:var(--ana);background:#E4EBF3;text-decoration:none}
 .indice a:hover{background:var(--ana);color:#fff}
-.secao{border-left:5px solid var(--ana-claro);padding:18px 22px 20px;scroll-margin-top:64px;position:relative}
+.secao{padding:22px 24px 24px;scroll-margin-top:64px;position:relative}
 /* contexto e data dentro da faixa fixa de seções (desktop) */
 .indice .ctx{display:flex;align-items:center;gap:8px;font-size:12.5px;padding-right:12px;margin-right:4px;border-right:1px solid var(--linha-forte)}
 .indice .ctx a{color:var(--tinta-2);text-decoration:none;white-space:nowrap}
@@ -72,26 +77,6 @@ main{padding-block:26px 60px}
 .indice .barra-data .data-ref b{font-size:12.5px;font-weight:400;color:var(--tinta-2)}
 .indice .barra-data input[type=date]{font-size:13.5px;padding:3px 6px}
 .indice .barra-data .hoje{font-size:11.5px;padding:3px 8px}
-@media (min-width:1024px){
-  body:not(.na-inicio) header.faixa{position:sticky;top:0;z-index:40}
-  body.rolado:not(.na-inicio) header.faixa{box-shadow:0 4px 12px rgba(34,38,46,.07)}
-  /* Logotipo no tamanho da página inicial (54 px), com subtítulo e selo. Altura constante: se o cabeçalho
-     encolhesse ao rolar, o documento saltaria e o scrollIntoView erraria o destino. */
-  body:not(.na-inicio) .topo{flex-wrap:nowrap;align-items:center;padding-block:8px;gap:0 16px}
-  body:not(.na-inicio) .modulos button{padding-inline:11px}
-  body:not(.na-inicio) .marca{padding-bottom:0;flex:0 0 auto}
-  body:not(.na-inicio) .modulos{align-self:center;flex-wrap:nowrap;flex:0 0 auto}
-  body:not(.na-inicio) .modulos button{white-space:nowrap}
-  body:not(.na-inicio) .indice{top:var(--topo-h,44px)}
-  body:not(.na-inicio) .secao{scroll-margin-top:calc(var(--topo-h,44px) + 62px)}
-  body:not(.na-inicio) .leaflet-top{margin-top:0}
-}
-/* Entre 1024 e 1199 px a marca completa (529 px) e as abas (660 px) não cabem na mesma linha: ficam o
-   logotipo em 54 px e "SAR", sem o subtítulo e sem o selo. O logotipo nunca diminui. */
-@media (min-width:1024px) and (max-width:1199px){
-  body:not(.na-inicio) .sistema span,body:not(.na-inicio) .selo{display:none}
-  body:not(.na-inicio) .sistema{border-left:0;padding-left:0}
-}
 @media (max-width:1023px){
   .indice .ctx{display:none}
   .indice .barra-data{margin-left:0}
@@ -107,19 +92,20 @@ main{padding-block:26px 60px}
 @media (max-width:640px){.baixar{position:static;justify-content:flex-end;margin:-6px 0 6px}
   @supports selector(:has(*)){.secao:has(.baixar)>h2{padding-right:0}}}
 
-.secao>h2,.secao .lado>h2{font-size:19px;margin:0 0 2px;color:var(--ana);font-weight:700}
-.secao>h2 small,.secao .lado>h2 small{font-size:13px;color:var(--apagado);font-weight:400;margin-right:8px}
+.secao>h2,.secao .lado>h2{font-size:21px;margin:0 0 2px;color:var(--ana);font-weight:600;display:flex;align-items:baseline;gap:12px}
+.secao>h2 small,.secao .lado>h2 small{font:600 13px var(--cond);color:var(--ana-vivo);letter-spacing:.08em;margin-right:0}
+.secao>h2 small::before,.secao .lado>h2 small::before{content:"0"}
 .secao>p.sub{margin:0 0 14px;color:var(--tinta-2);font-size:14px}
 .sub .dica{display:block;margin-top:3px}
 .explorar{margin-top:0}
 .rio{fill:none;stroke:#5F8FC0;stroke-width:.9;stroke-linejoin:round;stroke-linecap:round;pointer-events:none}
 .rio.apagado,.rio.apagada{opacity:.15}
-.nome-bacia{font:12px Arial;fill:#283377;text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round}
+.nome-bacia{font:12px Arial;fill:#1C3782;text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round}
 .fundo-bacia{fill:#E6ECF3;stroke:#fff;stroke-width:1.6;transition:fill .12s}
 .fundo-bacia.apagada{fill:#F1F3F6}
 #mapa-situacao{height:600px;border:1px solid var(--linha);border-radius:4px;position:relative;z-index:0;isolation:isolate}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:6px}
-.card{all:unset;box-sizing:border-box;cursor:pointer;border:1px solid var(--linha);border-radius:4px;padding:10px 12px;background:#fff}
+.card{all:unset;box-sizing:border-box;cursor:pointer;border:1px solid var(--linha);border-radius:10px;padding:10px 12px;background:#fff}
 .card.desligado{opacity:.45}
 .card.fixo{cursor:default}
 .card:hover:not(.fixo){border-color:var(--ana-medio)}
@@ -142,13 +128,13 @@ main{padding-block:26px 60px}
 .nota{font-size:13px;color:var(--apagado)}
 
 /* equivalente */
-.intro{margin:0 0 22px;padding:20px 26px;color:var(--tinta);font-size:15px;line-height:1.6}
-.intro p{margin:0;text-align:justify;text-indent:2.5em;hyphens:auto}
+.intro{margin:0 0 22px;padding:0 0 4px;color:var(--tinta-2);font-size:15px;line-height:1.6;background:transparent;border:0;box-shadow:none;max-width:96ch}
+.intro p{margin:0;text-wrap:pretty}
 .intro p+p{margin-top:8px}
 main>section+section,main>.secao+.secao{margin-top:22px}
 .equiv{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,300px);gap:0}
 .equiv .lado{padding:22px 26px;border-right:1px solid var(--linha)}
-.equiv .valor{font-size:60px;font-weight:700;color:var(--ana);line-height:1}
+.equiv .valor{font:600 88px/.95 var(--cond);letter-spacing:-.02em;color:var(--ana);font-variant-numeric:tabular-nums}
 .equiv .valor small{font-size:26px;font-weight:700;margin-left:2px}
 .equiv .quando{font-size:13px;color:var(--apagado);margin-top:6px}
 .comparacoes{list-style:none;margin:0;padding:12px 26px;display:grid;align-content:center}
@@ -178,7 +164,7 @@ main>section+section,main>.secao+.secao{margin-top:22px}
 #mapa-sin svg{display:block;width:100%;height:auto;max-height:460px;margin:0 auto}
 .brasil{fill:#F4F4F5;stroke:#C9CDD4;stroke-width:.8}
 .sub-bacia{stroke:#fff;stroke-width:2.2;stroke-linejoin:round;transition:fill .12s}
-.sub-bacia.sin.acesa{stroke:#283377;stroke-width:1.6}
+.sub-bacia.sin.acesa{stroke:#1C3782;stroke-width:1.6}
 .sub-bacia.sin{fill:#CFDDEC;cursor:pointer}
 .sub-bacia.sin.acesa{fill:#8FB2D6}
 .sub-bacia.sin.apagada{fill:#E4EBF3}
@@ -220,9 +206,9 @@ td.zero{color:var(--linha-forte)}
 
 /* ---------- início ---------- */
 body.na-inicio .area-titulo{display:none}
-body.na-inicio .modulos{display:none}
+@media (max-width:1023px){body.na-inicio .modulos{display:none}}
 body.na-inicio .topo{padding-block:12px}
-.faixa-dados{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px 28px;padding:22px 28px;margin-top:22px;border-left:5px solid var(--ana)}
+.faixa-dados{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px 28px;padding:22px 28px;margin-top:22px}
 .faixa-dados h2{font-size:19px;color:var(--ana);margin:0 0 4px}
 .faixa-dados p{margin:0;color:var(--tinta-2);font-size:14px;max-width:90ch}
 .hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:28px;padding:36px 40px 30px;margin-top:0;align-items:center}
@@ -255,7 +241,7 @@ body.na-inicio #conteudo{padding-top:22px}
 .modulo .txt .itens li{font-size:13.5px;padding-left:28px}
 .modulo .txt .itens li::before{width:18px;height:18px;font-size:11px}
 .modulos-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:22px}
-.modulo{padding:22px 24px 24px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;border-top:5px solid var(--ana-claro)}
+.modulo{padding:22px 24px 24px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
 .modulo .mini-mapa{position:absolute;right:16px;top:14px;width:88px;height:auto;opacity:.95}
 .modulo h2{font-size:20px;color:var(--ana);margin:0;padding-right:100px;min-height:52px}
 .modulo .dado .n{font-size:44px;font-weight:700;color:var(--ana);line-height:1}
@@ -273,7 +259,7 @@ body.na-inicio #conteudo{padding-top:22px}
 .fontes-inicio{margin:18px 0 0}
 @media (max-width:980px){.hero{grid-template-columns:1fr;padding:26px 24px}.modulos-grid{grid-template-columns:1fr}.hero h1{font-size:30px}}
 /* ---------- Nordeste e Semiárido ---------- */
-.barra-data{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 0;padding:10px 14px;background:#fff;border:1px solid var(--linha);border-left:3px solid var(--azul);border-radius:4px}
+.barra-data{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 0;padding:10px 14px;background:#fff;border:1px solid var(--linha);border-radius:10px}
 .barra-data .data-ref b{color:var(--azul);font-size:13.5px;font-weight:700;margin-right:2px}
 .barra-data select{font:inherit;font-size:15px;font-weight:700;color:var(--azul);border:1px solid var(--linha-forte);border-radius:4px;padding:5px 8px;background:#fff;cursor:pointer}
 .barra-data input[type=date]{font:inherit;font-size:15px;font-weight:700;color:var(--azul);border:1px solid var(--linha-forte);border-radius:4px;padding:4px 8px;background:#fff}
@@ -322,7 +308,7 @@ body.na-inicio #conteudo{padding-top:22px}
 
 #mapa-ne svg{display:block;width:100%;height:auto;max-height:760px}
 #mapa-ne .uf-ne{transition:fill-opacity .12s,fill .12s}
-#mapa-ne .uf-ne:hover,#mapa-ne .uf-ne.acesa{fill-opacity:1;stroke:#283377;stroke-width:1.6;stroke-linejoin:round}
+#mapa-ne .uf-ne:hover,#mapa-ne .uf-ne.acesa{fill-opacity:1;stroke:#1C3782;stroke-width:1.6;stroke-linejoin:round}
 #mapa-ne .uf-ne.apagada{fill-opacity:.3}
 #mapa-ce,#mapa-uf{height:560px;border:1px solid var(--linha);border-radius:4px;position:relative;z-index:0;isolation:isolate}
 .bola{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin-right:7px;border:1px solid rgba(255,255,255,.9)}
@@ -340,14 +326,14 @@ th.ord-desc::after{content:' ▼';font-size:9px}
 @media (max-width:1320px){.grade-ne{grid-template-columns:1fr}.grade-ne>#mapa-ne{width:100%;max-width:620px;margin-inline:auto}}
 @media (max-width:980px){#mapa-ce,#mapa-uf{height:420px}}
 /* ---------- bacia ---------- */
-.acao{display:inline-flex;align-items:center;gap:8px;background:var(--ana);color:#fff;border:0;border-radius:2px;padding:10px 16px;font-weight:700;cursor:pointer;text-decoration:none;font-size:14px}
+.acao{display:inline-flex;align-items:center;gap:8px;background:var(--ana);color:#fff;border:0;border-radius:8px;padding:10px 16px;font-weight:700;cursor:pointer;text-decoration:none;font-size:14px}
 .acao:hover{background:#1f285e}
 .cab-bacia{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:14px}
 h1 .simb{margin-right:10px;vertical-align:-2px}
 /* ---------- ficha ---------- */
 .sit-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:22px;align-items:stretch}
 .valores{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-content:start}
-.valores .v{border:1px solid var(--linha);border-radius:4px;padding:10px 12px;min-width:0}
+.valores .v{border:1px solid var(--linha);border-radius:10px;padding:10px 12px;min-width:0}
 .valores .v.principal{grid-column:1 / -1;background:var(--ana-gelo);border-color:transparent}
 .valores .r{font-size:12.5px;color:var(--apagado)}
 .valores .n{font-size:26px;font-weight:700;color:var(--ana);line-height:1.15}
@@ -387,7 +373,7 @@ h1 .simb{margin-right:10px;vertical-align:-2px}
 .ferramentas label{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--tinta-2);margin-right:6px}
 .ferramentas input[type=date]{font:13px var(--sans);color:var(--ana);border:1px solid var(--ana);border-radius:2px;padding:5px 8px;background:#fff}
 #mapa-grande{height:560px;border:1px solid var(--linha);border-radius:4px;position:relative;z-index:0;isolation:isolate}
-.rot-usina span{font:700 12px/1 var(--narrow);color:#283377;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff}
+.rot-usina span{font:700 12px/1 var(--narrow);color:#1C3782;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff}
 #mapa-grande.sat .rot-usina span{color:#fff;text-shadow:0 0 3px #000,0 0 4px #000,0 1px 2px #000}
 .merge-opcoes{margin:2px 0 4px 22px;display:flex;gap:10px;font-size:12.5px;color:var(--tinta-2)}
 .merge-opcoes label{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
@@ -509,6 +495,83 @@ td.abaixo{color:#C0392B;font-weight:700}
 .mensal-grade{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
 .mensal-grade>.graf+.graf{margin-top:0}   /* lado a lado: sem a margem de gráfico empilhado */
 @media (max-width:980px){.os-grade,.mensal-grade{grid-template-columns:1fr}.os-cartao{grid-template-columns:1fr}.os-cartao .acao{grid-column:1;grid-row:auto;justify-self:start}}
+
+/* ---------- tema B2: sala de controle clara (18/09/2026) ---------- */
+table{border-top:0}
+th{font:500 12px/1.3 var(--sans);letter-spacing:.05em;text-transform:uppercase;color:var(--apagado);border-bottom:1px solid var(--ana)}
+tr.unid th{font:400 11px var(--sans);letter-spacing:0;text-transform:none;border-bottom:1px solid var(--ana)}
+tbody tr:last-child td{border-bottom:1px solid var(--linha)}
+td.r,td.num,.num{font-variant-numeric:tabular-nums}
+td .nm{font-weight:500}
+.equiv .valor small{font-size:36px;font-weight:600;color:var(--ana-vivo);letter-spacing:0}
+.comparacoes li b{font-weight:600}
+#mapa-situacao,#mapa-res-ne,#mapa-ce,#mapa-uf,#mapa-ficha,#mapa-grande{border-radius:10px}
+.hero-mapa{border-radius:10px}
+.controles.painel{border-radius:10px}
+.selo{border-radius:6px}
+.indice{background:rgba(244,247,250,.96)}
+.indice a{border-radius:8px;background:#fff;border:1px solid var(--linha)}
+.indice a:hover{border-color:var(--ana)}
+/* seção do reservatório equivalente: o único bloco escuro da página, para o número principal ser o ponto de maior peso */
+.secao:has(> .equiv){background:linear-gradient(160deg,#1C3782,#13286B);border-color:transparent;color:#FFFFFF}
+.secao:has(> .equiv)>h2{color:#FFFFFF}
+.secao:has(> .equiv)>h2 small{color:#7FC4FF}
+.secao:has(> .equiv)>p.sub,.secao:has(> .equiv) .quando,.secao:has(> .equiv) .def,.secao:has(> .equiv) .comparacoes li span,.secao:has(> .equiv) .comparacoes li span small{color:#C5D2EA}
+.secao:has(> .equiv) .equiv .valor{color:#FFFFFF}
+.secao:has(> .equiv) .equiv .valor small{color:#7FC4FF}
+.secao:has(> .equiv) .equiv .lado{border-right-color:rgba(255,255,255,.18)}
+.secao:has(> .equiv) .comparacoes li{border-top-color:rgba(255,255,255,.18)}
+.secao:has(> .equiv) .comparacoes li b{color:#FFFFFF}
+.secao:has(> .equiv) .baixar button{color:#C5D2EA}
+.secao:has(> .equiv) .baixar button:hover{color:#FFFFFF;background:rgba(255,255,255,.12)}
+.secao:has(> .equiv) .data-ref,.secao:has(> .equiv) .data-ref b{color:#C5D2EA}
+.secao:has(> .equiv) .dica{color:#A9BBD8}
+/* Cantareira: lista das faixas e régua dentro do bloco escuro */
+.secao:has(> .equiv) .faixas-lista,.secao:has(> .equiv) .regua-rot{color:#C5D2EA}
+.secao:has(> .equiv) .faixas-lista .num{color:#FFFFFF}
+.secao:has(> .equiv) .regua-marca{background:#FFFFFF}
+.lateral-indice,.lateral-pe{display:none}
+@media (max-width:640px){th{text-transform:none;letter-spacing:0;font-size:12.5px}}
+@media (min-width:1024px){
+  body{display:grid;grid-template-columns:var(--lateral) minmax(0,1fr);align-items:start}
+  header.faixa{grid-column:1;grid-row:1 / span 3;position:sticky;top:0;height:100vh;overflow-y:auto;border-bottom:0;border-right:1px solid var(--linha);display:flex;flex-direction:column;padding:22px 18px 18px}
+  .area-titulo,main,footer{grid-column:2;min-width:0}
+  header.faixa .topo{flex:1}
+  .wrap{max-width:1400px;margin:0;padding-inline:40px}
+  .topo{flex-direction:column;flex-wrap:nowrap;align-items:stretch;padding:0;gap:22px}
+  .marca{flex-direction:column;align-items:flex-start;gap:8px;padding:0 4px}
+  .logo svg{height:44px}
+  .sistema{border-left:0;padding-left:0;padding-top:4px}
+  .sistema b{font:700 20px var(--cond);letter-spacing:.02em}
+  .sistema span{font-size:12px;margin-top:2px}
+  .marca .selo{display:none}
+  .modulos{flex-direction:column;flex-wrap:nowrap;gap:2px;align-self:stretch}
+  .modulos button{text-align:left;padding:10px 12px;border-radius:8px;border-bottom:0;font-size:14px;color:var(--tinta-2)}
+  .modulos button:hover{background:var(--ana-gelo);color:var(--ana)}
+  .modulos button[aria-current="page"]{background:var(--ana);color:#fff;font-weight:600}
+  .modulos button[aria-current="page"]:hover{background:var(--ana-noite)}
+  .lateral-indice{display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--linha);padding-top:16px;margin-top:22px}
+  .lateral-indice[hidden]{display:none}
+  .lateral-indice .rot{font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--apagado);padding:0 12px 6px}
+  .lateral-indice .ctx{display:flex;flex-direction:column;gap:2px;padding:0 12px 10px;font-size:12.5px}
+  .lateral-indice .ctx a{padding:0;color:var(--apagado);border-radius:0;display:inline}
+  .lateral-indice .ctx a:hover{background:transparent;color:var(--ana)}
+  .lateral-indice .ctx b{color:var(--ana)}
+  .lateral-indice a{display:flex;gap:10px;padding:7px 12px;border-radius:6px;font-size:13.5px;color:var(--tinta-2);text-decoration:none}
+  .lateral-indice a i{font:600 13px var(--cond);color:var(--ana-vivo);font-style:normal;min-width:10px}
+  .lateral-indice a:hover{background:var(--ana-gelo);color:var(--ana);text-decoration:none}
+  .lateral-indice a.ativo{background:var(--ana-bruma);color:var(--ana);font-weight:600}
+  .lateral-pe{display:flex;flex-direction:column;gap:10px;margin-top:auto;border-top:1px solid var(--linha);padding:14px 4px 0;font-size:12px;color:var(--apagado)}
+  .lateral-pe .barra-data{margin:0;padding:0;border:0;background:transparent;flex-direction:column;align-items:flex-start;gap:6px}
+  .lateral-pe .barra-data .dica{display:none}
+  .lateral-pe .barra-data .data-ref{flex-wrap:wrap}
+  .lateral-pe .selo{align-self:flex-start}
+  .indice{display:none}      /* no desktop o índice da página vive na barra lateral */
+  .secao{scroll-margin-top:24px}
+  .titulo-pag{padding-block:28px 6px}
+  main{padding-block:22px 60px}
+  body:not(.na-inicio) .leaflet-top{margin-top:0}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -703,6 +766,8 @@ td.abaixo{color:#C0392B;font-weight:700}
       <button type="button" data-rota="outros">Outros sistemas hídricos</button>
       <button type="button" data-fora="Dados" class="nav-dados">Dados</button>
     </nav>
+    <nav class="lateral-indice" aria-label="Seções da página" hidden></nav>
+    <div class="lateral-pe"><span class="selo">Protótipo</span></div>
   </div>
 </header>
 <div class="area-titulo"><div class="wrap titulo-pag" id="titulo-pag"></div></div>
@@ -742,7 +807,7 @@ const ICO_BAIXAR = '<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stro
 const barraBaixar = itens => `<div class="baixar">${itens.map(([id, r, t]) => `<button type="button" id="${id}" title="${t}">${ICO_BAIXAR}${r}</button>`).join("")}</div>`;
 
 function simbolo(tipo, tam=14, cor){
-  const c = cor || (tipo==="fio" ? "#4A7FB0" : "#283377");
+  const c = cor || (tipo==="fio" ? "#4A7FB0" : "#1C3782");
   if (tipo==="fio") return `<svg class="simb" width="${tam*.9}" height="${tam*.9}" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.3" fill="${c}" stroke="#fff" stroke-width="1.6"/></svg>`;
   return `<svg class="simb" width="${tam}" height="${tam*16/18}" viewBox="0 0 18 16" aria-hidden="true"><path d="M9 1.2 L17 14.8 L1 14.8 Z" fill="${c}" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
 }
@@ -788,7 +853,7 @@ function legendaPNG(ctx, linhas, y0){
   linhas.forEach((linha, i) => {
     const y = y0 + i*18;
     linha.forEach(({it, x, sw}) => {
-      if (it.simbolo==="res"){ ctx.fillStyle = it.cor || "#283377"; ctx.beginPath(); ctx.moveTo(x+7, y-6); ctx.lineTo(x+14, y+5); ctx.lineTo(x, y+5); ctx.closePath(); ctx.fill(); }
+      if (it.simbolo==="res"){ ctx.fillStyle = it.cor || "#1C3782"; ctx.beginPath(); ctx.moveTo(x+7, y-6); ctx.lineTo(x+14, y+5); ctx.lineTo(x, y+5); ctx.closePath(); ctx.fill(); }
       else if (it.simbolo==="fio"){ ctx.fillStyle = it.cor || "#4A7FB0"; ctx.beginPath(); ctx.arc(x+7, y, 5.6, 0, 6.2832); ctx.fill(); }
       else if (it.area){ ctx.fillStyle = it.cor; ctx.fillRect(x, y-5, 16, 10); ctx.strokeStyle = "#fff"; ctx.lineWidth = 1; ctx.strokeRect(x, y-5, 16, 10); }
       else if (it.cor){ ctx.strokeStyle = it.cor; ctx.lineWidth = 3; ctx.setLineDash(it.tracejado ? [5, 4] : []); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x+18, y); ctx.stroke(); ctx.setLineDash([]); }
@@ -796,7 +861,7 @@ function legendaPNG(ctx, linhas, y0){
     });
   });
 }
-const LEG_ANOS = ano => [{r:`${ano} (ano corrente)`, cor:"#283377"}, {r:String(ano-1), cor:"#4A7FB0"}, {r:"anos anteriores", cor:"#C9CED6"}];
+const LEG_ANOS = ano => [{r:`${ano} (ano corrente)`, cor:"#1C3782"}, {r:String(ano-1), cor:"#4A7FB0"}, {r:"anos anteriores", cor:"#C9CED6"}];
 
 async function baixarPNG(svgs, nome, titulo, legenda){
   const lista = svgs.filter(Boolean);
@@ -811,7 +876,7 @@ async function baixarPNG(svgs, nome, titulo, legenda){
   const cv = document.createElement("canvas"); cv.width = Math.round(W*k); cv.height = Math.round(H*k);
   const ctx = cv.getContext("2d"); ctx.scale(k, k);
   ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
-  if (titulo){ ctx.fillStyle = "#283377"; ctx.font = "bold 16px Arial"; ctx.textBaseline = "alphabetic"; ctx.fillText(titulo, 14, 25); }
+  if (titulo){ ctx.fillStyle = "#1C3782"; ctx.font = "bold 16px Arial"; ctx.textBaseline = "alphabetic"; ctx.fillText(titulo, 14, 25); }
   if (linhasLeg.length) legendaPNG(ctx, linhasLeg, topo + 11);
   let y = cab;
   for (let i=0;i<lista.length;i++){ const im = await imagemDeSVG(lista[i]); ctx.drawImage(im, 0, y, W, alt[i]); y += alt[i]; }
@@ -895,8 +960,8 @@ function rotulosPonta(svg, fins, cor, destaque, baixo){
   fins.forEach(f => {
     if (Math.abs(f.ly - f.y) > 1.5)
       svg.append(svgEl("path",{d:`M${(f.x+2).toFixed(1)} ${f.y.toFixed(1)} L${(f.x+8).toFixed(1)} ${f.ly.toFixed(1)}`, stroke:cor(f.a), "stroke-width":1, fill:"none", opacity:.9}));
-    if (f.a===destaque) svg.append(svgEl("circle",{cx:f.x, cy:f.y, r:5, fill:"#283377", stroke:"#fff", "stroke-width":2}));
-    const tx = svgEl("text",{x:f.x+11, y:f.ly+4, fill: f.a===destaque ? "#283377" : "#44506A", "font-size":12,
+    if (f.a===destaque) svg.append(svgEl("circle",{cx:f.x, cy:f.y, r:5, fill:"#1C3782", stroke:"#fff", "stroke-width":2}));
+    const tx = svgEl("text",{x:f.x+11, y:f.ly+4, fill: f.a===destaque ? "#1C3782" : "#44506A", "font-size":12,
       "font-weight": f.a===destaque ? 700 : 400, "font-family":"Arial"});
     tx.textContent = f.a; svg.append(tx);
   });
@@ -912,7 +977,7 @@ function graficoEquivalente(host){
   const W = Math.max(520, host.clientWidth), H = 250, m = {l:40, r:56, t:12, b:26};
   const todos = Object.values(S); let lo = Math.floor(Math.min(...todos)/10)*10, hi = Math.ceil(Math.max(...todos)/10)*10;
   const X = i => m.l + i*(W-m.l-m.r)/364, Y = v => m.t + (hi-v)/(hi-lo)*(H-m.t-m.b);
-  const cor = a => a===anoAtual ? "#283377" : a===anoAtual-1 ? "#4A7FB0" : "#C9CED6";
+  const cor = a => a===anoAtual ? "#1C3782" : a===anoAtual-1 ? "#4A7FB0" : "#C9CED6";
   const svg = svgEl("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":"Reservatório equivalente do SIN ao longo do ano, "+anos.join(", ")});
   const eixo = svgEl("g",{class:"eixo"});
   for (let v = lo; v <= hi; v += 10){
@@ -968,10 +1033,10 @@ function graficoBarras(host, dia){
   svg.append(eixo);
   dados.forEach((d,i) => {
     const x = m.l + faixa*(i+.5), h = Y(0)-Y(d.v), atual = d.a === anoAtual;
-    const r = svgEl("path",{d:`M${x-larg/2} ${Y(0)} V${Y(d.v)+4} a4 4 0 0 1 4 -4 H${x+larg/2-4} a4 4 0 0 1 4 4 V${Y(0)} Z`, fill: atual ? "#283377" : "#8FB2D6"});
+    const r = svgEl("path",{d:`M${x-larg/2} ${Y(0)} V${Y(d.v)+4} a4 4 0 0 1 4 -4 H${x+larg/2-4} a4 4 0 0 1 4 4 V${Y(0)} Z`, fill: atual ? "#1C3782" : "#8FB2D6"});
     const tt = svgEl("title"); tt.textContent = `${dBR(d.a + dia.slice(4))}: ${fmt(d.v,2)}%`; r.append(tt);
     const val = svgEl("text",{x, y:Y(d.v)-8, "text-anchor":"middle", "font-size":12.5, "font-weight": atual?700:400, fill:"#22262E","font-family":"Arial"}); val.textContent = fmt(d.v,1)+"%";
-    const rot = svgEl("text",{x, y:H-10, "text-anchor":"middle", "font-size":12, fill: atual ? "#283377" : "#6F7582", "font-weight": atual?700:400,"font-family":"Arial"}); rot.textContent = dBR(d.a + dia.slice(4));
+    const rot = svgEl("text",{x, y:H-10, "text-anchor":"middle", "font-size":12, fill: atual ? "#1C3782" : "#6F7582", "font-weight": atual?700:400,"font-family":"Arial"}); rot.textContent = dBR(d.a + dia.slice(4));
     svg.append(r, val, rot);
   });
   host.innerHTML = ""; host.append(svg);
@@ -1089,7 +1154,7 @@ function contornoAceso(svg, alvo, antesDe){
   if (!svg) return;
   svg.querySelectorAll(".contorno-aceso").forEach(e => e.remove());
   if (!alvo) return;
-  const c = svgEl("path",{d:alvo.getAttribute("d"), class:"contorno-aceso", fill:"none", stroke:"#283377",
+  const c = svgEl("path",{d:alvo.getAttribute("d"), class:"contorno-aceso", fill:"none", stroke:"#1C3782",
     "stroke-width":1.6, "stroke-linejoin":"round", "pointer-events":"none"});
   const ref = antesDe && svg.querySelector(antesDe);
   if (ref && ref.parentNode === svg) svg.insertBefore(c, ref); else svg.append(c);
@@ -1164,7 +1229,7 @@ function mapaLeaflet(){
 
   const icone = tipo => L.divIcon({className:"", iconSize:[12,11], iconAnchor:[6,6], html: tipo==="fio"
     ? `<svg width="10" height="10" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#4A7FB0" stroke="rgba(255,255,255,.8)" stroke-width="1.4"/></svg>`
-    : `<svg width="12" height="11" viewBox="0 0 18 16"><path d="M9 1 L17 15 L1 15 Z" fill="#283377" stroke="rgba(255,255,255,.8)" stroke-width="1.4"/></svg>`});
+    : `<svg width="12" height="11" viewBox="0 0 18 16"><path d="M9 1 L17 15 L1 15 Z" fill="#1C3782" stroke="rgba(255,255,255,.8)" stroke-width="1.4"/></svg>`});
   const grupos = {res: L.layerGroup(), fio: L.layerGroup()};
   const marcadores = [];
   RES.filter(r => r.x!=null).forEach(r => {
@@ -1389,7 +1454,7 @@ function minigraficos(lista, v){
     const x = i => m + i * (W - 2*m) / (s.length - 1), y = val => hi > lo ? H - m - (val - lo) * k : H / 2;
     const d = s.map((val, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(val).toFixed(1)}`).join("");
     const dec = v==="cota" ? 2 : v==="vu" ? 1 : 0;
-    host.innerHTML = `<svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${d}" fill="none" stroke="#283377" stroke-width="1.4" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><circle cx="${x(s.length-1).toFixed(1)}" cy="${y(s[s.length-1]).toFixed(1)}" r="2.2" fill="#283377"/></svg>`;
+    host.innerHTML = `<svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${d}" fill="none" stroke="#1C3782" stroke-width="1.4" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><circle cx="${x(s.length-1).toFixed(1)}" cy="${y(s[s.length-1]).toFixed(1)}" r="2.2" fill="#1C3782"/></svg>`;
     host.title = `${ate[0].data.slice(8,10)}/${ate[0].data.slice(5,7)} a ${dBR(r.dia)}: mínimo ${fmt(lo,dec)}, máximo ${fmt(hi,dec)} ${UNID_MINI[v]}`;
   });
 }
@@ -1402,7 +1467,7 @@ function mapaGrande(host, G){
   claro.addTo(mapa);
   mapa.createPane("merge").style.zIndex = 350; // células de chuva abaixo dos vetores (400) e dos marcadores
   const gb = D.geo.bacias.find(g => g.bacia==="GRANDE");
-  const estilo = sat => ({color: sat ? "#FFFFFF" : "#283377", weight:2.2, fill:false});
+  const estilo = sat => ({color: sat ? "#FFFFFF" : "#1C3782", weight:2.2, fill:false});
   const bacia = L.geoJSON({type:"Feature", geometry:{type:"MultiPolygon", coordinates:gb.aneis.map(a => [a])}}, {style:estilo(false), interactive:false}).addTo(mapa);
   const ufs = L.geoJSON({type:"FeatureCollection", features: D.geo.ufs.map(g => ({type:"Feature", geometry:{type:"MultiPolygon", coordinates:g.aneis.map(a => [a])}}))},
     {style:{color:"#fff", weight:.8, opacity:.6, fill:false}, interactive:false}).addTo(mapa);
@@ -1411,11 +1476,11 @@ function mapaGrande(host, G){
   bacia.bringToFront();
   mapa.fitBounds(bacia.getBounds(), {padding:[10,10]});
   mapa.on("baselayerchange", e => { const sat = e.name==="Satélite"; bacia.setStyle(estilo(sat)); ufs.setStyle({color: sat ? "#fff" : "#666"}); rios.setStyle({color: sat ? "#8FC4F2" : "#5F8FC0"}); host.classList.toggle("sat", sat); bacia.bringToFront(); });
-  claro.on("tileerror", () => { if (!host.dataset.aviso){ host.dataset.aviso = 1; bacia.setStyle({fill:true, fillColor:"#CFDDEC", fillOpacity:.6, color:"#283377"}); host.insertAdjacentHTML("afterend", '<p class="nota">Mapa-base não carregou neste ambiente: exibindo só o contorno da bacia.</p>'); } });
+  claro.on("tileerror", () => { if (!host.dataset.aviso){ host.dataset.aviso = 1; bacia.setStyle({fill:true, fillColor:"#CFDDEC", fillOpacity:.6, color:"#1C3782"}); host.insertAdjacentHTML("afterend", '<p class="nota">Mapa-base não carregou neste ambiente: exibindo só o contorno da bacia.</p>'); } });
 
   const icone = tipo => L.divIcon({className:"usina", iconSize:[18,16], iconAnchor:[9,8], html: tipo==="fio"
     ? `<svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="#4A7FB0" stroke="#fff" stroke-width="1.4"/></svg>`
-    : `<svg width="18" height="16" viewBox="0 0 18 16"><path d="M9 1 L17 15 L1 15 Z" fill="#283377" stroke="#fff" stroke-width="1.4"/></svg>`});
+    : `<svg width="18" height="16" viewBox="0 0 18 16"><path d="M9 1 L17 15 L1 15 Z" fill="#1C3782" stroke="#fff" stroke-width="1.4"/></svg>`});
   const marc = {};
   G.res.forEach(r => {
     const m = L.marker([r.lat, r.lon], {icon: icone(r.tipo), zIndexOffset: r.tipo==="res" ? 500 : 0}).addTo(mapa);
@@ -1492,20 +1557,20 @@ function diagramaGrande(host, lista){
   svg.append(svgEl("path",{d:`M${W-mD+36} ${yR} H${mE-44}`, stroke:"#C3CFDD","stroke-width":7,"stroke-linecap":"round",fill:"none"}));
   const xPd = k => xJ + 60 + (pardo.length-1-k)*120;
   svg.append(svgEl("path",{d:`M${xPd(0)+70} ${yP} H${xJ+26} Q${xJ} ${yP} ${xJ} ${yP-26} V${yR}`, stroke:"#C3CFDD","stroke-width":5,"stroke-linecap":"round",fill:"none"}));
-  t(W-10, yR-46, "rio Grande", {"text-anchor":"end", fill:"#283377","font-size":13,"font-style":"italic"});
+  t(W-10, yR-46, "rio Grande", {"text-anchor":"end", fill:"#1C3782","font-size":13,"font-style":"italic"});
   t(8, 18, `Dados de ${dBR(lista[0].dia || D.data)} · base diária`, {"text-anchor":"start", fill:"#6E788C","font-size":12.5});
   t(8, yR-14, "rio Paraná", {"text-anchor":"start", fill:"#6E788C","font-size":12.5,"font-style":"italic"});
-  t(xPd(0)+74, yP+4, "rio Pardo", {"text-anchor":"start", fill:"#283377","font-size":13,"font-style":"italic"});
+  t(xPd(0)+74, yP+4, "rio Pardo", {"text-anchor":"start", fill:"#1C3782","font-size":13,"font-style":"italic"});
   for (let k=0;k<principal.length-1;k++){ // setas do sentido do escoamento
-    const x = (xDe(k)+xDe(k+1))/2; svg.append(svgEl("path",{d:`M${x+4} ${yR-4} L${x-3} ${yR} L${x+4} ${yR+4}`, stroke:"#283377","stroke-width":1.4, fill:"none", opacity:.55}));
+    const x = (xDe(k)+xDe(k+1))/2; svg.append(svgEl("path",{d:`M${x+4} ${yR-4} L${x-3} ${yR} L${x+4} ${yR+4}`, stroke:"#1C3782","stroke-width":1.4, fill:"none", opacity:.55}));
   }
   const no = (r, x, y) => {
     const g = svgEl("g",{class:"no-diag", transform:`translate(${x} ${y})`}); g.dataset.usina = r.nome;
     if (r.tipo==="fio") g.append(svgEl("circle",{r:10, fill:"#4A7FB0", stroke:"#fff","stroke-width":2}));
-    else g.append(svgEl("path",{d:"M14 0 L-10 -13 L-10 13 Z", fill:"#283377", stroke:"#fff","stroke-width":2,"stroke-linejoin":"round"})); // ponta para montante (direita)
+    else g.append(svgEl("path",{d:"M14 0 L-10 -13 L-10 13 Z", fill:"#1C3782", stroke:"#fff","stroke-width":2,"stroke-linejoin":"round"})); // ponta para montante (direita)
     svg.append(g);
     t(x, y-22, fint(r.defl), {fill:"#1B2336","font-size":12.5,"font-family":"Arial"});
-    t(x, y+30, caso(r.nome), {fill:"#283377","font-weight":700});
+    t(x, y+30, caso(r.nome), {fill:"#1C3782","font-weight":700});
     if (r.tipo!=="fio") t(x, y+45, `VU ${fmt(r.vu,0)}%`, {fill:"#4A7FB0","font-weight":700});
     g.addEventListener("pointerenter", () => destacaUsina(r.nome));
     g.addEventListener("pointerleave", () => destacaUsina(null));
@@ -1527,26 +1592,26 @@ function diagramaGrandeVertical(host, lista){
   const svg = svgEl("svg",{class:"vert", viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":"Diagrama esquemático da cascata do rio Grande e do rio Pardo, da cabeceira (em cima) à foz (embaixo)"});
   const t = (x, yy, txt, at={}) => { const e = svgEl("text",{x, y:yy, "font-family":"Arial Narrow, Arial", "font-size":12.5, fill:"#44506A", ...at}); e.textContent = txt; svg.append(e); return e; };
   t(0, 16, `Dados de ${dBR(lista[0].dia || D.data)} · base diária`, {fill:"#6E788C"});
-  t(xR, topo-34, "rio Grande", {"text-anchor":"middle", fill:"#283377", "font-size":13, "font-style":"italic"});
+  t(xR, topo-34, "rio Grande", {"text-anchor":"middle", fill:"#1C3782", "font-size":13, "font-style":"italic"});
   svg.append(svgEl("path",{d:`M${xR} ${topo-22} V${H-26}`, stroke:"#C3CFDD", "stroke-width":7, "stroke-linecap":"round", fill:"none"}));
   svg.append(svgEl("path",{d:`M${xP} ${y(iP0)-22} V${yJ-14} Q${xP} ${yJ} ${xP-14} ${yJ} H${xR}`, stroke:"#C3CFDD", "stroke-width":5, "stroke-linecap":"round", fill:"none"}));
-  t(xP+12, y(iP0)-26, "rio Pardo", {fill:"#283377", "font-size":13, "font-style":"italic"});
+  t(xP+12, y(iP0)-26, "rio Pardo", {fill:"#1C3782", "font-size":13, "font-style":"italic"});
   t(xR, H-6, "rio Paraná", {"text-anchor":"middle", fill:"#6E788C", "font-style":"italic"});
   // setas do escoamento no rio Grande, entre usinas consecutivas do eixo principal
   const yPrinc = linhas.map((l, i) => l.ramo ? null : y(i)).filter(v => v!=null);
   for (let k = 0; k < yPrinc.length-1; k++){
     const ym = (yPrinc[k] + yPrinc[k+1]) / 2;
     if (yPrinc[k+1] - yPrinc[k] > passo + folga) continue;          // trecho em que o Pardo corre ao lado: sem seta
-    svg.append(svgEl("path",{d:`M${xR-4} ${ym-3} L${xR} ${ym+4} L${xR+4} ${ym-3}`, stroke:"#283377", "stroke-width":1.4, fill:"none", opacity:.55}));
+    svg.append(svgEl("path",{d:`M${xR-4} ${ym-3} L${xR} ${ym+4} L${xR+4} ${ym-3}`, stroke:"#1C3782", "stroke-width":1.4, fill:"none", opacity:.55}));
   }
   linhas.forEach(({r, ramo}, i) => {
     const x = ramo ? xP : xR, yy = y(i);
     const g = svgEl("g",{class:"no-diag", transform:`translate(${x} ${yy})`}); g.dataset.usina = r.nome;
     if (r.tipo==="fio") g.append(svgEl("circle",{r:10, fill:"#4A7FB0", stroke:"#fff", "stroke-width":2}));
-    else g.append(svgEl("path",{d:"M0 -14 L-13 10 L13 10 Z", fill:"#283377", stroke:"#fff", "stroke-width":2, "stroke-linejoin":"round"})); // ponta para montante (cima)
+    else g.append(svgEl("path",{d:"M0 -14 L-13 10 L13 10 Z", fill:"#1C3782", stroke:"#fff", "stroke-width":2, "stroke-linejoin":"round"})); // ponta para montante (cima)
     svg.append(g);
     const xt = (ramo ? xP : Math.max(xR, xP)) + 24;
-    t(xt, yy-2, caso(r.nome), {fill:"#283377", "font-weight":700, "font-size":13.5});
+    t(xt, yy-2, caso(r.nome), {fill:"#1C3782", "font-weight":700, "font-size":13.5});
     t(xt, yy+14, (r.tipo!=="fio" ? `VU ${fmt(r.vu,0)}% · ` : "") + `defluente ${fint(r.defl)} m³/s`, {fill:"#44506A", "font-family":"Arial", "font-size":11.5});
     g.addEventListener("pointerenter", () => destacaUsina(r.nome));
     g.addEventListener("pointerleave", () => destacaUsina(null));
@@ -1563,7 +1628,7 @@ window.addEventListener("resize", () => {
 });
 
 /* ============================================================ ficha do reservatório (Furnas) */
-const VARS = {afl:{r:"Afluente", u:"m³/s", cor:"#283377", dec:0}, defl:{r:"Defluente", u:"m³/s", cor:"#D9822B", dec:0}, turb:{r:"Turbinada", u:"m³/s", cor:"#2E9E6B", dec:0},
+const VARS = {afl:{r:"Afluente", u:"m³/s", cor:"#1C3782", dec:0}, defl:{r:"Defluente", u:"m³/s", cor:"#D9822B", dec:0}, turb:{r:"Turbinada", u:"m³/s", cor:"#2E9E6B", dec:0},
               vert:{r:"Vertida", u:"m³/s", cor:"#C0392B", dec:0}, nat:{r:"Vazão natural", u:"m³/s", cor:"#7B8794", dec:0, tracejado:true},
               cota:{r:"Nível", u:"m", cor:"#17868F", dec:2}, vu:{r:"Volume útil", u:"%", cor:"#17868F", dec:1}};
 const MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
@@ -1792,7 +1857,7 @@ function graficoLinhas(host, S, series, o){
     const tx = svgEl("text",{x:m.l-8,y:Y(v)+4,"text-anchor":"end"}); tx.textContent = fmt(Math.abs(v) < 1e-9 ? 0 : v, passoY < 1 ? 2 : 0); eixo.append(tx);
   }
   marcasTempo(t0, t1).forEach(mk => { eixo.append(svgEl("line",{x1:X(mk.t),x2:X(mk.t),y1:H-m.b,y2:H-m.b+4,stroke:"#C9CDD4"})); const tx = svgEl("text",{x:X(mk.t),y:H-7,"text-anchor":"middle"}); tx.textContent = mk.txt; eixo.append(tx); });
-  const rot = svgEl("text",{x:m.l, y:16, "font-size":13.5, fill:"#283377", "font-weight":700, "font-family":"Arial"}); rot.textContent = o.rotulo; eixo.append(rot);
+  const rot = svgEl("text",{x:m.l, y:16, "font-size":13.5, fill:"#1C3782", "font-weight":700, "font-family":"Arial"}); rot.textContent = o.rotulo; eixo.append(rot);
   svg.append(eixo);
   series.forEach(s => {
     let d = "", pen = false;
@@ -1837,14 +1902,14 @@ function graficoMesmoDia(){
   const eixo = svgEl("g",{class:"eixo"}); const passoY = niceStep((hi-lo)/5);
   for (let v = Math.ceil(lo/passoY)*passoY; v <= hi; v += passoY){ eixo.append(svgEl("line",{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:"#ECEEF1"})); const tx = svgEl("text",{x:m.l-8,y:Y(v)+4,"text-anchor":"end"}); tx.textContent = fmt(Math.abs(v) < 1e-9 ? 0 : v, passoY < 1 ? 2 : 0); eixo.append(tx); }
   anos.forEach((a,i) => { if (anos.length <= 14 || a%2===0){ const tx = svgEl("text",{x:X(i)+bw/2+(X(1)-X(0)-bw)/2,y:H-8,"text-anchor":"middle"}); tx.textContent = a; eixo.append(tx); } });
-  const rot = svgEl("text",{x:m.l, y:10, "font-size":11.5, fill:"#44506A", "font-weight":700}); rot.textContent = `${V.r} (${V.u}) em ${dBR(ref).slice(0,5)}`; rot.setAttribute("y",16); rot.setAttribute("font-size",13.5); rot.setAttribute("fill","#283377"); eixo.append(rot);
+  const rot = svgEl("text",{x:m.l, y:10, "font-size":11.5, fill:"#44506A", "font-weight":700}); rot.textContent = `${V.r} (${V.u}) em ${dBR(ref).slice(0,5)}`; rot.setAttribute("y",16); rot.setAttribute("font-size",13.5); rot.setAttribute("fill","#1C3782"); eixo.append(rot);
   svg.append(eixo);
   const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true;
   dados.forEach((d,i) => {
     const x = X(i) + (X(1)-X(0)-bw)/2;
     if (d.v==null){ const tx = svgEl("text",{x:x+bw/2, y:Y(lo)-4, "text-anchor":"middle", "font-size":10, fill:"#A3A8B1"}); tx.textContent = "–"; svg.append(tx); return; }
     const escura = d.a===anoAtual || d.a===anoAtual-1;
-    const r = svgEl("rect",{x, y:Math.min(Y(d.v),Y(lo)), width:bw, height:Math.abs(Y(lo)-Y(d.v)), fill: d.a===anoAtual ? "#283377" : d.a===anoAtual-1 ? "#4A7FB0" : "#C9CED6", rx:1});
+    const r = svgEl("rect",{x, y:Math.min(Y(d.v),Y(lo)), width:bw, height:Math.abs(Y(lo)-Y(d.v)), fill: d.a===anoAtual ? "#1C3782" : d.a===anoAtual-1 ? "#4A7FB0" : "#C9CED6", rx:1});
     r.addEventListener("pointerenter", () => { tip.innerHTML = `<b>${dBR(`${d.a}-${mmdd}`)}</b><div class="l"><span>${V.r}</span><span class="num">${fmt(d.v,V.dec)} ${V.u}</span></div>`; tip.hidden = false; const rr = svg.getBoundingClientRect(); tip.style.left = Math.min((x+bw/2)/W*rr.width + 10, rr.width - 160) + "px"; tip.style.top = "6px"; });
     r.addEventListener("pointerleave", () => tip.hidden = true);
     svg.append(r);
@@ -1874,12 +1939,12 @@ function graficoAnos(){
   if (k!=="cota" && lo > 0 && lo < (hi-lo)*.3) lo = 0;
   if (k==="vu"){ lo = 0; hi = Math.max(100, Math.max(...vals)); }
   const X = i => m.l + i*(W-m.l-m.r)/364, Y = v => m.t + (hi-v)/(hi-lo)*(H-m.t-m.b);
-  const cor = a => a===anoAtual ? "#283377" : a===anoAtual-1 ? "#4A7FB0" : "#B9C7D8";
+  const cor = a => a===anoAtual ? "#1C3782" : a===anoAtual-1 ? "#4A7FB0" : "#B9C7D8";
   const svg = svgEl("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":`${V.r} ao longo do ano, ${anos.join(", ")}`});
   const eixo = svgEl("g",{class:"eixo"}); const passoY = niceStep((hi-lo)/5);
   for (let v = Math.ceil(lo/passoY)*passoY; v <= hi; v += passoY){ eixo.append(svgEl("line",{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:"#ECEEF1"})); const tx = svgEl("text",{x:m.l-8,y:Y(v)+4,"text-anchor":"end"}); tx.textContent = fmt(Math.abs(v) < 1e-9 ? 0 : v, passoY < 1 ? 2 : 0); eixo.append(tx); }
   MESES.forEach((mm,q) => { const tx = svgEl("text",{x:X(idx(`2025-${String(q+1).padStart(2,"0")}-15`)),y:H-8,"text-anchor":"middle"}); tx.textContent = mm; eixo.append(tx); });
-  const rot = svgEl("text",{x:m.l, y:10, "font-size":11.5, fill:"#44506A", "font-weight":700}); rot.textContent = `${V.r} (${V.u})`; rot.setAttribute("y",16); rot.setAttribute("font-size",13.5); rot.setAttribute("fill","#283377"); eixo.append(rot);
+  const rot = svgEl("text",{x:m.l, y:10, "font-size":11.5, fill:"#44506A", "font-weight":700}); rot.textContent = `${V.r} (${V.u})`; rot.setAttribute("y",16); rot.setAttribute("font-size",13.5); rot.setAttribute("fill","#1C3782"); eixo.append(rot);
   svg.append(eixo);
   const ordem = anos.slice().sort((a,b) => (a===anoAtual) - (b===anoAtual) || (a===anoAtual-1) - (b===anoAtual-1));
   const fins = [];
@@ -1912,16 +1977,16 @@ function mapaFicha(host, F){
     L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", {maxZoom:18})]);
   const claro = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {attribution:"© OpenStreetMap", maxZoom:18}).addTo(mapa);
   const gb = D.geo.bacias.find(g => g.bacia==="GRANDE");
-  const bacia = L.geoJSON({type:"Feature", geometry:{type:"MultiPolygon", coordinates:gb.aneis.map(a => [a])}}, {style:{color:"#283377", weight:1.6, fill:false}, interactive:false}).addTo(mapa);
+  const bacia = L.geoJSON({type:"Feature", geometry:{type:"MultiPolygon", coordinates:gb.aneis.map(a => [a])}}, {style:{color:"#1C3782", weight:1.6, fill:false}, interactive:false}).addTo(mapa);
   const rios = L.geoJSON({type:"Feature", geometry:{type:"MultiLineString", coordinates:D.geo.rios_grande}}, {style:{color:"#5F8FC0", weight:1.4, opacity:.95}, interactive:false}).addTo(mapa);
-  mapa.on("baselayerchange", e => { const sat = e.name==="Satélite"; bacia.setStyle({color: sat ? "#fff" : "#283377"}); rios.setStyle({color: sat ? "#8FC4F2" : "#5F8FC0"}); host.classList.toggle("sat", sat); });
+  mapa.on("baselayerchange", e => { const sat = e.name==="Satélite"; bacia.setStyle({color: sat ? "#fff" : "#1C3782"}); rios.setStyle({color: sat ? "#8FC4F2" : "#5F8FC0"}); host.classList.toggle("sat", sat); });
   mapa.fitBounds(bacia.getBounds(), {padding:[6,6]});
   const marc = {};
   D.grande.res.forEach(r => {
     const eu = r.nome===F.nome;
     const ic = L.divIcon({className:"usina", iconSize:[18,16], iconAnchor:[9,8], html: r.tipo==="fio"
       ? `<svg width="12" height="12" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="${eu ? "#FFFFFF" : "#4A7FB0"}" stroke="#fff" stroke-width="1.4"/></svg>`
-      : `<svg width="${eu ? 26 : 16}" height="${eu ? 24 : 14}" viewBox="0 0 18 16"><path d="M9 1 L17 15 L1 15 Z" fill="${eu ? "#283377" : "#4A7FB0"}" stroke="#fff" stroke-width="${eu ? 1.8 : 1.2}"/></svg>`});
+      : `<svg width="${eu ? 26 : 16}" height="${eu ? 24 : 14}" viewBox="0 0 18 16"><path d="M9 1 L17 15 L1 15 Z" fill="${eu ? "#1C3782" : "#4A7FB0"}" stroke="#fff" stroke-width="${eu ? 1.8 : 1.2}"/></svg>`});
     const m = L.marker([r.lat, r.lon], {icon: ic, zIndexOffset: eu ? 1000 : 0}).addTo(mapa);
     m.bindTooltip("", {direction:"top", offset:[0,-8], opacity:1});
     if (!eu) m.on("click", () => abrirFicha(r));
@@ -1943,7 +2008,7 @@ function mapaFicha(host, F){
 
 /* ============================================================ página inicial */
 const NE_UFS = new Set(["AL","BA","CE","MA","MG","PB","PE","PI","RN","SE"]), OUTROS_UFS = new Set(["SP","DF","MG"]);
-const COR_MOD = {SIN:"#283377", NE:"#2C90CF", OUTROS:"#D9822B"}; // três cores bem distintas; laranja só como marca de dado, como nas linhas dos gráficos
+const COR_MOD = {SIN:"#1C3782", NE:"#2C90CF", OUTROS:"#D9822B"}; // três cores bem distintas; laranja só como marca de dado, como nas linhas dos gráficos
 // parágrafos do SAR atual com enumerações "(i) ...; (ii) ...; e (iii) ..." viram parágrafo de abertura + lista
 function paragrafo(p){
   const partes = p.split(/\s*\((?:i|ii|iii|iv)\)\s*/);
@@ -2137,7 +2202,7 @@ const dDias = r => r.dias==null ? "sem medição" : r.dias===0 ? "no dia" : r.di
 
 // escala neutra do volume acumulado por estado (o agregado estadual não recebe faixa de alerta)
 const ESC_UF = [{de:0, ate:20, cor:"#E3EAF4"}, {de:20, ate:40, cor:"#BDD0E6"}, {de:40, ate:60, cor:"#8FAFD4"},
-                {de:60, ate:80, cor:"#4A7FB0"}, {de:80, ate:null, cor:"#283377"}];
+                {de:60, ate:80, cor:"#4A7FB0"}, {de:80, ate:null, cor:"#1C3782"}];
 const SEM_COR = "#D8DBE0";
 const corUF = p => p==null ? SEM_COR : (ESC_UF.find(f => p < (f.ate==null ? 1e9 : f.ate)) || ESC_UF[4]).cor;
 const rotEsc = f => f.ate==null ? `${f.de}% ou mais` : f.de===0 ? `menos de ${f.ate}%` : `${f.de} a ${f.ate}%`;
@@ -2185,7 +2250,7 @@ function graficoCalendario(host, pontos, o){
   let lo = Math.min(...vals), hi = Math.max(...vals);
   if (o.pct){ lo = 0; hi = Math.max(100, hi); } else { const p = (hi-lo)*.06||1; lo -= p; hi += p; }
   const X = i => m.l + i*(W-m.l-m.r)/364, Y = v => m.t + (hi-v)/(hi-lo)*(H-m.t-m.b);
-  const cor = a => a===o.anoAtual ? "#283377" : a===o.anoAtual-1 ? "#4A7FB0" : "#B9C7D8";
+  const cor = a => a===o.anoAtual ? "#1C3782" : a===o.anoAtual-1 ? "#4A7FB0" : "#B9C7D8";
   const svg = svgEl("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":o.rotulo});
   const eixo = svgEl("g",{class:"eixo"}), passoY = niceStep((hi-lo)/5);
   for (let v = Math.ceil(lo/passoY)*passoY; v <= hi; v += passoY){
@@ -2193,7 +2258,7 @@ function graficoCalendario(host, pontos, o){
     const tx = svgEl("text",{x:m.l-8,y:Y(v)+4,"text-anchor":"end"}); tx.textContent = fmt(Math.abs(v)<1e-9?0:v, passoY<1?2:0); eixo.append(tx);
   }
   MESES.forEach((mm,q) => { const tx = svgEl("text",{x:X(idx(`2025-${String(q+1).padStart(2,"0")}-15`)),y:H-8,"text-anchor":"middle"}); tx.textContent = mm; eixo.append(tx); });
-  const rot = svgEl("text",{x:m.l, y:16, "font-size":13.5, fill:"#283377", "font-weight":700, "font-family":"Arial"}); rot.textContent = o.rotulo; eixo.append(rot);
+  const rot = svgEl("text",{x:m.l, y:16, "font-size":13.5, fill:"#1C3782", "font-weight":700, "font-family":"Arial"}); rot.textContent = o.rotulo; eixo.append(rot);
   svg.append(eixo);
   (o.linhas || []).forEach(l => {                 // limites horizontais (ex.: faixas de operação do Cantareira)
     svg.append(svgEl("line",{x1:m.l, x2:W-m.r, y1:Y(l.v), y2:Y(l.v), stroke:l.cor, "stroke-width":1, "stroke-dasharray":"5 4", opacity:.9}));
@@ -2252,14 +2317,14 @@ function graficoBarrasAnos(host, dados, o){
     const tx = svgEl("text",{x:m.l-8,y:Y(v)+4,"text-anchor":"end"}); tx.textContent = fmt(v, passoY<1?1:0); eixo.append(tx);
   }
   dados.forEach((d,i) => { if (dados.length <= 14 || d.a%2===0){ const tx = svgEl("text",{x:X(i)+bw/2,y:H-8,"text-anchor":"middle"}); tx.textContent = d.a; eixo.append(tx); } });
-  const rot = svgEl("text",{x:m.l, y:16, "font-size":13.5, fill:"#283377", "font-weight":700, "font-family":"Arial"}); rot.textContent = o.rotulo; eixo.append(rot);
+  const rot = svgEl("text",{x:m.l, y:16, "font-size":13.5, fill:"#1C3782", "font-weight":700, "font-family":"Arial"}); rot.textContent = o.rotulo; eixo.append(rot);
   svg.append(eixo);
   const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true;
   dados.forEach((d,i) => {
     if (d.v==null) return;
     const x = X(i), escura = d.a===o.anoAtual || d.a===o.anoAtual-1;
     const r = svgEl("rect",{x, y:Y(d.v), width:bw, height:Math.max(0, Y(lo)-Y(d.v)), rx:1,
-      fill: d.a===o.anoAtual ? "#283377" : d.a===o.anoAtual-1 ? "#4A7FB0" : "#C9CED6"});
+      fill: d.a===o.anoAtual ? "#1C3782" : d.a===o.anoAtual-1 ? "#4A7FB0" : "#C9CED6"});
     r.addEventListener("pointerenter", () => { tip.innerHTML = `<b>${d.rot || d.a}</b><div class="l"><span>${o.legenda || o.rotulo}</span><span class="num">${fmt(d.v,o.dec)} ${o.unidade}</span></div>`; tip.hidden = false;
       const rr = svg.getBoundingClientRect(); tip.style.left = Math.min((x+bw/2)/W*rr.width+10, rr.width-170)+"px"; tip.style.top = "6px"; });
     r.addEventListener("pointerleave", () => tip.hidden = true);
@@ -2286,13 +2351,13 @@ function barrasFaixas(host, linhas){
   const H = m.t + linhas.length*alturaLinha + m.b;
   const maxN = Math.max(...linhas.map(l => l.n));
   const svg = svgEl("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":"Reservatórios por faixa de volume e sem informação, por estado"});
-  const rot = svgEl("text",{x:0, y:14, "font-size":13.5, fill:"#283377", "font-weight":700, "font-family":"Arial"});
+  const rot = svgEl("text",{x:0, y:14, "font-size":13.5, fill:"#1C3782", "font-weight":700, "font-family":"Arial"});
   rot.textContent = "Reservatórios por situação na data"; svg.append(rot);
   const esc = n => n/maxN*(W-m.l-m.r);
   const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true;
   linhas.forEach((l, i) => {
     const y = m.t + i*alturaLinha;
-    const nm = svgEl("text",{x:m.l-10, y:y+15, "text-anchor":"end", "font-size":12.5, fill:"#283377", "font-family":"Arial"});
+    const nm = svgEl("text",{x:m.l-10, y:y+15, "text-anchor":"end", "font-size":12.5, fill:"#1C3782", "font-family":"Arial"});
     nm.textContent = l.rot; svg.append(nm);
     let x = m.l;
     chaves.forEach(k => {
@@ -2707,7 +2772,7 @@ function graficoMonitoramento(host, hist, rotulo, op = {}){
   const passo = niceStep(topo/4), hi = Math.ceil(topo/passo)*passo;
   const faixa = (W-m.l-m.r)/anos.length, bw = Math.min(12, faixa*.36);
   const Y = v => m.t + (hi-v)/hi*(H-m.t-m.b);
-  const COR = {sar:"#283377", hidro:"#8FAFD4"}, ROT = op.rot || {sar:"com volume", hidro:"com leitura de nível"};
+  const COR = {sar:"#1C3782", hidro:"#8FAFD4"}, ROT = op.rot || {sar:"com volume", hidro:"com leitura de nível"};
   const svg = svgEl("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":rotulo});
   const eixo = svgEl("g",{class:"eixo"});
   for (let v = 0; v <= hi+1e-9; v += passo){
@@ -2716,7 +2781,7 @@ function graficoMonitoramento(host, hist, rotulo, op = {}){
   }
   anos.forEach((a, i) => { if (anos.length <= 14 || a%2===0){ const tx = svgEl("text",{x:m.l+faixa*i+faixa/2, y:H-8, "text-anchor":"middle"}); tx.textContent = a; eixo.append(tx); } });
   svg.append(eixo);
-  const rt = svgEl("text",{x:m.l, y:16, "font-size":13.5, fill:"#283377", "font-weight":700, "font-family":"Arial"}); rt.textContent = rotulo; svg.append(rt);
+  const rt = svgEl("text",{x:m.l, y:16, "font-size":13.5, fill:"#1C3782", "font-weight":700, "font-family":"Arial"}); rt.textContent = rotulo; svg.append(rt);
   let lx = m.l;
   series.forEach(k => {
     svg.append(svgEl("rect",{x:lx, y:31, width:12, height:10, rx:1, fill:COR[k]}));
@@ -2783,8 +2848,8 @@ function miniNE(host, pts, usado, dec, unid){
   let d = "", ant = null;
   P.forEach(([dd, v]) => { d += (ant==null || dd - ant > VAO_MAX ? "M" : "L") + x(dd).toFixed(1) + " " + y(v).toFixed(1); ant = dd; });
   const soltos = P.filter(([dd], i) => (!P[i-1] || dd - P[i-1][0] > VAO_MAX) && (!P[i+1] || P[i+1][0] - dd > VAO_MAX));
-  host.innerHTML = `<svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="#283377" stroke-width="1.4" stroke-linejoin="round"/>` +
-    soltos.map(([dd, v]) => `<circle cx="${x(dd).toFixed(1)}" cy="${y(v).toFixed(1)}" r="1.5" fill="#283377"/>`).join("") +
+  host.innerHTML = `<svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="#1C3782" stroke-width="1.4" stroke-linejoin="round"/>` +
+    soltos.map(([dd, v]) => `<circle cx="${x(dd).toFixed(1)}" cy="${y(v).toFixed(1)}" r="1.5" fill="#1C3782"/>`).join("") +
     (usado ? `<circle cx="${x(usado[0]).toFixed(1)}" cy="${y(usado[1]).toFixed(1)}" r="2.4" fill="#C0392B"/>` : "") + `</svg>`;
   host.title = `${dBR(NEd.serie_de)} a ${dBR(NEd.serie_ate)}: ${P.length} leituras, mínimo ${fmt(lo,dec)} e máximo ${fmt(hi,dec)} ${unid}` + (usado ? `; em vermelho, a leitura usada` : "");
 }
@@ -2977,7 +3042,7 @@ function mapaResNE(host, ufs, op = {}){
   const feicoes = D.geo.ufs.filter(g => lista.includes(g.uf)).map(g => ({type:"Feature", properties:{uf:g.uf},
     geometry:{type:"MultiPolygon", coordinates:g.aneis.map(a => [a])}}));
   const contorno = L.geoJSON({type:"FeatureCollection", features:feicoes},
-    {style:{color:"#283377", weight: lista.length > 1 ? 1.2 : 2, fill:false}, interactive:false}).addTo(mapa);
+    {style:{color:"#1C3782", weight: lista.length > 1 ? 1.2 : 2, fill:false}, interactive:false}).addTo(mapa);
   mapa.fitBounds(contorno.getBounds(), {padding:[10,10]});
   // delimitação do Semiárido (INSA), por baixo dos pontos
   const semi = op.semiarido && NEd.mapa.semiarido_geo ? L.polygon(NEd.mapa.semiarido_geo.map(a => a.map(([x,y]) => [y,x])),
@@ -3157,7 +3222,7 @@ function paginaFichaNE(cod){
     $("#valores-ficha").innerHTML = h;
   }
   const MR = mapaResNE($("#mapa-ficha"), [F.uf], {recolhido:true});
-  const alvoMapa = L.circleMarker([F.lat, F.lon], {radius:15, color:"#283377", weight:2.5, fill:false, interactive:false});
+  const alvoMapa = L.circleMarker([F.lat, F.lon], {radius:15, color:"#1C3782", weight:2.5, fill:false, interactive:false});
   function mapaVizinhos(){
     const salva = dataRef, fora = dataRef < NEd.serie_min || dataRef > NEd.serie_ate;
     if (fora) dataRef = NEd.data;       // a série dos vizinhos embutida no protótipo cobre só os 12 meses do módulo
@@ -3317,7 +3382,7 @@ function regraPeriodo(k, iso){
                : {periodo:"seco", mm12:null, mm34:null, piso:R.piso, art:"Art. 5º, § 6º, II"};
 }
 function mediaMovel(arr, i, n = 15){ const v = arr.slice(Math.max(0, i-n+1), i+1).filter(x => x!=null); return i+1 >= n && v.length >= n-3 ? v.reduce((a,b) => a+b, 0)/v.length : null; }
-const COR_SIS = {cantareira:"#283377", df:"#4A7FB0", rmbh:"#17868F"};
+const COR_SIS = {cantareira:"#1C3782", df:"#4A7FB0", rmbh:"#17868F"};
 const NOME_SIS = {cantareira:"Sistema Cantareira", df:"Distrito Federal", rmbh:"Paraopeba"};
 let refOS = CAN ? CAN.ate : D.data, redesenharOS = null, sisOS = null;
 // a data de referência vale dentro de um sistema; ao trocar de sistema volta ao último dia dele
@@ -3463,7 +3528,7 @@ function paginaCantareira(){
         <thead><tr><th>Posto de controle</th><th class="r">Vazão do dia</th><th class="r">Média móvel de 15 dias</th><th class="r">Mínimo da média móvel, faixas 1 e 2</th><th class="r">Mínimo da média móvel, faixas 3 e 4</th><th class="r">Mínimo da média diária</th><th>Período</th></tr>
         <tr class="unid"><th></th><th class="r">m³/s</th><th class="r">m³/s</th><th class="r">m³/s</th><th class="r">m³/s</th><th class="r">m³/s</th><th></th></tr></thead>
         <tbody id="corpo-pcj"></tbody></table></div>
-      <div class="legenda" style="margin-top:18px"><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#9FB7D3" stroke-width="1.6"/></svg>Vazão diária</span><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#283377" stroke-width="2"/></svg>Média móvel de 15 dias</span><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#C0392B" stroke-width="1.6" stroke-dasharray="5 4"/></svg>Mínimo da média móvel, faixas 1 e 2 (período úmido)</span><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#E8A0A0" stroke-width="1.6" stroke-dasharray="5 4"/></svg>faixas 3 e 4</span><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#E07B00" stroke-width="1.6" stroke-dasharray="5 4"/></svg>Mínimo da média diária</span></div>
+      <div class="legenda" style="margin-top:18px"><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#9FB7D3" stroke-width="1.6"/></svg>Vazão diária</span><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#1C3782" stroke-width="2"/></svg>Média móvel de 15 dias</span><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#C0392B" stroke-width="1.6" stroke-dasharray="5 4"/></svg>Mínimo da média móvel, faixas 1 e 2 (período úmido)</span><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#E8A0A0" stroke-width="1.6" stroke-dasharray="5 4"/></svg>faixas 3 e 4</span><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#E07B00" stroke-width="1.6" stroke-dasharray="5 4"/></svg>Mínimo da média diária</span></div>
       <div class="postos-graf" id="g-pcj" style="margin-top:6px"></div>
       <p class="nota" style="margin:10px 0 0">A média móvel de 15 dias é calculada pelo SAR a partir da vazão diária informada pela SABESP; pela resolução, as vazões de controle são calculadas pelo DAEE e divulgadas em boletim diário. Os mínimos aparecem por faixa porque a faixa que vale no mês é a estabelecida pela ANA e pelo DAEE (Art. 6º); o período úmido ou seco é o do mês da data.</p>
     </section>
@@ -3508,7 +3573,7 @@ function miniOS(host, vals){
   const x = i => m + i/n*(W-2*m), y = v => hi > lo ? H - m - (v-lo)*(H-2*m)/(hi-lo) : H/2;
   let d = "", ant = null; P.forEach(([i,v]) => { d += (ant==null || i-ant > 1 ? "M" : "L") + x(i).toFixed(1) + " " + y(v).toFixed(1); ant = i; });
   const u = P[P.length-1];
-  host.innerHTML = `<svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="#283377" stroke-width="1.4" stroke-linejoin="round"/><circle cx="${x(u[0]).toFixed(1)}" cy="${y(u[1]).toFixed(1)}" r="2.4" fill="#C0392B"/></svg>`;
+  host.innerHTML = `<svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="#1C3782" stroke-width="1.4" stroke-linejoin="round"/><circle cx="${x(u[0]).toFixed(1)}" cy="${y(u[1]).toFixed(1)}" r="2.4" fill="#C0392B"/></svg>`;
   host.title = `12 meses: mínimo ${fmt(lo,1)}% e máximo ${fmt(hi,1)}%; em vermelho, a data de referência`;
 }
 function tabelaCan(ref){
@@ -3526,7 +3591,7 @@ function balancoCan(ref, f0){
   const W = 1000, H = 360, bw = 150, bh = 70, yb = 150, xs = [85, 320, 555, 790];
   const larg = q => q==null ? 1.2 : 1.4 + Math.sqrt(Math.max(0, q))*1.35;
   const svg = svgEl("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":`Balanço de vazões do Sistema Cantareira em ${dBR(ref)}`});
-  const defs = svgEl("defs"); ["#283377","#4A7FB0","#17868F","#8A6A2E"].forEach((c,i) => { const mk = svgEl("marker",{id:`seta${i}`, viewBox:"0 0 10 10", refX:8, refY:5, markerWidth:2.6, markerHeight:2.6, orient:"auto-start-reverse"}); mk.append(svgEl("path",{d:"M0 0L10 5L0 10z", fill:c})); defs.append(mk); }); svg.append(defs);
+  const defs = svgEl("defs"); ["#1C3782","#4A7FB0","#17868F","#8A6A2E"].forEach((c,i) => { const mk = svgEl("marker",{id:`seta${i}`, viewBox:"0 0 10 10", refX:8, refY:5, markerWidth:2.6, markerHeight:2.6, orient:"auto-start-reverse"}); mk.append(svgEl("path",{d:"M0 0L10 5L0 10z", fill:c})); defs.append(mk); }); svg.append(defs);
   const seta = (x1, y1, x2, y2, q, cor, i) => svg.append(svgEl("line",{x1, y1, x2, y2, stroke:cor, "stroke-width":larg(q), "marker-end":`url(#seta${i})`, "stroke-linecap":"butt"}));
   const txt = (x, y, s, o = {}) => { const e = svgEl("text",{x, y, "text-anchor":o.a || "middle", "font-size":o.fs || 12, "font-family":"Arial", fill:o.cor || "#22262E", "font-weight":o.b ? 700 : 400}); e.textContent = s; svg.append(e); return e; };
   const q = v => v==null ? "–" : fmt(v, v < 10 ? 2 : 1);
@@ -3538,18 +3603,18 @@ function balancoCan(ref, f0){
     seta(x - 30, 58, x - 30, yb - 4, detCan(r.qnat, ref), "#4A7FB0", 1);
     txt(x - 36, 52, `natural ${q(detCan(r.qnat, ref))}`, {a:"middle", fs:11.5, cor:"#4A7FB0"});
     // caixa do reservatório
-    svg.append(svgEl("rect",{x:x - bw/2, y:yb, width:bw, height:bh, rx:4, fill:"#fff", stroke:"#283377", "stroke-width":1.4}));
+    svg.append(svgEl("rect",{x:x - bw/2, y:yb, width:bw, height:bh, rx:4, fill:"#fff", stroke:"#1C3782", "stroke-width":1.4}));
     const cheio = Math.max(0, Math.min(1, (p ?? 0)/100));
     svg.append(svgEl("rect",{x:x - bw/2 + 1, y:yb + bh - 1 - (bh-2)*cheio, width:bw - 2, height:(bh-2)*cheio, rx:3, fill:"#CFDDEC"}));
-    txt(x, yb + 26, r.nome, {b:true, cor:"#283377", fs:13});
+    txt(x, yb + 26, r.nome, {b:true, cor:"#1C3782", fs:13});
     txt(x, yb + 48, `${fmt(p,1)}% · ${fmt(detCan(r.vol, ref),1)} hm³`, {fs:12});
     // descarga para jusante
     seta(x + 30, yb + bh + 4, x + 30, H - 56, detCan(r.qjus, ref), "#17868F", 2);
     txt(x + 30, H - 38, `${q(detCan(r.qjus, ref))} para jusante`, {fs:11.5, cor:"#17868F"});
     txt(x + 30, H - 22, rios[k], {fs:11, cor:"#6F7582"});
     // túnel para o próximo
-    if (i < 3){ const tq = V(tuneis[i]); seta(x + bw/2 + 4, yb + bh/2, xs[i+1] - bw/2 - 6, yb + bh/2, tq, "#283377", 0);
-      txt((x + xs[i+1])/2, yb + bh/2 - 12, `Túnel ${tuneis[i].slice(1)} · ${q(tq)}`, {fs:11.5, cor:"#283377"}); }
+    if (i < 3){ const tq = V(tuneis[i]); seta(x + bw/2 + 4, yb + bh/2, xs[i+1] - bw/2 - 6, yb + bh/2, tq, "#1C3782", 0);
+      txt((x + xs[i+1])/2, yb + bh/2 - 12, `Túnel ${tuneis[i].slice(1)} · ${q(tq)}`, {fs:11.5, cor:"#1C3782"}); }
   });
   // transferência do Jaguari (Paraíba do Sul) para o Atibainha
   const tr = V("TransfParaibaDoSul");
@@ -3558,8 +3623,8 @@ function balancoCan(ref, f0){
   txt(xs[2] + 34, 36, `(Paraíba do Sul) ${q(tr)}`, {fs:11.5, cor:"#8A6A2E"});
   // Santa Inês
   const esi = V("ESI");
-  seta(xs[3] + bw/2 + 4, yb + bh/2, W - 8, yb + bh/2, esi, "#283377", 0);
-  txt(W - 8, yb - 12, `Santa Inês ${q(esi)}`, {a:"end", fs:12, cor:"#283377", b:true});
+  seta(xs[3] + bw/2 + 4, yb + bh/2, W - 8, yb + bh/2, esi, "#1C3782", 0);
+  txt(W - 8, yb - 12, `Santa Inês ${q(esi)}`, {a:"end", fs:12, cor:"#1C3782", b:true});
   txt(W - 8, yb + bh + 18, "para a RMSP", {a:"end", fs:11, cor:"#6F7582"});
   $("#c-balanco").innerHTML = ""; $("#c-balanco").append(svg);
   // resumo: retirada do sistema (Art. 1º, § 2º) e Santa Inês no mês contra o limite da faixa
@@ -3595,7 +3660,7 @@ function mesCan(ref){
   const chuva = meses.map(mi => ({rot:rotM(mi), v:agr(CAN.vaz.chuva, mi, true), mlt:CAN.mlt.pmlt[mi] ?? null, parcial: mi===ref.slice(0,7)}));
   const qnat = meses.map(mi => ({rot:rotM(mi), v:agr(CAN.vaz.qnat, mi, false), mlt:CAN.mlt.qmlt[mi] ?? null, parcial: mi===ref.slice(0,7)}));
   graficoMensalMLT($("#g-can-chuva"), chuva, {rotulo:"Chuva acumulada no mês (mm)", unidade:"mm", dec:0, cor:"#4A7FB0"});
-  graficoMensalMLT($("#g-can-qnat"), qnat, {rotulo:"Vazão natural média do mês (m³/s)", unidade:"m³/s", dec:1, cor:"#283377"});
+  graficoMensalMLT($("#g-can-qnat"), qnat, {rotulo:"Vazão natural média do mês (m³/s)", unidade:"m³/s", dec:1, cor:"#1C3782"});
   const c = chuva[11], qn = qnat[11], pc = (a, b) => a==null || !b ? "–" : fmt(a/b*100, 0) + "%";
   $("#c-mes-nota").innerHTML = `No mês da data de referência, até ${dBR(ref)}: chuva de ${fmt(c.v,0)} mm, ${pc(c.v, c.mlt)} da média de longo termo do mês inteiro (${fmt(c.mlt,0)} mm); vazão natural média de ${fmt(qn.v,1)} m³/s, ${pc(qn.v, qn.mlt)} da média de longo termo do mês (${fmt(qn.mlt,1)} m³/s). A SABESP atualiza as médias de longo termo a cada ano; cada mês usa a do próprio ano.`;
 }
@@ -3609,7 +3674,7 @@ function graficoMensalMLT(host, dados, o){
   const eixo = svgEl("g",{class:"eixo"}), passo = niceStep(hi/5);
   for (let v = 0; v <= hi; v += passo){ eixo.append(svgEl("line",{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:"#ECEEF1"})); const tx = svgEl("text",{x:m.l-6,y:Y(v)+4,"text-anchor":"end"}); tx.textContent = fmt(v, passo < 1 ? 1 : 0); eixo.append(tx); }
   dados.forEach((d,i) => { const tx = svgEl("text",{x:X(i)+bw/2, y:H-8, "text-anchor":"middle"}); tx.textContent = d.rot; eixo.append(tx); });
-  const rot = svgEl("text",{x:m.l, y:16, "font-size":13.5, fill:"#283377", "font-weight":700, "font-family":"Arial"}); rot.textContent = o.rotulo; eixo.append(rot);
+  const rot = svgEl("text",{x:m.l, y:16, "font-size":13.5, fill:"#1C3782", "font-weight":700, "font-family":"Arial"}); rot.textContent = o.rotulo; eixo.append(rot);
   const leg = svgEl("g"); leg.append(svgEl("rect",{x:m.l, y:24, width:10, height:8, fill:o.cor})); const l1 = svgEl("text",{x:m.l+14, y:32, "font-size":11, "font-family":"Arial", fill:"#4B5260"}); l1.textContent = "no mês"; leg.append(l1);
   leg.append(svgEl("line",{x1:m.l+70, x2:m.l+86, y1:28, y2:28, stroke:"#C0392B", "stroke-width":2.2})); const l2 = svgEl("text",{x:m.l+90, y:32, "font-size":11, "font-family":"Arial", fill:"#4B5260"}); l2.textContent = "média de longo termo do mês"; leg.append(l2);
   svg.append(eixo, leg);
@@ -3638,7 +3703,7 @@ function pcjCan(ref, f0){
     const S = [];
     for (let i = i0; i <= i1; i++){ const iso = isoMais(CAN.det_de, i), R = regraPeriodo(p.k, iso);
       S.push({t:Date.parse(iso + "T00:00:00Z"), q:p.q[i], mm:mediaMovel(p.q, i), m12:R.mm12, m34:R.mm34, piso:R.piso}); }
-    graficoLinhas(div, S, [{k:"q", r:"Vazão diária", cor:"#9FB7D3", u:"m³/s", dec:2}, {k:"mm", r:"Média móvel de 15 dias", cor:"#283377", u:"m³/s", dec:2},
+    graficoLinhas(div, S, [{k:"q", r:"Vazão diária", cor:"#9FB7D3", u:"m³/s", dec:2}, {k:"mm", r:"Média móvel de 15 dias", cor:"#1C3782", u:"m³/s", dec:2},
       {k:"m12", r:"Mínimo da média móvel, faixas 1 e 2", cor:"#C0392B", u:"m³/s", dec:1, tracejado:true}, {k:"m34", r:"Mínimo da média móvel, faixas 3 e 4", cor:"#E8A0A0", u:"m³/s", dec:1, tracejado:true},
       {k:"piso", r:"Mínimo da média diária", cor:"#E07B00", u:"m³/s", dec:1, tracejado:true}],
       {base:"dia", unidade:"m³/s", altura:190, sync, rotulo:`${p.nome} (${p.codigo}), ${p.rio} · 12 meses até ${dBR(ref)}`});
@@ -3839,7 +3904,7 @@ function paginaFichaOS(cod){
     const S = pontosF(F, niv ? ["cota"] : ["pct","cota"], de, ate);
     if (niv){ graficoLinhas($("#fo-g1"), S, [{k:"cota", r:"Cota", cor:"#17868F", u:"m", dec:2}], {base:"dia", unidade:"m", altura:230, sync, t0, t1, rotulo:"Cota (m)"}); $("#fo-g2").innerHTML = ""; }
     else {
-      graficoLinhas($("#fo-g1"), S, [{k:"pct", r:"Volume", cor:"#283377", u:"%", dec:1}], {base:"dia", unidade:"%", altura:200, sync, t0, t1, escala:[0,100], rotulo:"Volume (%)"});
+      graficoLinhas($("#fo-g1"), S, [{k:"pct", r:"Volume", cor:"#1C3782", u:"%", dec:1}], {base:"dia", unidade:"%", altura:200, sync, t0, t1, escala:[0,100], rotulo:"Volume (%)"});
       graficoLinhas($("#fo-g2"), S, [{k:"cota", r:"Nível", cor:"#17868F", u:"m", dec:2}], {base:"dia", unidade:"m", altura:170, sync, t0, t1, rotulo:"Nível (m)"});
     }
     if (can){
@@ -3847,7 +3912,7 @@ function paginaFichaOS(cod){
       for (let iso = d0; iso <= ate; iso = isoMais(iso, 1)){ const o = {t: Date.parse(iso + "T00:00:00Z"), nat: detCan(RC.qnat, iso), jus: detCan(RC.qjus, iso)};
         o.ent = liga.ent.length ? liga.ent.reduce((a, k) => a + (detCan(CAN.vaz[k], iso) ?? 0), 0) : null; o.sai = liga.sai.reduce((a, k) => a + (detCan(CAN.vaz[k], iso) ?? 0), 0); V.push(o); }
       const SV = [{k:"nat", r:"Afluente natural", cor:"#4A7FB0", u:"m³/s", dec:1}, ...(liga.ent.length ? [{k:"ent", r:`Recebe (${liga.ent.map(k => NOME_VAZ[k]).join(" + ")})`, cor:"#8A6A2E", u:"m³/s", dec:1}] : []),
-        {k:"sai", r:`Envia (${liga.sai.map(k => NOME_VAZ[k]).join(" + ")})`, cor:"#283377", u:"m³/s", dec:1}, {k:"jus", r:"Para jusante", cor:"#17868F", u:"m³/s", dec:2, tracejado:true}];
+        {k:"sai", r:`Envia (${liga.sai.map(k => NOME_VAZ[k]).join(" + ")})`, cor:"#1C3782", u:"m³/s", dec:1}, {k:"jus", r:"Para jusante", cor:"#17868F", u:"m³/s", dec:2, tracejado:true}];
       $("#fo-leg3").innerHTML = SV.map(s => `<span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="${s.cor}" stroke-width="2"${s.tracejado ? ' stroke-dasharray="5 4"' : ""}/></svg>${esc(s.r)}</span>`).join("");
       graficoLinhas($("#fo-g3"), V, SV,
         {base:"dia", unidade:"m³/s", altura:200, sync:{}, t0: Date.parse(d0 + "T00:00:00Z"), t1, rotulo:"Vazões do reservatório (m³/s)"});
@@ -3888,30 +3953,52 @@ function paginaFichaOS(cod){
 /* ============================================================ rotas */
 const DESKTOP = () => window.matchMedia("(min-width:1024px)").matches;
 
-/* Faixa fixa: leva para a barra de seções o contexto (nível abaixo do módulo) e o controle de data da página.
-   Só no desktop; no celular o controle fica no lugar original, abaixo do título. */
-function montarFaixa(){
-  const ind = $(".indice");
-  if (!ind) return;
-  const barra = $(".barra-data");
+/* Barra lateral (desktop): recebe o índice da página (clonado do nav.indice que cada página monta), o contexto
+   do nível abaixo do módulo e o controle de data da página. No celular tudo fica no lugar original. */
+let obsSecoes = null;
+function montarFaixa(novaPagina){
+  const ind = $(".indice"), lat = $(".lateral-indice"), pe = $(".lateral-pe");
+  if (novaPagina) $$(".lateral-pe .barra-data").forEach(b => b.remove());   // controle da página anterior
+  const barra = $("#titulo-pag .barra-data") || $(".barra-data");
+  if (obsSecoes){ obsSecoes.disconnect(); obsSecoes = null; }
   if (!DESKTOP()){
-    if (barra && barra.parentElement === ind) $("#titulo-pag").append(barra);
-    const c = $(".indice .ctx"); if (c) c.remove();
+    if (barra && barra.parentElement === pe) $("#titulo-pag").append(barra);
+    lat.hidden = true; lat.innerHTML = "";
     return;
   }
-  const trilha = $("#titulo-pag .trilha");
-  if (trilha && !$(".indice .ctx")){
-    const elos = $$("a", trilha), atual = (trilha.lastChild.textContent || "").trim();
-    if (elos.length > 1 && atual){                       // há nível abaixo do módulo (estado, bacia, ficha)
-      const pai = elos[elos.length-1];
-      const ctx = document.createElement("span");
-      ctx.className = "ctx";
-      ctx.innerHTML = `<a href="${pai.getAttribute("href")}" title="Voltar para ${esc(pai.textContent)}">‹ ${esc(pai.textContent)}</a><b>${esc(atual)}</b>`;
-      ind.prepend(ctx);
+  lat.innerHTML = "";
+  if (!ind){ lat.hidden = true; }
+  else {
+    let ctx = "";
+    const trilha = $("#titulo-pag .trilha");
+    if (trilha){
+      const elos = $$("a", trilha), atual = (trilha.lastChild.textContent || "").trim();
+      if (elos.length > 1 && atual){                       // há nível abaixo do módulo (estado, bacia, ficha)
+        const pai = elos[elos.length-1];
+        ctx = `<span class="ctx"><a href="${pai.getAttribute("href")}" title="Voltar para ${esc(pai.textContent)}">‹ ${esc(pai.textContent)}</a><b>${esc(atual)}</b></span>`;
+      }
+    }
+    lat.innerHTML = `<span class="rot">Nesta página</span>${ctx}` +
+      $$("a", ind).map((a, i) => `<a href="${a.getAttribute("href")}" data-alvo="${a.dataset.alvo}"><i>${i+1}</i>${esc(a.textContent)}</a>`).join("");
+    const elos = $$("a[data-alvo]", lat);
+    elos.forEach(a => a.onclick = e => { e.preventDefault(); const alvo = document.getElementById(a.dataset.alvo); if (alvo) alvo.scrollIntoView({behavior:"smooth", block:"start"}); });
+    lat.hidden = false;
+    // seção visível marcada no índice
+    const secoes = elos.map(a => document.getElementById(a.dataset.alvo)).filter(Boolean);
+    if ("IntersectionObserver" in window && secoes.length){
+      const marcar = () => {
+        const y = window.scrollY + 120;
+        let atual = secoes[0];
+        secoes.forEach(sec => { if (sec.offsetTop <= y) atual = sec; });
+        elos.forEach(a => a.classList.toggle("ativo", a.dataset.alvo === atual.id));
+      };
+      obsSecoes = new IntersectionObserver(marcar, {rootMargin:"-30% 0px -60% 0px"});
+      secoes.forEach(sec => obsSecoes.observe(sec));
+      window.addEventListener("scroll", marcar, {passive:true});
+      marcar();
     }
   }
-  if (barra && barra.parentElement !== ind) ind.append(barra);
-  mediTopo();
+  if (barra && barra.parentElement !== pe) pe.prepend(barra);
 }
 
 function rota(){
@@ -3925,13 +4012,9 @@ function rota(){
   document.body.classList.toggle("na-inicio", mod === "inicio");
   window.scrollTo(0,0);
   document.body.classList.remove("rolado");
-  montarFaixa();
+  montarFaixa(true);
 }
-function mediTopo(){
-  const hd = $("header.faixa");
-  if (hd && DESKTOP()) document.body.style.setProperty("--topo-h", Math.round(hd.getBoundingClientRect().height) + "px");
-  else document.body.style.removeProperty("--topo-h");
-}
+function mediTopo(){ /* sem faixa fixa no topo desde o tema B2: a navegação está na barra lateral */ }
 window.addEventListener("scroll", () => {
   document.body.classList.toggle("rolado", window.scrollY > 8);
   mediTopo();
