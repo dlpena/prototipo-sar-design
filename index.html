@@ -731,6 +731,9 @@ body.na-inicio main{padding-top:26px}
 .hero-marca .selo{margin-bottom:6px}
 @media (max-width:640px){.hero-marca .logo svg{height:64px}}
 /* área administrativa (#admin) */
+.acesso-adm{margin:-8px 0 10px;text-align:right;font-size:12.5px}
+.acesso-adm a{display:inline-flex;align-items:center;gap:6px;color:var(--apagado);text-decoration:none;padding:4px 8px;border-radius:6px}
+.acesso-adm a:hover{color:var(--ana);background:var(--ana-gelo)}
 .abas-adm{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 4px}
 .abas-adm a{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid var(--linha-forte);background:#fff;color:var(--ana);font-size:13.5px;text-decoration:none}
 .abas-adm a:hover{border-color:var(--ana)}
@@ -2445,6 +2448,7 @@ function paginaInicio(){
   const salvaRef = dataRef; dataRef = NEd.data; const sNE = situacaoNE(); dataRef = salvaRef;   // o NE no dia da última medição, como na página do módulo
   $("#titulo-pag").innerHTML = "";
   $("#conteudo").innerHTML = `
+    <p class="acesso-adm"><a href="#admin"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Acesso restrito · Administração</a></p>
     <section class="hero cartao" aria-labelledby="t-hero">
       <div class="hero-txt">
         <div class="hero-marca"><span class="logo" role="img" aria-label="ANA - Agência Nacional de Águas e Saneamento Básico">${$("header .logo").innerHTML}</span><span class="selo">Protótipo</span></div>
