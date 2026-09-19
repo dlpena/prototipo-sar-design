@@ -911,27 +911,198 @@ function legendaPNG(ctx, linhas, y0){
 }
 const LEG_ANOS = ano => [{r:`${ano} (ano corrente)`, cor:"#1C3782"}, {r:String(ano-1), cor:"#4A7FB0"}, {r:"anos anteriores", cor:"#C9CED6"}];
 
-async function baixarPNG(svgs, nome, titulo, legenda){
+// fonte curta do PNG, pelo módulo da página
+function fontePNG(){
+  const h = location.hash;
+  if (h.startsWith("#outros/cantareira") || /^#outros\/ficha\/2900/.test(h)) return "Fonte: SABESP, dados observados para a ANA; cálculos do SAR/ANA.";
+  if (h.startsWith("#outros") || h.startsWith("#ne")) return "Fonte: SAR/ANA.";
+  return "Fonte: SAR/ANA, com dados do ONS.";
+}
+const hojeBR = () => { const d = new Date(); return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`; };
+// o texto da seção (subtítulo, sem a instrução de uso) entra no PNG e no PDF como subtítulo
+function textoSecao(el){
+  const s = el && el.closest("section"), p = s && s.querySelector("p.sub");
+  if (!p) return "";
+  const c = p.cloneNode(true); c.querySelectorAll(".dica").forEach(d => d.remove());
+  return c.textContent.replace(/\s+/g, " ").trim();
+}
+function tituloSecao(el){
+  const s = el && el.closest("section"), h = s && s.querySelector("h2");
+  if (!h) return "";
+  const c = h.cloneNode(true); c.querySelectorAll("small").forEach(d => d.remove());
+  return c.textContent.replace(/\s+/g, " ").trim();
+}
+function quebrar(ctx, texto, larg){
+  const out = []; let l = "";
+  texto.split(" ").forEach(w => { const t2 = l ? l + " " + w : w; if (ctx.measureText(t2).width > larg && l){ out.push(l); l = w; } else l = t2; });
+  if (l) out.push(l); return out;
+}
+async function baixarPNG(svgs, nome, titulo, legenda, info = {}){
   const lista = svgs.filter(Boolean);
   if (!lista.length){ toast("Nada para exportar nesta seção."); return; }
+  const pagina = ($("#titulo-pag h1") || {}).textContent || "SAR";
+  if (!titulo) titulo = `${pagina} · ${tituloSecao(lista[0])}`;
   const larg = lista.map(s => { const vb = s.viewBox.baseVal; return vb && vb.width ? vb.width : s.clientWidth; });
   const W = Math.max(...larg);
   const alt = lista.map((s, i) => { const vb = s.viewBox.baseVal; return (vb && vb.height ? vb.height : s.clientHeight) * W / larg[i]; });
   const leg = (legenda || []).filter(Boolean);
   const linhasLeg = leg.length ? disporLegenda(document.createElement("canvas").getContext("2d"), leg, 14, W - 14) : [];
-  const topo = titulo ? 34 : 6, cab = topo + (linhasLeg.length ? linhasLeg.length*18 + 6 : 2);
-  const rod = 24, H = cab + alt.reduce((a, b) => a + b, 0) + rod, k = 2;
+  const med = document.createElement("canvas").getContext("2d");
+  med.font = "bold 16px Arial"; const tit = quebrar(med, titulo, W - 28);
+  med.font = "12.5px Arial"; const sub = quebrar(med, info.sub ?? textoSecao(lista[0]), W - 28);
+  med.font = "11px Arial"; const rodTxt = quebrar(med, `${info.fonte || fontePNG()} Gerado em ${hojeBR()}. ${RODAPE}`, W - 28);
+  const topo = 34 + (tit.length - 1)*20 + sub.length*17 + (sub.length ? 4 : 0), cab = topo + (linhasLeg.length ? linhasLeg.length*18 + 6 : 2);
+  const rod = 10 + rodTxt.length*14, H = cab + alt.reduce((a, b) => a + b, 0) + rod, k = 2;
   const cv = document.createElement("canvas"); cv.width = Math.round(W*k); cv.height = Math.round(H*k);
   const ctx = cv.getContext("2d"); ctx.scale(k, k);
   ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
-  if (titulo){ ctx.fillStyle = "#1C3782"; ctx.font = "bold 16px Arial"; ctx.textBaseline = "alphabetic"; ctx.fillText(titulo, 14, 25); }
+  ctx.fillStyle = "#1C3782"; ctx.font = "bold 16px Arial"; ctx.textBaseline = "alphabetic"; tit.forEach((l, i) => ctx.fillText(l, 14, 25 + i*20));
+  ctx.fillStyle = "#3D4B5C"; ctx.font = "12.5px Arial"; sub.forEach((l, i) => ctx.fillText(l, 14, 44 + (tit.length - 1)*20 + i*17));
   if (linhasLeg.length) legendaPNG(ctx, linhasLeg, topo + 11);
   let y = cab;
   for (let i=0;i<lista.length;i++){ const im = await imagemDeSVG(lista[i]); ctx.drawImage(im, 0, y, W, alt[i]); y += alt[i]; }
-  ctx.fillStyle = "#6F7582"; ctx.font = "11px Arial"; ctx.textBaseline = "alphabetic"; ctx.fillText(RODAPE, 14, H - 8);
+  ctx.fillStyle = "#5B6B80"; ctx.font = "11px Arial"; ctx.textBaseline = "alphabetic"; rodTxt.forEach((l, i) => ctx.fillText(l, 14, H - rod + 16 + i*14));
   cv.toBlob(b => { baixarArquivo(b, nome); toast("Imagem gerada. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)"); }, "image/png");
 }
 const AZUL = [40, 51, 119], CINZA = [111, 117, 130], LINHA = [226, 228, 232], TINTA = [34, 38, 46];
+/* ============================================================ padrão de exportação (19/09/2026)
+   mapas: KMZ; tabelas: CSV e PDF; gráficos: PNG e CSV */
+const nCSV = v => v==null || v==="" || (typeof v==="number" && isNaN(v)) ? "" : typeof v==="number" ? String(Math.round(v*10000)/10000).replace(".", ",") : String(v);
+function salvarCSV(cab, linhas, nome){
+  const l = [cab.join(";")].concat(linhas.map(r => r.map(nCSV).join(";")));
+  baixarArquivo(new Blob(["﻿" + l.join("\r\n")], {type:"text/csv;charset=utf-8"}), nome);
+  toast(`CSV com ${linhas.length} linhas gerado. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)`);
+}
+const COL_UNID = {"%":"volume_pct", "m":"cota_m", "hm³":"volume_hm3", "m³/s":"vazao_m3s", "mm":"chuva_mm"};
+// cada gráfico guarda no seu contêiner o que desenhou; o CSV da seção junta os gráficos dela
+const guardaCSV = (host, cab, linhas, rot) => { if (host) host._csv = {cab, linhas, rot}; };
+function baixarCSVGrafico(hosts, nome, rotCol){
+  const H = hosts.filter(h => h && h._csv);
+  if (!H.length){ toast("Nada para exportar nesta seção."); return; }
+  if (H.length===1 && !rotCol){ salvarCSV(H[0]._csv.cab, H[0]._csv.linhas, nome); return; }
+  const cols = [...new Set(H.flatMap(h => h._csv.cab))];
+  salvarCSV([rotCol || "serie", ...cols], H.flatMap(h => h._csv.linhas.map(r => [h._csv.rot || "", ...cols.map(c => { const i = h._csv.cab.indexOf(c); return i < 0 ? "" : r[i]; })])), nome);
+}
+
+// tabela da tela em PDF, no desenho do PDF da bacia do SIN: título, subtítulo com a fonte, cabeçalho em duas linhas
+// (nome e unidade), primeira coluna em negrito, números à direita, minigráficos como imagem e linha de total
+async function pdfTabelaDOM(tabelas, nome, titulo, sub){
+  try { await carregarScript(CDN_JSPDF); await carregarScript(CDN_AUTOTABLE); }
+  catch (e){ toast("Não foi possível carregar a biblioteca de PDF (rede bloqueada neste ambiente)."); return; }
+  const T = tabelas.filter(Boolean), t0 = T[0];
+  const limpa = s => s.replace(/­/g, "").replace(/[ \t]+/g, " ").trim();
+  const txtTh = th => { const c = th.cloneNode(true); c.querySelectorAll("select").forEach(s => s.remove()); return limpa(c.textContent); };
+  const ths = [...t0.tHead.rows[0].cells], un = t0.tHead.querySelector("tr.unid");
+  const mini = ths.map(th => th.classList.contains("mini-th")), dir = ths.map(th => th.classList.contains("r"));
+  const txtTd = td => limpa((td.innerText || td.textContent).split("\n").map(s => s.trim()).filter(Boolean).join("\n"));
+  const linhas = T.flatMap(t => [...t.tBodies].flatMap(b => [...b.rows])).filter(tr => tr.cells.length===ths.length && !tr.hidden);
+  const pes = T.flatMap(t => t.tFoot ? [...t.tFoot.rows] : []).filter(tr => tr.cells.length===ths.length);
+  const imgs = {};
+  for (let i = 0; i < linhas.length; i++) for (let j = 0; j < ths.length; j++){
+    const svg = mini[j] && linhas[i].cells[j].querySelector("svg"); if (!svg) continue;
+    const im = await imagemDeSVG(svg), k = 3, cv = document.createElement("canvas"); cv.width = 132*k; cv.height = 30*k;
+    const ctx = cv.getContext("2d"); ctx.scale(k, k); ctx.drawImage(im, 0, 0, 132, 30); imgs[i + "_" + j] = cv.toDataURL("image/png"); }
+  const doc = new window.jspdf.jsPDF({orientation:"landscape", unit:"pt", format:"a4", compress:true});
+  const larg = doc.internal.pageSize.getWidth(), alt = doc.internal.pageSize.getHeight();
+  doc.setFont("helvetica", "bold"); doc.setFontSize(15); doc.setTextColor(...AZUL); doc.text(titulo, 40, 46);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(...CINZA);
+  const subL = doc.splitTextToSize(`${sub} ${fontePNG()} Gerado em ${hojeBR()}.`, larg - 80); doc.text(subL, 40, 61);
+  doc.autoTable({
+    startY: 70 + subL.length*11, theme:"plain", margin:{left:40, right:40},
+    head: [ths.map(txtTh), un ? [...un.cells].map(c => limpa(c.textContent)) : ths.map(() => "")],
+    body: linhas.map(tr => [...tr.cells].map((td, j) => mini[j] ? "" : txtTd(td))),
+    foot: pes.map(tr => [...tr.cells].map((td, j) => mini[j] ? "" : txtTd(td))),
+    showFoot: "lastPage",
+    styles:{font:"helvetica", fontSize:9.5, textColor:TINTA, cellPadding:{top:6, right:6, bottom:6, left:6}, valign:"middle"},
+    headStyles:{fontStyle:"bold", textColor:AZUL}, footStyles:{fontStyle:"bold", textColor:AZUL},
+    didParseCell: d => {
+      const j = d.column.index;
+      d.cell.styles.halign = dir[j] ? "right" : "left";
+      if (j===0 && d.section==="body"){ d.cell.styles.fontStyle = "bold"; d.cell.styles.textColor = AZUL; }
+      if (mini[j]) d.cell.styles.cellWidth = 150;
+      if (d.section==="head" && d.row.index===0) d.cell.styles.cellPadding = {top:6, right:6, bottom:1, left:6};
+      if (d.section==="head" && d.row.index===1){ d.cell.styles.fontStyle = "normal"; d.cell.styles.fontSize = 8; d.cell.styles.textColor = CINZA; d.cell.styles.cellPadding = {top:0, right:6, bottom:5, left:6}; }
+    },
+    didDrawCell: d => {
+      const {x, y, width, height} = d.cell;
+      if (d.section==="head" && d.row.index===1){ doc.setDrawColor(...AZUL); doc.setLineWidth(1.4); doc.line(x, y+height, x+width, y+height); }
+      if (d.section==="foot" && d.row.index===0){ doc.setDrawColor(...AZUL); doc.setLineWidth(1.4); doc.line(x, y, x+width, y); }
+      if (d.section!=="body") return;
+      doc.setDrawColor(...LINHA); doc.setLineWidth(.6); doc.line(x, y+height, x+width, y+height);
+      const im = imgs[d.row.index + "_" + d.column.index];
+      if (im) doc.addImage(im, "PNG", x+6, y+(height-19)/2, Math.min(width-12, 138), 19, undefined, "FAST");
+    },
+  });
+  doc.setFontSize(8); doc.setTextColor(...CINZA); doc.text(RODAPE, 40, alt - 22);
+  doc.save(nome);
+  toast("PDF gerado. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)");
+}
+// PDF da tabela de uma seção: título e subtítulo saem da página e da seção
+const pdfSecao = (tabelas, nome) => { const t0 = tabelas.find(Boolean);
+  return pdfTabelaDOM(tabelas, nome, `${($("#titulo-pag h1") || {}).textContent || "SAR"} · ${tituloSecao(t0)}`, textoSecao(t0)); };
+
+// ---- KMZ no padrão do projeto mapa-reservatorios (github.com/dlpena/mapa-reservatorios): legenda.png fixa no canto
+// da tela (ScreenOverlay) e a mesma legenda na descrição do documento; ícones PNG com a forma e a cor do mapa da página.
+// A legenda é a de cada mapa: {titulo, grupos:[{titulo, itens:[{r, cor, forma}]}]}; forma: circulo, triangulo, sobe,
+// desce, est (losango), area, linha
+const xk = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const abgr = (c, a = "ff") => a + c.slice(5,7) + c.slice(3,5) + c.slice(1,3);
+const FORMA_KMZ = {triangulo:"M7 1.2 L13 12.4 L1 12.4 Z", sobe:ICO_NV_K("sobe"), desce:ICO_NV_K("desce"), est:ICO_NV_K("est")};
+function ICO_NV_K(k){ return {sobe:"M7 1.5 L12.5 11.5 L1.5 11.5 Z", desce:"M1.5 2.5 L12.5 2.5 L7 12.5 Z", est:"M7 1.2 L12.8 7 L7 12.8 L1.2 7 Z"}[k]; }
+function desenhaForma(ctx, forma, cor, x, y, tam){      // (x, y) canto superior esquerdo de uma caixa tam × tam
+  const s = tam/14; ctx.save(); ctx.translate(x, y); ctx.fillStyle = cor; ctx.strokeStyle = "rgba(255,255,255,.95)";
+  if (forma==="circulo"){ ctx.beginPath(); ctx.arc(tam/2, tam/2, tam/2 - 1.2*s, 0, 6.2832); ctx.lineWidth = 1.4*s; ctx.fill(); ctx.stroke(); }
+  else if (forma==="area"){ ctx.fillRect(1, 2, tam - 2, tam - 4); ctx.strokeStyle = "#8A97A8"; ctx.lineWidth = 1; ctx.strokeRect(1, 2, tam - 2, tam - 4); }
+  else if (forma==="linha"){ ctx.strokeStyle = cor; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, tam/2); ctx.lineTo(tam, tam/2); ctx.stroke(); }
+  else { ctx.scale(s, s); const p = new Path2D(FORMA_KMZ[forma]); ctx.lineWidth = 1.2; ctx.fill(p); ctx.stroke(p); }
+  ctx.restore();
+}
+const blobDe = cv => new Promise(ok => cv.toBlob(ok, "image/png"));
+async function iconeKMZ(forma, cor){ const cv = document.createElement("canvas"); cv.width = cv.height = 32; desenhaForma(cv.getContext("2d"), forma, cor, 2, 2, 28); return blobDe(cv); }
+async function legendaKMZ(leg){
+  const F = '"Segoe UI", Arial, sans-serif', pad = 12, lh = 19, e = 2, med = document.createElement("canvas").getContext("2d");
+  med.font = "bold 13px " + F; let w = Math.max(med.measureText(leg.titulo).width, ...leg.grupos.map(g => g.titulo ? med.measureText(g.titulo).width : 0));
+  med.font = "12px " + F; leg.grupos.forEach(g => g.itens.forEach(it => { w = Math.max(w, 20 + med.measureText(it.r).width); }));
+  const W = Math.ceil(w + pad*2), H = pad + 18 + leg.grupos.reduce((a, g) => a + (g.titulo ? 22 : 6) + g.itens.length*lh, 0) + 4;
+  const cv = document.createElement("canvas"); cv.width = W*e; cv.height = H*e;
+  const ctx = cv.getContext("2d"); ctx.scale(e, e);
+  ctx.fillStyle = "rgba(255,255,255,.95)"; ctx.strokeStyle = "#999"; ctx.beginPath(); ctx.roundRect(.5, .5, W - 1, H - 1, 8); ctx.fill(); ctx.stroke();
+  ctx.textBaseline = "alphabetic"; let y = pad + 12;
+  ctx.fillStyle = "#1C3782"; ctx.font = "bold 13px " + F; ctx.fillText(leg.titulo, pad, y); y += 6;
+  leg.grupos.forEach(g => {
+    if (g.titulo){ y += 20; ctx.fillStyle = "#111"; ctx.font = "bold 12px " + F; ctx.fillText(g.titulo, pad, y); }
+    ctx.font = "12px " + F;
+    g.itens.forEach((it, i) => { y += (i || g.titulo ? lh : lh - 2); desenhaForma(ctx, it.forma, it.cor, pad, y - 11, 13); ctx.fillStyle = "#111"; ctx.fillText(it.r, pad + 20, y); });
+  });
+  return {blob: await blobDe(cv), w: W, h: H};
+}
+const legendaHTMLKMZ = leg => `<b>${xk(leg.titulo)}</b>` + leg.grupos.map(g => (g.titulo ? `<br/><b>${xk(g.titulo)}</b>` : "") +
+  g.itens.map(it => `<div style="margin:2px 0"><span style="display:inline-block;width:12px;height:12px;background:${it.cor};border:1px solid #888;margin-right:6px"></span>${xk(it.r)}</div>`).join("")).join("");
+// estilos: {id: {forma, cor}} para pontos; {id: {linha, preench, opac}} para polígonos e linhas
+async function montarKMZ({arquivo, nome, descricao, legenda, estilos, corpo, n}){
+  const zip = new JSZip(), leg = await legendaKMZ(legenda);
+  let est = "";
+  for (const [id, s] of Object.entries(estilos)){
+    if (s.forma){ zip.file(`icone_${id}.png`, await iconeKMZ(s.forma, s.cor));
+      est += `<Style id="${id}"><IconStyle><scale>${s.escala || .8}</scale><Icon><href>icone_${id}.png</href></Icon><hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/></IconStyle><LabelStyle><scale>0</scale></LabelStyle></Style>`; }
+    else est += `<Style id="${id}"><LineStyle><color>${abgr(s.linha || "#1C3782")}</color><width>${s.largura || 1.5}</width></LineStyle><PolyStyle>${s.preench ? `<color>${abgr(s.preench, s.opac || "b3")}</color>` : "<fill>0</fill>"}</PolyStyle></Style>`;
+  }
+  const overlay = `<ScreenOverlay><name>Legenda</name><Icon><href>legenda.png</href></Icon><overlayXY x="0" y="0" xunits="fraction" yunits="fraction"/>` +
+    `<screenXY x="0.01" y="0.02" xunits="fraction" yunits="fraction"/><size x="${leg.w}" y="${leg.h}" xunits="pixels" yunits="pixels"/></ScreenOverlay>`;
+  const kml = `<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>${xk(nome)}</name>` +
+    `<description><![CDATA[${descricao}<br/><br/>${legendaHTMLKMZ(legenda)}<br/><br/>${fontePNG()} Gerado em ${hojeBR()}.]]></description>${est}${overlay}${corpo}</Document></kml>`;
+  zip.file("doc.kml", kml); zip.file("legenda.png", leg.blob);
+  baixarArquivo(await zip.generateAsync({type:"blob", mimeType:"application/vnd.google-earth.kmz"}), arquivo);
+  toast(`KMZ${n ? ` com ${n} elementos` : ""} gerado, com a legenda. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)`);
+}
+const poligonoKML = aneis => `<MultiGeometry>${aneis.map(a => `<Polygon><outerBoundaryIs><LinearRing><coordinates>${a.map(p => `${p[0]},${p[1]},0`).join(" ")}</coordinates></LinearRing></outerBoundaryIs></Polygon>`).join("")}</MultiGeometry>`;
+const pontoKML = (nome, estilo, desc, lon, lat) => `<Placemark><name>${xk(nome)}</name><styleUrl>#${estilo}</styleUrl><description><![CDATA[${desc}]]></description><Point><coordinates>${lon},${lat},0</coordinates></Point></Placemark>`;
+const pastaKML = (nome, conteudo) => conteudo ? `<Folder><name>${xk(nome)}</name>${conteudo}</Folder>` : "";
+// legendas dos mapas do SIN
+const LEG_USINAS = extra => ({titulo:"Usinas do SIN", grupos:[{itens:[{r:"Usina com reservatório: volume útil (%)", cor:"#1C3782", forma:"triangulo"},
+  {r:"Usina a fio d'água: nível (m)", cor:"#4A7FB0", forma:"circulo"}, ...(extra || [])]}]});
+const EST_USINAS = {res:{forma:"triangulo", cor:"#1C3782", escala:.9}, fio:{forma:"circulo", cor:"#4A7FB0", escala:.75}};
+
 function simboloPDF(doc, tipo, cx, cy){
   if (tipo==="fio"){ doc.setFillColor(74, 127, 176); doc.circle(cx, cy, 3.6, "F"); }
   else { doc.setFillColor(...AZUL); doc.triangle(cx, cy-4.4, cx+4.6, cy+3.4, cx-4.6, cy+3.4, "F"); }
@@ -1022,6 +1193,7 @@ function graficoEquivalente(host){
   const idx = iso => { const t = Date.UTC(2025, +iso.slice(5,7)-1, +iso.slice(8,10)); return Math.round((t - Date.UTC(2025,0,1))/864e5); };
   const serie = {}; anos.forEach(a => serie[a] = Array(365).fill(null));
   Object.entries(S).forEach(([k,v]) => { if (k.slice(5)==="02-29") return; serie[+k.slice(0,4)][idx(k)] = v; });
+  guardaCSV(host, ["data","volume_util_pct"], Object.keys(S).sort().map(k => [dBR(k), S[k]]));
   const W = Math.max(520, host.clientWidth), H = 250, m = {l:40, r:56, t:12, b:26};
   const todos = Object.values(S); let lo = Math.floor(Math.min(...todos)/10)*10, hi = Math.ceil(Math.max(...todos)/10)*10;
   const X = i => m.l + i*(W-m.l-m.r)/364, Y = v => m.t + (hi-v)/(hi-lo)*(H-m.t-m.b);
@@ -1069,6 +1241,7 @@ function graficoBarras(host, dia){
   const S = D.equivalente.serie, anoAtual = +D.equivalente.ultimo_dia.slice(0,4);
   const anos = [...new Set(Object.keys(S).map(k => +k.slice(0,4)))].sort();
   const dados = anos.map(a => ({a, v: S[a + dia.slice(4)]})).filter(d => d.v != null);
+  guardaCSV(host, ["ano","data","volume_util_pct"], dados.map(d => [d.a, dBR(d.a + dia.slice(4)), d.v]));
   const W = Math.max(520, host.clientWidth), H = 240, m = {l:40, r:16, t:28, b:30};
   const hi = 100, Y = v => m.t + (hi - v)/hi*(H-m.t-m.b);
   const faixa = (W-m.l-m.r)/dados.length, larg = Math.min(24, faixa*.5);
@@ -1113,7 +1286,7 @@ function paginaSIN(){
     </nav>
 
     <section class="cartao secao" id="s-bacias" aria-labelledby="t-bacias">
-      ${barraBaixar([["baixar-mapa-sin", "PNG", "Baixar o mapa das bacias como imagem"]])}
+      ${barraBaixar([["baixar-kmz-sin", "KMZ", "Baixar as bacias em KMZ (Google Earth), com a legenda"], ["baixar-bacias-csv", "CSV", "Baixar a tabela das bacias em CSV"], ["baixar-bacias-pdf", "PDF", "Baixar a tabela das bacias em PDF"]])}
       <h2 id="t-bacias"><small>1</small>Bacias</h2>
       <p class="sub">As usinas estão agrupadas em ${ORDEM_BACIAS.length} bacias, segundo a divisão adotada pelo ONS.<span class="dica">Passe o mouse para destacar e clique para abrir a página da bacia.</span></p>
     <div class="explorar">
@@ -1159,14 +1332,14 @@ function paginaSIN(){
     </section>
 
     <section class="cartao secao" id="s-ano" aria-labelledby="t-ano">
-      ${barraBaixar([["baixar-equiv-png", "PNG", "Baixar o gráfico como imagem"]])}
+      ${barraBaixar([["baixar-equiv-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-equiv-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-ano"><small>3</small>Ao longo do ano</h2>
       <p class="sub">O reservatório equivalente dia a dia, com o ano corrente em destaque sobre os quatro anteriores: permite comparar o armazenamento atual com o da mesma época nesses anos e acompanhar o ritmo de enchimento e de deplecionamento.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div class="graf" id="g-equiv"></div>
     </section>
 
     <section class="cartao secao" id="s-dia" aria-labelledby="t-dia">
-      ${barraBaixar([["baixar-barras-png", "PNG", "Baixar o gráfico como imagem"]])}
+      ${barraBaixar([["baixar-barras-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-barras-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-dia"><small>4</small>Mesmo dia em outros anos</h2>
       <p class="sub">O reservatório equivalente na mesma data de cada ano disponível: comparação entre anos sem o efeito da sazonalidade.</p>
       <div class="cab-graf" style="margin-bottom:6px"><span></span><label class="data-ref">Data de referência <input type="date" id="dia-ref" min="${ult.slice(0,4)}-01-01" max="${ult}" value="${ult}"></label></div>
@@ -1187,8 +1360,17 @@ function paginaSIN(){
   $("#dia-ref").addEventListener("change", e => { if (S[e.target.value] != null) graficoBarras($("#g-barras"), e.target.value); });
   mapaSIN($("#mapa-sin"));
   const anoEq = +ult.slice(0,4);
-  $("#baixar-mapa-sin").onclick = () => baixarPNG([$("#mapa-sin svg")], "sar_sin_bacias.png", `Bacias do SIN acompanhadas pelo SAR · ${dBR(D.data)}`,
-    [{r:"bacias acompanhadas", cor:"#CFDDEC", area:true}, {r:"demais áreas do país", cor:"#E9EBEF", area:true}]);
+  const basesBacias = () => ORDEM_BACIAS.map(b => { const l = POR_BACIA(b); return {b, nome:NOME[b], comRes:l.filter(r => r.tipo!=="fio" && r.vu!=null).length, nFio:l.filter(r => r.tipo==="fio").length}; });
+  $("#baixar-kmz-sin").onclick = () => { const B = basesBacias();
+    montarKMZ({arquivo:`sar_sin_bacias_${D.data}.kmz`, nome:`SAR · Bacias do SIN · ${dBR(D.data)}`, n:B.length,
+      descricao:`As ${B.length} bacias do Sistema Interligado Nacional acompanhadas pelo SAR, na divisão adotada pelo ONS, com o número de usinas de cada uma.`,
+      legenda:{titulo:"Bacias do SIN", grupos:[{itens:[{r:"Bacia acompanhada pelo SAR", cor:"#CFDDEC", forma:"area"}]}]},
+      estilos:{bacia:{linha:"#1C3782", preench:"#CFDDEC", opac:"b3"}},
+      corpo:B.map(x => { const g = D.geo.bacias.find(g => g.bacia===x.b); return g ? `<Placemark><name>${xk(x.nome)}</name><styleUrl>#bacia</styleUrl><description><![CDATA[<b>${x.comRes}</b> usinas com reservatório<br/><b>${x.nFio}</b> usinas a fio d'água]]></description>${poligonoKML(g.aneis)}</Placemark>` : ""; }).join("")}); };
+  $("#baixar-bacias-csv").onclick = () => salvarCSV(["bacia","usinas_com_reservatorio","usinas_a_fio_dagua"], basesBacias().map(x => [x.nome, x.comRes, x.nFio]), "sar_sin_bacias.csv");
+  $("#baixar-bacias-pdf").onclick = () => pdfSecao([$("#tab-bacias"), $("#tab-bacias-2")], "sar_sin_bacias.pdf");
+  $("#baixar-equiv-csv").onclick = () => baixarCSVGrafico([$("#g-equiv")], "sar_sin_equivalente.csv");
+  $("#baixar-barras-csv").onclick = () => baixarCSVGrafico([$("#g-barras")], `sar_sin_equivalente_${$("#dia-ref").value}_por_ano.csv`);
   $("#baixar-equiv-png").onclick = () => baixarPNG([$("#g-equiv svg")], "sar_sin_equivalente_ano.png", `Reservatório equivalente do SIN ao longo do ano · até ${dBR(ult)}`, LEG_ANOS(anoEq));
   $("#baixar-barras-png").onclick = () => baixarPNG([$("#g-barras svg")], "sar_sin_equivalente_por_ano.png", `Reservatório equivalente do SIN em ${dBR($("#dia-ref").value)} de cada ano`, LEG_ANOS(anoEq));
   listaBacias();
@@ -1307,19 +1489,11 @@ function mapaLeaflet(){
   // KMZ dos pontos visíveis: pastas por grupo, mesmo conteúdo do popup na descrição
   $("#baixar-kmz").onclick = async () => {
     const vis = marcadores.filter(m => mapa.hasLayer(grupos[m.tipo]));
-    const x = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    const pasta = (nome, lista) => lista.length ? `<Folder><name>${x(nome)}</name>${lista.map(m => { const r = m.r;
-      const val = m.tipo==="res" && r.vu!=null ? `Volume útil: ${fmt(r.vu,1)}%` : `Nível: ${fmt(r.cota,2)} m`;
-      return `<Placemark><name>${x(caso(r.nome))}</name><styleUrl>#${m.tipo}</styleUrl><description><![CDATA[<b>${val}</b><br>Nível: ${fmt(r.cota,2)} m<br>Afluente: ${fint(r.afl)} m³/s<br>Defluente: ${fint(r.defl)} m³/s<br>Bacia: ${NOME[r.bacia]}<br>Estado: ${r.uf||"–"}<br>Data do dado: ${dBR(D.data)}]]></description><Point><coordinates>${r.lon},${r.lat},0</coordinates></Point></Placemark>`; }).join("")}</Folder>` : "";
-    const kml = `<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>SAR · SIN · ${dBR(D.data)}</name>` +
-      `<description><![CDATA[Usinas do SIN acompanhadas pelo SAR, dados de ${dBR(D.data)}. Triângulo: usina com reservatório (volume útil %). Círculo: usina a fio d'água (nível m). Fonte: SAR/ANA, dados do ONS.]]></description>` +
-      `<Style id="res"><IconStyle><color>ff773328</color><scale>0.9</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/triangle.png</href></Icon></IconStyle></Style>` +
-      `<Style id="fio"><IconStyle><color>ffb07f4a</color><scale>0.8</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle></Style>` +
-      pasta("SIN - Usinas com reservatório", vis.filter(m => m.tipo==="res")) + pasta("SIN - Usinas a fio d'água", vis.filter(m => m.tipo==="fio")) + `</Document></kml>`;
-    const zip = new JSZip(); zip.file("doc.kml", kml);
-    const blob = await zip.generateAsync({type:"blob", mimeType:"application/vnd.google-earth.kmz"});
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `sar_sin_${D.data}.kmz`; document.body.append(a); a.click(); a.remove();
-    toast(`KMZ com ${vis.length} usinas gerado. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local do protótipo.)`);
+    const desc = r => `<b>${r.tipo!=="fio" && r.vu!=null ? `Volume útil: ${fmt(r.vu,1)}%` : `Nível: ${fmt(r.cota,2)} m`}</b><br/>Nível: ${fmt(r.cota,2)} m<br/>Afluente: ${fint(r.afl)} m³/s<br/>Defluente: ${fint(r.defl)} m³/s<br/>Bacia: ${NOME[r.bacia]}<br/>Estado: ${r.uf||"–"}<br/>Data do dado: ${dBR(D.data)}`;
+    const pasta = (nome, k) => pastaKML(nome, vis.filter(m => m.tipo===k).map(m => pontoKML(caso(m.r.nome), k, desc(m.r), m.r.lon, m.r.lat)).join(""));
+    await montarKMZ({arquivo:`sar_sin_${D.data}.kmz`, nome:`SAR · Usinas do SIN · ${dBR(D.data)}`, n:vis.length,
+      descricao:`Usinas do SIN acompanhadas pelo SAR, dados de ${dBR(D.data)}.`, legenda:LEG_USINAS(), estilos:EST_USINAS,
+      corpo:pasta("Usinas com reservatório", "res") + pasta("Usinas a fio d'água", "fio")});
   };
 }
 
@@ -1451,22 +1625,14 @@ function baixarCSV(lista){
   toast("CSV da tabela gerado. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local do protótipo.)");
 }
 async function baixarKMZ(lista){
-  const dia = lista[0].dia;
-  const x = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  const pasta = (nome, l) => l.length ? `<Folder><name>${x(nome)}</name>${l.map(r => {
-    const val = r.tipo!=="fio" && r.vu!=null ? `Volume útil: ${fmt(r.vu,1)}%` : `Nível: ${fmt(r.cota,2)} m`;
-    return `<Placemark><name>${x(caso(r.nome))}</name><styleUrl>#${r.tipo==="fio" ? "fio" : "res"}</styleUrl><description><![CDATA[<b>${val}</b><br>Nível: ${fmt(r.cota,2)} m<br>Afluente: ${fint(r.afl)} m³/s<br>Defluente: ${fint(r.defl)} m³/s<br>Turbinada: ${fint(r.turb)} m³/s<br>Vertida: ${fint(r.vert)} m³/s<br>Bacia: Grande<br>Estado: ${r.uf||"–"}<br>Data do dado: ${dBR(dia)}]]></description><Point><coordinates>${r.lon},${r.lat},0</coordinates></Point></Placemark>`; }).join("")}</Folder>` : "";
-  const gb = D.geo.bacias.find(g => g.bacia==="GRANDE");
-  const contorno = `<Placemark><name>Contorno da bacia do Grande</name><styleUrl>#bacia</styleUrl><MultiGeometry>${gb.aneis.map(a => `<Polygon><outerBoundaryIs><LinearRing><coordinates>${a.map(p => `${p[0]},${p[1]},0`).join(" ")}</coordinates></LinearRing></outerBoundaryIs></Polygon>`).join("")}</MultiGeometry></Placemark>`;
-  const kml = `<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>SAR · Bacia do Grande · ${dBR(dia)}</name>` +
-    `<description><![CDATA[Usinas da bacia do Grande acompanhadas pelo SAR, dados de ${dBR(dia)}. Triângulo: usina com reservatório (volume útil %). Círculo: usina a fio d'água (nível m). Fonte: SAR/ANA, dados do ONS.]]></description>` +
-    `<Style id="res"><IconStyle><color>ff773328</color><scale>0.9</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/triangle.png</href></Icon></IconStyle></Style>` +
-    `<Style id="fio"><IconStyle><color>ffb07f4a</color><scale>0.8</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle></Style>` +
-    `<Style id="bacia"><LineStyle><color>ff773328</color><width>2</width></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>` +
-    contorno + pasta("Usinas com reservatório", lista.filter(r => r.tipo!=="fio")) + pasta("Usinas a fio d'água", lista.filter(r => r.tipo==="fio")) + `</Document></kml>`;
-  const zip = new JSZip(); zip.file("doc.kml", kml);
-  baixarArquivo(await zip.generateAsync({type:"blob", mimeType:"application/vnd.google-earth.kmz"}), `sar_grande_${dia}.kmz`);
-  toast(`KMZ com ${lista.length} usinas e o contorno da bacia gerado. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local do protótipo.)`);
+  const dia = lista[0].dia, gb = D.geo.bacias.find(g => g.bacia==="GRANDE");
+  const desc = r => `<b>${r.tipo!=="fio" && r.vu!=null ? `Volume útil: ${fmt(r.vu,1)}%` : `Nível: ${fmt(r.cota,2)} m`}</b><br/>Nível: ${fmt(r.cota,2)} m<br/>Afluente: ${fint(r.afl)} m³/s<br/>Defluente: ${fint(r.defl)} m³/s<br/>Turbinada: ${fint(r.turb)} m³/s<br/>Vertida: ${fint(r.vert)} m³/s<br/>Estado: ${r.uf||"–"}<br/>Data do dado: ${dBR(dia)}`;
+  const pasta = (nome, fio) => pastaKML(nome, lista.filter(r => (r.tipo==="fio")===fio).map(r => pontoKML(caso(r.nome), fio ? "fio" : "res", desc(r), r.lon, r.lat)).join(""));
+  await montarKMZ({arquivo:`sar_grande_${dia}.kmz`, nome:`SAR · Bacia do Grande · ${dBR(dia)}`, n:lista.length,
+    descricao:`Usinas da bacia do Grande acompanhadas pelo SAR, dados de ${dBR(dia)}, e o contorno da bacia.`,
+    legenda:LEG_USINAS([{r:"Contorno da bacia do Grande", cor:"#1C3782", forma:"linha"}]),
+    estilos:{...EST_USINAS, bacia:{linha:"#1C3782", largura:2}},
+    corpo:`<Placemark><name>Contorno da bacia do Grande</name><styleUrl>#bacia</styleUrl>${poligonoKML(gb.aneis)}</Placemark>` + pasta("Usinas com reservatório", false) + pasta("Usinas a fio d'água", true)});
 }
 function destacaUsina(nome){
   $$("[data-usina]").forEach(e => e.classList.toggle("acesa", e.dataset.usina===nome));
@@ -1737,14 +1903,14 @@ function paginaFicha(){
       <p class="nota" id="resumo-graf" style="margin:12px 0 0"></p>
     </section>
     <section class="cartao secao" id="f-dia" aria-labelledby="t-dia">
-      ${barraBaixar([["baixar-dia-png", "PNG", "Baixar o gráfico como imagem"]])}
+      ${barraBaixar([["baixar-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-dia-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-dia"><small>3</small>Mesmo dia em outros anos</h2>
       <p class="sub">O valor na data de referência em cada ano da série diária.<span class="dica">Escolha a variável.</span></p>
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-dia">${["vu","cota"].map(k => `<option value="${k}">${VARS[k].r} (${VARS[k].u})</option>`).join("")}</select></fieldset></div>
       <div class="graf" id="g-dia"></div>
     </section>
     <section class="cartao secao" id="f-ano" aria-labelledby="t-ano">
-      ${barraBaixar([["baixar-ano-png", "PNG", "Baixar o gráfico como imagem"]])}
+      ${barraBaixar([["baixar-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-ano-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-ano"><small>4</small>Ano contra anos anteriores</h2>
       <p class="sub">A série diária de cada ano sobreposta no mesmo calendário. O ano corrente fica em destaque.<span class="dica">Clique nos anos para incluir ou tirar, até ${MAX_ANOS} ao mesmo tempo.</span></p>
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-ano">${["vu","cota"].map(k => `<option value="${k}">${VARS[k].r}${k==="vu" ? " (%)" : " (m)"}</option>`).join("")}</select></fieldset>
@@ -1816,6 +1982,8 @@ function paginaFicha(){
 
   // 3. mesmo dia
   $("#var-dia").onchange = graficoMesmoDia;
+  $("#baixar-dia-csv").onclick = () => baixarCSVGrafico([$("#g-dia")], `sar_furnas_mesmo_dia_${$("#dia-sit").value}.csv`);
+  $("#baixar-ano-csv").onclick = () => baixarCSVGrafico([$("#g-ano")], "sar_furnas_ano_contra_anos.csv");
   $("#baixar-dia-png").onclick = () => baixarPNG([$("#g-dia svg")], `sar_furnas_mesmo_dia_${$("#dia-sit").value}.png`,
     `Furnas · ${VARS[$("#var-dia").value].r} em ${dBR($("#dia-sit").value).slice(0,5)} de cada ano`, LEG_ANOS(+fichaEstado.ult.data.slice(0,4)));
   graficoMesmoDia();
@@ -1941,6 +2109,8 @@ function graficoMesmoDia(){
   const host = $("#g-dia"), DI = fichaEstado.DI, k = $("#var-dia").value, V = VARS[k], ref = $("#dia-sit").value || fichaEstado.ult.data;
   const mmdd = ref.slice(5), anos = [...new Set(DI.map(o => +o.data.slice(0,4)))], anoAtual = +fichaEstado.ult.data.slice(0,4);
   const dados = anos.map(a => ({a, v: (DI.find(o => o.data===`${a}-${mmdd}`)||{})[k] ?? null}));
+  const colV = V.r.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/\W+/g, "_") + "_" + (COL_UNID[V.u] || "").split("_").pop();
+  guardaCSV(host, ["ano","data",colV], dados.map(d => [d.a, dBR(`${d.a}-${mmdd}`), d.v]));
   host.innerHTML = "";
   const W = Math.max(520, host.clientWidth), H = 262, m = {l:62, r:16, t:36, b:26};
   const vals = dados.map(d => d.v).filter(v => v!=null); let lo = 0, hi = Math.max(...vals);
@@ -1980,6 +2150,8 @@ function graficoAnos(){
   const idx = iso => Math.round((Date.UTC(2025, +iso.slice(5,7)-1, +iso.slice(8,10)) - Date.UTC(2025,0,1))/864e5);
   const serie = {}; anos.forEach(a => serie[a] = Array(365).fill(null));
   DI.forEach(o => { const a = +o.data.slice(0,4); if (serie[a] && o.data.slice(5)!=="02-29" && o[k]!=null) serie[a][idx(o.data)] = o[k]; });
+  guardaCSV(host, ["data", V.r.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/\W+/g, "_") + "_" + (COL_UNID[V.u] || "").split("_").pop()],
+    DI.filter(o => anos.includes(+o.data.slice(0,4)) && o[k]!=null).map(o => [dBR(o.data), o[k]]));
   host.innerHTML = "";
   if (!anos.length){ host.innerHTML = '<p class="nota" style="padding:14px 0">Escolha ao menos um ano.</p>'; return; }
   const W = Math.max(520, host.clientWidth), H = 292, m = {l:62, r:54, t:36, b:26};
@@ -2294,6 +2466,8 @@ function graficoCalendario(host, pontos, o){
   const maxVao = o.maxVao || 40, tol = o.tol || 8;
   const serie = {}; anos.forEach(a => serie[a] = Array(365).fill(null));
   Object.entries(pontos).forEach(([iso, v]) => { const a = +iso.slice(0,4); if (serie[a] && iso.slice(5)!=="02-29" && v!=null) serie[a][idx(iso)] = v; });
+  guardaCSV(host, ["data", o.colCSV || COL_UNID[o.unidade] || "valor"],
+    Object.keys(pontos).filter(iso => anos.includes(+iso.slice(0,4)) && pontos[iso]!=null).sort().map(iso => [dBR(iso), pontos[iso]]), o.rotCSV);
   host.innerHTML = "";
   const W = Math.max(520, host.clientWidth), H = o.altura || 292, m = {l:52, r:56, t:36, b:26};
   const vals = anos.flatMap(a => serie[a].filter(v => v!=null));
@@ -2354,6 +2528,9 @@ function graficoCalendario(host, pontos, o){
 // barras por ano com o valor escrito (mesma leitura da ficha)
 function graficoBarrasAnos(host, dados, o){
   host.innerHTML = "";
+  const comLeitura = dados.some(d => d.leitura!=null);   // ficha do NE: data pedida e data da leitura usada
+  guardaCSV(host, ["ano","data", ...(comLeitura ? ["leitura_usada"] : []), o.colCSV || COL_UNID[o.unidade] || "valor"],
+    dados.map(d => [d.a, d.data || d.rot || "", ...(comLeitura ? [d.leitura || ""] : []), d.v]), o.rotCSV);
   const W = Math.max(520, host.clientWidth), H = o.altura || 262, m = {l:52, r:16, t:36, b:26};
   const vals = dados.map(d => d.v).filter(v => v!=null);
   if (!vals.length){ host.innerHTML = '<p class="nota" style="padding:14px 0">Sem dados.</p>'; return; }
@@ -2396,6 +2573,8 @@ const legendaFaixasNivel = () => `<div class="legenda">${["restricao","atencao",
   `<span><i class="bola" style="background:${COR_NV}"></i>${ROT_NV_FAIXA}</span><span><i class="bola" style="background:${FX.sem.cor}"></i>${ROT_FAIXA("sem")}</span></div>`;
 function barrasFaixas(host, linhas){
   host.innerHTML = "";
+  guardaCSV(host, ["estado","acompanhados","restricao","atencao","normal","so_nivel_com_leitura","sem_informacao"],
+    linhas.map(l => [l.rot, l.n, l.faixas.restricao, l.faixas.atencao, l.faixas.normal, l.nivel || 0, l.sem_info]));
   const chaves = ["restricao","atencao","normal","nivel","sem"];
   const corK = k => k==="nivel" ? COR_NV : FX[k].cor, rotK = k => k==="nivel" ? ROT_NV_FAIXA : ROT_FAIXA(k);
   const W = Math.max(520, host.clientWidth), alturaLinha = 26, m = {l:150, r:60, t:34, b:10};
@@ -2481,7 +2660,7 @@ function paginaNE(){
       </div></details>
     </section>
     <section class="cartao secao" id="n-estados" aria-labelledby="t-n-estados">
-      ${barraBaixar([["baixar-ne-mapa", "PNG", "Baixar o mapa dos estados como imagem"], ["baixar-ne-csv", "CSV", "Baixar a tabela dos estados em CSV"]])}
+      ${barraBaixar([["baixar-ne-uf-kmz", "KMZ", "Baixar os estados em KMZ (Google Earth), com a legenda"], ["baixar-ne-csv", "CSV", "Baixar a tabela dos estados em CSV"], ["baixar-ne-pdf", "PDF", "Baixar a tabela dos estados em PDF"]])}
       <h2 id="t-n-estados"><small>1</small>Estados</h2>
       <p class="sub">Volume acumulado de cada estado na data de referência.<span class="dica">Passe o mouse no mapa ou na tabela para ligar um ao outro; clique para abrir o estado.</span></p>
       ${legendaEscalaUF()}
@@ -2509,27 +2688,27 @@ function paginaNE(){
       </div>
     </section>
     <section class="cartao secao" id="n-ano" aria-labelledby="t-n-ano">
-      ${barraBaixar([["baixar-ne-ano", "PNG", "Baixar o gráfico como imagem"]])}
+      ${barraBaixar([["baixar-ne-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-ne-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-n-ano"><small>3</small>Ao longo do ano</h2>
       <p class="sub">Volume armazenado nos reservatórios do Nordeste com medição, em % da capacidade deles, nos cinco anos até a data de referência, que é o último ponto da curva e fica marcada pelo tracejado.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div class="graf" id="g-ne-ano"></div>
       <p class="nota" style="margin:10px 0 0">${NOTA_CURVA}</p>
     </section>
     <section class="cartao secao" id="n-dia" aria-labelledby="t-n-dia">
-      ${barraBaixar([["baixar-ne-dia", "PNG", "Baixar o gráfico como imagem"]])}
+      ${barraBaixar([["baixar-ne-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-ne-dia", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-n-dia"><small>4</small>Mesmo dia em outros anos</h2>
       <p class="sub" id="sub-dia"></p>
       <div class="graf" id="g-ne-dia"></div>
     </section>
     <section class="cartao secao" id="n-faixas" aria-labelledby="t-n-faixas">
-      ${barraBaixar([["baixar-ne-faixas", "PNG", "Baixar o gráfico como imagem"]])}
+      ${barraBaixar([["baixar-ne-faixas-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-ne-faixas", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-n-faixas"><small>5</small>Faixas e cobertura</h2>
       <p class="sub">Quantos reservatórios de cada estado estão em cada faixa de volume, quantos têm só leitura de nível e quantos estão sem informação na data. A faixa descreve o reservatório, não o estado. A barra é proporcional ao estado com mais reservatórios acompanhados; os retirados do acompanhamento não entram.</p>
       ${legendaFaixasNivel()}
       <div class="graf" id="g-ne-faixas"></div>
     </section>
     <section class="cartao secao" id="n-mapa" aria-labelledby="t-n-mapa">
-      ${barraBaixar([["baixar-ne-kmz", "KMZ", "Baixar os reservatórios em KMZ"], ["baixar-ne-res-csv", "CSV", "Baixar a lista de reservatórios em CSV"]])}
+      ${barraBaixar([["baixar-ne-kmz", "KMZ", "Baixar os reservatórios em KMZ (Google Earth), com a legenda"]])}
       <h2 id="t-n-mapa"><small>6</small>Mapa dos reservatórios</h2>
       <p class="sub" id="sub-mapa"></p>
       ${legendaFaixas()}${legendaNivel()}
@@ -2607,10 +2786,23 @@ function paginaNE(){
   aplicar();
 
   // downloads (leem a data e a lista do momento do clique)
-  $("#baixar-ne-mapa").onclick = () => baixarPNG([$("#mapa-ne svg")], `sar_ne_estados_${dataRef}.png`, `Nordeste e Semiárido · volume acumulado por estado · ${dBR(dataRef)}`,
-    ESC_UF.map(f => ({r:`Volume acumulado ${rotEsc(f)}`, cor:f.cor, area:true})).concat([
-      {r:"Sem volume na data (sem medição de volume na janela de 30 dias)", cor:SEM_COR, area:true},
-      {r:"Semiárido (delimitação do INSA)", cor:"#6B5B45", area:true}]));
+  $("#baixar-ne-uf-kmz").onclick = () => {
+    const cls = e => e.volume_pct==null ? "sem" : "e" + ESC_UF.findIndex(f => e.volume_pct >= f.de && (f.ate==null || e.volume_pct < f.ate));
+    const estilos = {sem:{linha:"#FFFFFF", preench:SEM_COR, opac:"d9"}, semi:{linha:"#6B5B45", largura:2}};
+    ESC_UF.forEach((f, i) => estilos["e" + i] = {linha:"#FFFFFF", preench:f.cor, opac:"d9"});
+    const corpo = SIT.estados.map(e => { const g = D.geo.ufs.find(g => g.uf===e.uf); if (!g) return "";
+      return `<Placemark><name>${xk(e.estado)}</name><styleUrl>#${cls(e)}</styleUrl><description><![CDATA[<b>${e.volume_pct==null ? "sem volume na data" : fmt(e.volume_pct,1) + "% de volume acumulado"}</b><br/>` +
+        `Volume acumulado: ${e.volume_pct==null ? "–" : fint(e.volume_hm3) + " hm³"}<br/>Capacidade equivalente: ${e.volume_pct==null ? "–" : fint(e.capacidade_com_dado_hm3) + " hm³"}<br/>` +
+        `Reservatórios acompanhados: ${e.n}<br/>Com volume medido na janela de ${NEd.limiar_dias} dias: ${e.com_dado}${e.uf==="MG" ? "<br/>Em Minas Gerais, só os reservatórios do Semiárido" : ""}<br/>Data de referência: ${dBR(dataRef)}]]></description>${poligonoKML(g.aneis)}</Placemark>`; }).join("");
+    const semi = NEd.mapa.semiarido_geo ? `<Placemark><name>Semiárido (delimitação do INSA)</name><styleUrl>#semi</styleUrl>${poligonoKML(NEd.mapa.semiarido_geo)}</Placemark>` : "";
+    montarKMZ({arquivo:`sar_ne_estados_${dataRef}.kmz`, nome:`SAR · Nordeste e Semiárido · estados · ${dBR(dataRef)}`, n:SIT.estados.length,
+      descricao:`Volume acumulado de cada estado em ${dBR(dataRef)}: volume dos reservatórios com medição na janela de ${NEd.limiar_dias} dias, em % da capacidade equivalente desses mesmos reservatórios.`,
+      legenda:{titulo:`Volume acumulado · ${dBR(dataRef)}`, grupos:[{itens:ESC_UF.map(f => ({r:rotEsc(f), cor:f.cor, forma:"area"})).concat([{r:"Sem volume na data", cor:SEM_COR, forma:"area"}, {r:"Semiárido (INSA)", cor:"#6B5B45", forma:"linha"}])}]},
+      estilos, corpo: pastaKML("Estados", corpo) + semi}); };
+  $("#baixar-ne-pdf").onclick = () => pdfSecao([$("#tab-estados")], `sar_ne_estados_${dataRef}.pdf`);
+  $("#baixar-ne-ano-csv").onclick = () => baixarCSVGrafico([$("#g-ne-ano")], `sar_ne_ao_longo_do_ano_ate_${dataRef}.csv`);
+  $("#baixar-ne-dia-csv").onclick = () => baixarCSVGrafico([$("#g-ne-dia")], `sar_ne_mesmo_dia_${dataRef}.csv`);
+  $("#baixar-ne-faixas-csv").onclick = () => baixarCSVGrafico([$("#g-ne-faixas")], `sar_ne_faixas_${dataRef}.csv`);
   $("#baixar-ne-ano").onclick = () => baixarPNG([$("#g-ne-ano svg")], "sar_ne_ao_longo_do_ano.png", "Nordeste · volume acumulado ao longo do ano", LEG_ANOS(anoAtual));
   $("#baixar-ne-dia").onclick = () => baixarPNG([$("#g-ne-dia svg")], `sar_ne_mesmo_dia_${dataRef}.png`, `Nordeste · volume acumulado em ${dBR(dataRef).slice(0,5)} de cada ano`, LEG_ANOS(+dataRef.slice(0,4)));
   $("#baixar-ne-faixas").onclick = () => baixarPNG([$("#g-ne-faixas svg")], `sar_ne_faixas_${dataRef}.png`, `Nordeste · reservatórios por faixa de volume · ${dBR(dataRef)}`,
@@ -2618,21 +2810,12 @@ function paginaNE(){
   $("#baixar-ne-kmz").onclick = () => kmzEstadoNE(lista.concat(SIT.niveis), "Nordeste e Semiárido");
   $("#baixar-ne-csv").onclick = () => {
     const n = v => v==null ? "" : String(v).replace(".", ",");
-    const l = [["estado","acompanhados","com_volume","so_nivel","so_nivel_com_leitura_janela","com_volume_medido_janela","sem_informacao","ocultos_sem_leitura_12_meses","capacidade_total_hm3","capacidade_equivalente_hm3","volume_hm3","volume_pct","restricao","atencao","normal"].join(";")]
+    const l = [["estado","acompanhados","com_volume","so_nivel","so_nivel_com_leitura_janela","com_volume_medido_janela","sem_informacao","retirados_do_acompanhamento","capacidade_total_hm3","capacidade_equivalente_hm3","volume_hm3","volume_pct","restricao","atencao","normal"].join(";")]
       .concat(SIT.estados.map(e => [e.estado, e.n, e.n_vol, e.nivel_n, e.nivel, e.com_dado, e.sem_info, e.ocultos, n(round1(e.capacidade_hm3)), n(round1(e.capacidade_com_dado_hm3)), n(round1(e.volume_hm3)), n(round1(e.volume_pct)), e.faixas.restricao, e.faixas.atencao, e.faixas.normal].join(";")));
     baixarArquivo(new Blob(["﻿"+l.join("\r\n")], {type:"text/csv;charset=utf-8"}), `sar_ne_estados_${dataRef}.csv`);
     toast("CSV gerado. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)");
   };
-  $("#baixar-ne-res-csv").onclick = () => {
-    const n = v => v==null ? "" : String(v).replace(".", ",");
-    const l = [["uf","reservatorio","municipio","bacia","capacidade_hm3","volume_hm3","volume_pct","cota_m","medicao_usada","dias_da_referencia","situacao","latitude","longitude"].join(";")]
-      .concat(lista.map(r => [r.uf, caso(r.nome), r.municipio, caso(r.bacia), n(r.capacidade_hm3), n(r.volume_hm3), n(r.volume_pct), n(r.cota),
-        r.data ? dBR(r.data) : "", r.dias ?? "", r.sem_info ? "sem informação" : FX[r.faixa].rot, n(r.lat), n(r.lon)].join(";")))
-      .concat(SIT.niveis.map(r => [r.uf, caso(r.nome), r.municipio || "", "", "", "", "", n(r.nivel_m),
-        r.data ? dBR(r.data) : "", r.dias ?? "", r.sem_info ? "sem informação" : "só nível (sem curva cota-volume)", n(r.lat), n(r.lon)].join(";")));
-    baixarArquivo(new Blob(["﻿"+l.join("\r\n")], {type:"text/csv;charset=utf-8"}), `sar_ne_reservatorios_${dataRef}.csv`);
-    toast("CSV gerado. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)");
-  };
+
 }
 const abrirEstado = uf => { if (temPagina(uf)) location.hash = "ne/" + uf; else toast(`${NEd.estados.find(e => e.uf===uf).estado}: no protótipo estão montados Ceará, Piauí, Alagoas e Sergipe.`); };
 function acenderUF(uf){
@@ -2707,17 +2890,17 @@ async function kmzEstadoNE(lista, estado){
   const pasta = k => { const L = com.filter(r => r.faixa===k); return L.length ? `<Folder><name>${x(ROT_FAIXA(k))}</name>${L.map(r =>
     `<Placemark><name>${x(caso(r.nome))}</name><styleUrl>#${k}</styleUrl><description><![CDATA[<b>${r.volume_pct==null ? "sem informação" : fmt(r.volume_pct,1)+"% do volume"}</b><br>Volume: ${r.volume_hm3==null?"–":fmt(r.volume_hm3,1)} hm³<br>Capacidade: ${r.capacidade_hm3==null?"–":fmt(r.capacidade_hm3,1)} hm³<br>Município: ${x(r.municipio||"–")}<br>Bacia: ${x(caso(r.bacia||"–"))}<br>Última medição: ${r.data ? dBR(r.data) : "–"} (${dDias(r)})]]></description><Point><coordinates>${r.lon},${r.lat},0</coordinates></Point></Placemark>`).join("")}</Folder>` : ""; };
   const pastaNivel = () => niv.length ? `<Folder><name>Só nível (sem curva cota-volume)</name>${niv.map(r =>
-    `<Placemark><name>${x(caso(r.nome))}</name><styleUrl>#nivel</styleUrl><description><![CDATA[<b>${r.nivel_m==null ? "sem leitura na janela" : fmt(r.nivel_m,2)+" m na régua"}</b><br>Em 30 dias: ${r.var30==null ? "–" : sinal(r.var30)+" m"}<br>Município: ${x(r.municipio||"–")}<br>Leitura usada: ${r.data ? dBR(r.data)+" ("+dDias(r)+")" : "última em "+(r.ultima ? dBR(r.ultima) : "–")}<br>Leitura do observador, não validada; sem volume por falta de curva cota-volume.]]></description><Point><coordinates>${r.lon},${r.lat},0</coordinates></Point></Placemark>`).join("")}</Folder>` : "";
-  const abgr = c => "ff" + c.slice(5,7) + c.slice(3,5) + c.slice(1,3);
-  const estilo = (k, c, forma) => `<Style id="${k}"><IconStyle><color>${abgr(c)}</color><scale>0.9</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/${forma}.png</href></Icon></IconStyle></Style>`;
-  const kml = `<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>SAR · ${x(estado)} · data de referência ${dBR(dataRef)}</name>` +
-    `<description><![CDATA[Reservatórios do módulo Nordeste e Semiárido: ${x(estado)}. Faixas: restrição abaixo de 20%, atenção de 20% a 50%, normal acima de 50%; sem informação quando não há medição na janela de ${NEd.limiar_dias} dias em torno da data de referência.` +
-    (niv.length ? ` Só nível: leitura da régua pelo observador, sem volume por falta de curva cota-volume validada.` : "") + ` Fonte: SAR/ANA.]]></description>` +
-    ["restricao","atencao","normal","sem"].map(k => estilo(k, FX[k].cor, "placemark_circle")).join("") + (niv.length ? estilo("nivel", COR_NV, "triangle") : "") +
-    ["restricao","atencao","normal","sem"].map(pasta).join("") + pastaNivel() + `</Document></kml>`;
-  const zip = new JSZip(); zip.file("doc.kml", kml);
-  baixarArquivo(await zip.generateAsync({type:"blob", mimeType:"application/vnd.google-earth.kmz"}), `sar_${estado.toLowerCase().replace(/\s+/g,"_")}_${dataRef}.kmz`);
-  toast(`KMZ com ${com.length + niv.length} reservatórios gerado. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)`);
+    `<Placemark><name>${x(caso(r.nome))}</name><styleUrl>#nv_${r.sem_info ? "sem" : r.tend}</styleUrl><description><![CDATA[<b>${r.nivel_m==null ? "sem leitura na janela" : fmt(r.nivel_m,2)+" m na régua"}</b><br>Em 30 dias: ${r.var30==null ? "–" : sinal(r.var30)+" m"}<br>Município: ${x(r.municipio||"–")}<br>Leitura usada: ${r.data ? dBR(r.data)+" ("+dDias(r)+")" : "última em "+(r.ultima ? dBR(r.ultima) : "–")}<br>Leitura do observador, não validada; sem volume por falta de curva cota-volume.]]></description><Point><coordinates>${r.lon},${r.lat},0</coordinates></Point></Placemark>`).join("")}</Folder>` : "";
+  const estilos = {}; ["restricao","atencao","normal","sem"].forEach(k => estilos[k] = {forma:"circulo", cor:FX[k].cor, escala:.7});
+  if (niv.length) Object.assign(estilos, {nv_sobe:{forma:"sobe", cor:COR_NV}, nv_desce:{forma:"desce", cor:COR_NV}, nv_est:{forma:"est", cor:COR_NV}, nv_sem:{forma:"est", cor:COR_NV_SEM}});
+  const grupos = [{titulo:"Reservatório com volume, pela faixa", itens:["restricao","atencao","normal","sem"].map(k => ({r:ROT_FAIXA(k), cor:FX[k].cor, forma:"circulo"}))}];
+  if (niv.length) grupos.push({titulo:"Só nível, variação em 30 dias", itens:[{r:"subiu", cor:COR_NV, forma:"sobe"}, {r:"desceu", cor:COR_NV, forma:"desce"},
+    {r:`estável (menos de ${fmt(LIM_EST*100,0)} cm)`, cor:COR_NV, forma:"est"}, {r:"sem leitura na janela", cor:COR_NV_SEM, forma:"est"}]});
+  const kml = ["restricao","atencao","normal","sem"].map(pasta).join("") + pastaNivel();
+  await montarKMZ({arquivo:`sar_${estado.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/\s+/g,"_")}_${dataRef}.kmz`, nome:`SAR · ${estado} · data de referência ${dBR(dataRef)}`, n:com.length + niv.length,
+    descricao:`Reservatórios do módulo Nordeste e Semiárido: ${xk(estado)}, na data de referência ${dBR(dataRef)}. Cada reservatório entra com a medição mais próxima, até ${NEd.limiar_dias} dias antes ou depois.` +
+      (niv.length ? ` Só nível: leitura da régua pelo observador, sem volume por falta de curva cota-volume validada.` : ""),
+    legenda:{titulo:`${estado} · ${dBR(dataRef)}`, grupos}, estilos, corpo:kml});
 }
 async function pdfTabelaEstado(lista, niv, estado, uf){
   try { await carregarScript(CDN_JSPDF); await carregarScript(CDN_AUTOTABLE); }
@@ -2825,6 +3008,8 @@ function graficoMonitoramento(host, hist, rotulo, op = {}){
   const anos = Object.keys(hist).map(Number).sort((a,b) => a-b);
   const W = Math.max(520, host.clientWidth), H = op.altura || 266, m = {l:44, r:12, t:58, b:26};
   const series = ["sar","hidro"].filter(k => anos.some(a => hist[a][k]));
+  const rotS = k => (op.rot && op.rot[k]) || (k==="sar" ? "reservatorios com volume" : "reservatorios com leitura de nivel");
+  guardaCSV(host, ["ano", ...series.map(k => rotS(k).normalize("NFD").replace(/\p{M}/gu, "").replace(/\W+/g, "_"))], anos.map(a => [a, ...series.map(k => hist[a][k] || 0)]));
   const topo = Math.max(4, ...anos.flatMap(a => series.map(k => hist[a][k] || 0)));
   const passo = niceStep(topo/4), hi = Math.ceil(topo/passo)*passo;
   const faixa = (W-m.l-m.r)/anos.length, bw = Math.min(12, faixa*.36);
@@ -2973,7 +3158,7 @@ function paginaEstado(uf){
     <nav class="indice" aria-label="Seções da página">${secoes.map(([id, r]) => `<a href="#ne/${uf}" data-alvo="${id}">${r}</a>`).join("")}</nav>
     ${aviso ? `<div class="aviso-nivel">${aviso}</div>` : ""}
     <section class="cartao secao" id="u-mapa" aria-labelledby="t-u-mapa">
-      ${barraBaixar([["baixar-uf-kmz", "KMZ", "Baixar os reservatórios em KMZ"]])}
+      ${barraBaixar([["baixar-uf-kmz", "KMZ", "Baixar os reservatórios em KMZ (Google Earth), com a legenda"]])}
       <h2 id="t-u-mapa"><small>${num("u-mapa")}</small>Mapa dos reservatórios</h2>
       <p class="sub" id="sub-u-mapa"></p>
       ${temVol ? legendaFaixas() : ""}${temNiv ? legendaNivel() : ""}
@@ -2987,20 +3172,20 @@ function paginaEstado(uf){
       ${temNiv ? (misto ? `<h3 class="sub-bloco">Só com nível<small>${fint(niv.length)} reservatórios · sem curva cota-volume validada</small></h3>` : "") + tabNiv : ""}
     </section>
     ${curva ? `<section class="cartao secao" id="u-ano" aria-labelledby="t-u-ano">
-      ${barraBaixar([["baixar-uf-ano", "PNG", "Baixar os gráficos como imagem"]])}
+      ${barraBaixar([["baixar-uf-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-uf-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-u-ano"><small>${num("u-ano")}</small>Ao longo do ano</h2>
       <p class="sub">Volume armazenado nos reservatórios ${de} ${estado} com medição, em % da capacidade deles${misto ? " (só os que têm volume; os só com nível não entram)" : ""}, nos cinco anos até a data de referência, que é o último ponto da curva e fica marcada pelo tracejado.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div class="graf" id="g-uf-ano"></div>
       <p class="nota" style="margin:10px 0 0">${NOTA_CURVA}</p>
     </section>` : ""}
     ${curva ? `<section class="cartao secao" id="u-dia" aria-labelledby="t-u-dia">
-      ${barraBaixar([["baixar-uf-dia", "PNG", "Baixar o gráfico como imagem"]])}
+      ${barraBaixar([["baixar-uf-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-uf-dia", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-u-dia"><small>${num("u-dia")}</small>Mesmo dia em outros anos</h2>
       <p class="sub" id="sub-u-dia"></p>
       <div class="graf" id="g-uf-dia"></div>
     </section>` : ""}
     <section class="cartao secao" id="u-hist" aria-labelledby="t-u-hist">
-      ${barraBaixar([["baixar-uf-hist", "PNG", "Baixar o gráfico como imagem"]])}
+      ${barraBaixar([["baixar-uf-hist-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-uf-hist", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-u-hist"><small>${num("u-hist")}</small>Histórico do monitoramento</h2>
       <p class="sub">Reservatórios ${de} ${estado} com pelo menos uma medição em cada ano: com volume${temHidro ? " e com leitura de nível na régua" : ""}. Mostra quando o acompanhamento começou, parou ou passou a ter só o nível.</p>
       <div class="graf" id="g-uf-hist"></div>
@@ -3093,7 +3278,10 @@ function paginaEstado(uf){
     $("#baixar-uf-ano").onclick = () => baixarPNG([$("#g-uf-ano svg")], `sar_${u}_ao_longo_do_ano.png`, `${estado} · volume acumulado ao longo do ano`, LEG_ANOS(anoAtual));
     $("#baixar-uf-dia").onclick = () => baixarPNG([$("#g-uf-dia svg")], `sar_${u}_mesmo_dia_${dataRef}.png`, `${estado} · volume acumulado em ${dBR(dataRef).slice(0,5)} de cada ano`, LEG_ANOS(+dataRef.slice(0,4)));
   }
-  $("#baixar-uf-hist").onclick = () => baixarPNG([$("#g-uf-hist svg")], `sar_${u}_historico_monitoramento.png`);
+  $("#baixar-uf-hist").onclick = () => baixarPNG([$("#g-uf-hist svg")], `sar_${u}_historico_monitoramento.png`, `${estado} · histórico do monitoramento`);
+  $("#baixar-uf-hist-csv").onclick = () => baixarCSVGrafico([$("#g-uf-hist")], `sar_${u}_historico_monitoramento.csv`);
+  if (curva){ $("#baixar-uf-ano-csv").onclick = () => baixarCSVGrafico([$("#g-uf-ano")], `sar_${u}_ao_longo_do_ano_ate_${dataRef}.csv`);
+    $("#baixar-uf-dia-csv").onclick = () => baixarCSVGrafico([$("#g-uf-dia")], `sar_${u}_mesmo_dia_${dataRef}.csv`); }
   $("#baixar-uf-kmz").onclick = () => kmzEstadoNE([...vol, ...niv], estado);
   $("#baixar-uf-pdf").onclick = () => pdfTabelaEstado(vol, niv, estado, uf);
   $("#baixar-uf-csv").onclick = () => {
@@ -3239,14 +3427,14 @@ function paginaFichaNE(cod){
       <div class="graf" id="g-med"></div>
     </section>
     <section class="cartao secao" id="fn-dia" aria-labelledby="t-fn-dia">
-      ${barraBaixar([["baixar-f-dia", "PNG", "Baixar o gráfico como imagem"]])}
+      ${barraBaixar([["baixar-f-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-f-dia", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-fn-dia"><small>3</small>Mesmo dia em outros anos</h2>
       <p class="sub" id="sub-f-dia"></p>
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-dia-f">${varsComp.map(opcao).join("")}</select></fieldset></div>
       <div class="graf" id="g-f-dia"></div>
     </section>
     <section class="cartao secao" id="fn-ano" aria-labelledby="t-fn-ano">
-      ${barraBaixar([["baixar-f-ano", "PNG", "Baixar o gráfico como imagem"]])}
+      ${barraBaixar([["baixar-f-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-f-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-fn-ano"><small>4</small>Ano contra anos anteriores</h2>
       <p class="sub">As leituras de cada ano sobrepostas no mesmo calendário, nas datas reais.<span class="dica">Clique nos anos para incluir ou tirar, até ${MAX_ANOS} ao mesmo tempo.</span></p>
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-ano-f">${varsComp.map(opcao).join("")}</select></fieldset>
@@ -3365,7 +3553,7 @@ function paginaFichaNE(cod){
     const anos = A.filter(o => o[k]!=null).map(o => +o.iso.slice(0,4)), dados = [];
     for (let a = Math.min(...anos); a <= anoFim; a++){
       const alvo = `${a}-${mmdd}`, l = leituraNa(A, k, alvo, LIM);
-      dados.push({a, v: l ? l.v : null, rot: l ? `${dBR(alvo)} · leitura de ${dBR(l.iso)}` : dBR(alvo)});
+      dados.push({a, v: l ? l.v : null, rot: l ? `${dBR(alvo)} · leitura de ${dBR(l.iso)}` : dBR(alvo), data: dBR(alvo), leitura: l ? dBR(l.iso) : ""});
     }
     $("#sub-f-dia").textContent = `${rotVar(k)} em ${dBR(dataRef).slice(0,5)} de cada ano, pela leitura mais próxima até ${LIM} dias antes ou depois; ano sem leitura na janela fica sem barra.`;
     graficoBarrasAnos($("#g-f-dia"), dados, {anoAtual:+dataRef.slice(0,4), dec:V.dec, unidade:V.u, pct:k==="pct", relativo:k!=="pct",
@@ -3408,15 +3596,17 @@ function paginaFichaNE(cod){
   ligarSeletor("data-f", aplicar, inicio, NEd.serie_ate);
   situacao(); aplicarPreset(presets[1][1]); mesmoDia(); montarChips(); anoAnos();
 
-  const u = F.nome.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+  const u = F.nome.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/[^a-z0-9]+/g, "_");
   $("#baixar-f-png").onclick = () => { const [de, ate] = periodo();
     baixarPNG([$("#g-f1 svg"), soNivel ? $("#g-f2 svg") : null].filter(Boolean), `sar_${u}_${de}_${ate}.png`, `${nomeF} · ${dBR(de)} a ${dBR(ate)}`); };
   $("#baixar-f-dia").onclick = () => baixarPNG([$("#g-f-dia svg")], `sar_${u}_mesmo_dia_${dataRef}.png`, `${nomeF} · ${rotVar($("#var-dia-f").value)} em ${dBR(dataRef).slice(0,5)} de cada ano`, LEG_ANOS(+dataRef.slice(0,4)));
   $("#baixar-f-ano").onclick = () => baixarPNG([$("#g-f-ano svg")], `sar_${u}_ano_contra_anos.png`, `${nomeF} · ${rotVar($("#var-ano-f").value)} ao longo do ano`, LEG_ANOS(+dataRef.slice(0,4)));
+  $("#baixar-f-dia-csv").onclick = () => baixarCSVGrafico([$("#g-f-dia")], `sar_${u}_mesmo_dia_${dataRef}.csv`);
+  $("#baixar-f-ano-csv").onclick = () => baixarCSVGrafico([$("#g-f-ano")], `sar_${u}_ano_contra_anos.csv`);
   $("#baixar-f-csv").onclick = () => {
     const [de, ate] = periodo(), nn = v => v==null ? "" : String(v).replace(".", ",");
     const linhas = soNivel
-      ? [["data","nivel_m_hidroinfoana","volume_pct_sar"].join(";")].concat([...new Set(SN.concat(SR).map(o => o.iso))].filter(i => i >= de && i <= ate).sort()
+      ? [["data","nivel_m","volume_pct"].join(";")].concat([...new Set(SN.concat(SR).map(o => o.iso))].filter(i => i >= de && i <= ate).sort()
           .map(i => [dBR(i), nn((SN.find(o => o.iso===i) || {}).nivel), nn((SR.find(o => o.iso===i) || {}).pct)].join(";")))
       : [["data","cota_m","volume_hm3","volume_pct"].join(";")].concat(SR.filter(o => o.iso >= de && o.iso <= ate).map(o => [dBR(o.iso), nn(o.cota), nn(o.hm3), nn(o.pct)].join(";")));
     baixarArquivo(new Blob(["﻿" + linhas.join("\r\n")], {type:"text/csv;charset=utf-8"}), `sar_${u}_${de}_${ate}.csv`);
@@ -3456,7 +3646,10 @@ function regraPeriodo(k, iso){
                : {periodo:"seco", mm12:null, mm34:null, piso:R.piso, art:"Art. 5º, § 6º, II"};
 }
 function mediaMovel(arr, i, n = 15){ const v = arr.slice(Math.max(0, i-n+1), i+1).filter(x => x!=null); return i+1 >= n && v.length >= n-3 ? v.reduce((a,b) => a+b, 0)/v.length : null; }
-const COR_SIS = {cantareira:"#1C3782", df:"#0A9396", rmbh:"#B7793A"};   // mesmo trio dos módulos da página inicial (19/09/2026)
+const COR_SIS = {cantareira:"#1C3782", df:"#0A9396", rmbh:"#B7793A"};
+// coordenadas: SNIRH/ANA, serviço de mapas IG/SAR, camadas 2 a 4 (pontos_sar.json, consulta de 17/09/2026)
+const COORD_OS = {40001:[-15.77842,-48.23186], 40002:[-15.66811,-47.95398], 40003:[-15.80009,-47.78495], 29001:[-22.92461,-46.42703], 29002:[-23.05106,-46.31999],
+  29003:[-23.17574,-46.39364], 29004:[-23.32999,-46.67953], 50001:[-20.14532,-44.25647], 50002:[-19.91847,-44.16969], 50003:[-19.97256,-44.3436]};   // mesmo trio dos módulos da página inicial (19/09/2026)
 const NOME_SIS = {cantareira:"Sistema Cantareira", df:"Distrito Federal", rmbh:"Paraopeba"};
 let refOS = CAN ? CAN.ate : D.data, redesenharOS = null, sisOS = null;
 // a data de referência vale dentro de um sistema; ao trocar de sistema volta ao último dia dele
@@ -3478,6 +3671,7 @@ function paginaOutros(){
     <section class="cartao intro" aria-label="Sobre o módulo"><p>Três sistemas de abastecimento público, com dados diários: o Sistema Cantareira, que abastece grande parte da Região Metropolitana de São Paulo; os reservatórios do Distrito Federal (Descoberto, Santa Maria e Lago Paranoá); e o Sistema Paraopeba (Rio Manso, Vargem das Flores e Serra Azul), que contribui para o abastecimento da Região Metropolitana de Belo Horizonte.</p></section>
     <nav class="indice" aria-label="Seções da página"><a href="#outros" data-alvo="o-sis">Sistemas</a></nav>
     <section class="cartao secao" id="o-sis" aria-labelledby="t-o-sis">
+      ${barraBaixar([["baixar-os-kmz", "KMZ", "Baixar os reservatórios em KMZ (Google Earth), com a legenda"]])}
       <h2 id="t-o-sis"><small>1</small>Sistemas</h2>
       <p class="sub">Os três sistemas de abastecimento acompanhados pelo SAR, com o dado mais recente de cada um.<span class="dica">Passe o mouse no mapa ou nos cartões para ligar um ao outro; clique para abrir o sistema.</span></p>
       <div class="os-grade">
@@ -3502,6 +3696,17 @@ function paginaOutros(){
   $$(".indice a").forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
   const abrir = s => { location.hash = PAGINA_SIS[s]; };
   $$("[data-abrir]").forEach(b => b.onclick = () => abrir(b.dataset.abrir));
+  $("#baixar-os-kmz").onclick = () => {
+    const estilos = {}; ["cantareira","df","rmbh"].forEach(s => { estilos[s] = {forma:"circulo", cor:COR_SIS[s], escala:.75}; estilos[s + "_nv"] = {forma:"est", cor:COR_SIS[s], escala:.75}; });
+    const can = CAN.res.map(r => { const c = COORD_OS[r.codigo]; return c ? pontoKML(r.nome, "cantareira",
+      `<b>${fmt(r.pct[r.pct.length-1],1)}% do volume útil</b><br/>Volume útil: ${fmt(r.vol[r.vol.length-1],1)} hm³<br/>Nível: ${fmt(r.cota[r.cota.length-1],2)} m<br/>Código: ${r.codigo}<br/>Data do dado: ${dBR(CAN.ate)}`, c[1], c[0]) : ""; }).join("");
+    const sis = s => OS.sistemas[s].res.map(r => { const c = COORD_OS[r.codigo]; if (!c) return ""; const nv = r.pct==null;
+      return pontoKML(caso(r.nome), s + (nv ? "_nv" : ""), `<b>${nv ? (r.cota==null ? "–" : fmt(r.cota,2) + " m de cota (só nível)") : fmt(r.pct,1) + "% do volume"}</b><br/>${nv ? "Sem capacidade cadastrada: sem volume" : `Volume: ${fmt(r.volume,1)} hm³<br/>Capacidade: ${fmt(r.capacidade,2)} hm³`}<br/>Nível: ${fmt(r.cota,2)} m<br/>Código: ${r.codigo}<br/>Data do dado: ${r.data ? dBR(r.data) : "–"}`, c[1], c[0]); }).join("");
+    montarKMZ({arquivo:"sar_outros_sistemas.kmz", nome:"SAR · Outros Sistemas Hídricos", n:4 + OS.sistemas.df.res.length + OS.sistemas.rmbh.res.length,
+      descricao:"Reservatórios dos três sistemas de abastecimento acompanhados pelo SAR, com o dado mais recente de cada um. No Cantareira, volume útil sobre o volume útil operacional do quadro da Resolução Conjunta ANA/DAEE nº 925/2017.",
+      legenda:{titulo:"Outros Sistemas Hídricos", grupos:[{titulo:"Sistema", itens:["cantareira","df","rmbh"].map(s => ({r:NOME_SIS[s], cor:COR_SIS[s], forma:"circulo"}))},
+        {titulo:"Símbolo", itens:[{r:"reservatório com volume", cor:"#5B6B80", forma:"circulo"}, {r:"só nível (sem capacidade cadastrada)", cor:"#5B6B80", forma:"est"}]}]},
+      estilos, corpo:pastaKML(NOME_SIS.cantareira, can) + pastaKML(NOME_SIS.df, sis("df")) + pastaKML(NOME_SIS.rmbh, sis("rmbh"))}); };
   // mapa: Brasil recortado no Sudeste e Centro-Oeste, pontos dos reservatórios por sistema
   const P = D.inicio.pontos.filter(q => q.m==="OUTROS").map(q => ({...q, s: q.y < 450 ? "df" : q.x > 560 ? "rmbh" : "cantareira"}));
   const cx = s => { const L = P.filter(q => q.s===s); return [L.reduce((a,q) => a+q.x, 0)/L.length, L.reduce((a,q) => a+q.y, 0)/L.length]; };
@@ -3555,7 +3760,7 @@ function paginaCantareira(){
       </div>
     </section>
     <section class="cartao secao tabela-bacia" id="c-res" aria-labelledby="t-c-res">
-      ${barraBaixar([["baixar-can-csv", "CSV", "Baixar a tabela do dia em CSV"]])}
+      ${barraBaixar([["baixar-can-csv", "CSV", "Baixar a tabela do dia em CSV"], ["baixar-can-pdf", "PDF", "Baixar a tabela do dia em PDF"]])}
       <h2 id="t-c-res"><small>2</small>Reservatórios em <span id="c-res-dia"></span></h2>
       <p class="sub">De montante para jusante, na ordem em que a água passa pelos túneis. O minigráfico mostra o volume útil (%) nos 12 meses até a data de referência.<span class="dica">Clique num reservatório para abrir a ficha.</span></p>
       <div class="tab-box"><table id="tab-can">
@@ -3571,20 +3776,20 @@ function paginaCantareira(){
       <div class="balanco-resumo" id="c-bal-resumo"></div>
     </section>
     <section class="cartao secao" id="c-ano" aria-labelledby="t-c-ano">
-      ${barraBaixar([["baixar-can-ano", "PNG", "Baixar o gráfico como imagem"]])}
+      ${barraBaixar([["baixar-can-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-can-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-c-ano"><small>4</small>Ao longo do ano</h2>
       <p class="sub">Volume útil do sistema (%) dia a dia, nos cinco anos até a data de referência (o último ponto da curva).<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div class="graf" id="g-can-ano"></div>
     </section>
     <section class="cartao secao" id="c-dia" aria-labelledby="t-c-dia">
-      ${barraBaixar([["baixar-can-dia", "PNG", "Baixar o gráfico como imagem"]])}
+      ${barraBaixar([["baixar-can-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-can-dia", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-c-dia"><small>5</small>Mesmo dia em outros anos</h2>
       <p class="sub">Volume útil do sistema (%) no dia da data de referência, em cada um dos cinco anos até ela.</p>
       <div class="graf" id="g-can-dia"></div>
       <p class="nota" id="c-dia-nota" style="margin:8px 0 0"></p>
     </section>
     <section class="cartao secao" id="c-mes" aria-labelledby="t-c-mes">
-      ${barraBaixar([["baixar-can-mes", "PNG", "Baixar os gráficos como imagem"]])}
+      ${barraBaixar([["baixar-can-mes-csv", "CSV", "Baixar os dados dos gráficos em CSV"], ["baixar-can-mes", "PNG", "Baixar os gráficos como imagem"]])}
       <h2 id="t-c-mes"><small>6</small>Chuva e afluência contra a média</h2>
       <p class="sub">Chuva acumulada e vazão natural média de cada mês, nos 12 meses até a data de referência, ao lado da média de longo termo do mês informada pela SABESP. O mês da data de referência vai até esse dia.</p>
       <div class="mensal-grade"><div class="graf" id="g-can-chuva"></div><div class="graf" id="g-can-qnat"></div></div>
@@ -3606,11 +3811,13 @@ function paginaCantareira(){
   $("#baixar-can-ano").onclick = () => baixarPNG([$("#g-can-ano svg")], "sar_cantareira_ao_longo_do_ano.png", `Sistema Cantareira · volume útil ao longo do ano · até ${dBR(refOS)}`, []);
   $("#baixar-can-dia").onclick = () => baixarPNG([$("#g-can-dia svg")], `sar_cantareira_mesmo_dia_${refOS}.png`, `Sistema Cantareira · volume útil em ${dBR(refOS).slice(0,5)} de cada ano`, []);
   $("#baixar-can-mes").onclick = () => baixarPNG([$("#g-can-chuva svg"), $("#g-can-qnat svg")], `sar_cantareira_chuva_afluencia_${refOS}.png`, `Sistema Cantareira · chuva e vazão natural contra a média · até ${dBR(refOS)}`, []);
-  $("#baixar-can-csv").onclick = () => {
-    const L = [["reservatorio","codigo","data","nivel_m","volume_util_hm3","volume_util_pct","afluente_natural_m3s","para_jusante_m3s"]]
-      .concat(CAN.res.map(r => [r.nome, r.codigo, refOS, detCan(r.cota, refOS), detCan(r.vol, refOS), detCan(r.pct, refOS), detCan(r.qnat, refOS), detCan(r.qjus, refOS)]));
-    baixarArquivo(new Blob(["﻿" + L.map(l => l.map(v => v==null ? "" : String(v).replace(".", ",")).join(";")).join("\r\n")], {type:"text/csv"}), `sar_cantareira_${refOS}.csv`);
-  };
+  $("#baixar-can-csv").onclick = () => salvarCSV(["reservatorio","codigo","data","nivel_m","volume_util_hm3","volume_util_pct","afluente_natural_m3s","para_jusante_m3s"],
+    CAN.res.map(r => [r.nome, r.codigo, dBR(refOS), detCan(r.cota, refOS), detCan(r.vol, refOS), detCan(r.pct, refOS), detCan(r.qnat, refOS), detCan(r.qjus, refOS)]), `sar_cantareira_${refOS}.csv`);
+  $("#baixar-can-pdf").onclick = () => pdfSecao([$("#tab-can")], `sar_cantareira_${refOS}.pdf`);
+  $("#baixar-can-ano-csv").onclick = () => baixarCSVGrafico([$("#g-can-ano")], `sar_cantareira_ao_longo_do_ano_ate_${refOS}.csv`);
+  $("#baixar-can-dia-csv").onclick = () => baixarCSVGrafico([$("#g-can-dia")], `sar_cantareira_mesmo_dia_${refOS}.csv`);
+  $("#baixar-can-mes-csv").onclick = () => { const a = $("#g-can-chuva")._csv, b = $("#g-can-qnat")._csv; if (!a || !b){ toast("Nada para exportar nesta seção."); return; }
+    salvarCSV(["mes", ...a.cab.slice(1), ...b.cab.slice(1)], a.linhas.map((l, i) => [...l, ...b.linhas[i].slice(1)]), `sar_cantareira_chuva_afluencia_ate_${refOS}.csv`); };
 }
 function situacaoCan(ref, p0, f0){
   const vol = CAN.res.reduce((a, r) => a + (detCan(r.vol, ref) ?? NaN), 0);
@@ -3711,12 +3918,12 @@ function anoCan(ref){
   const a1 = +ref.slice(0,4), anos = []; for (let a = a1 - 4; a <= a1; a++) anos.push(a);
   const pts = {}; const i0 = diaEntre(`${a1-4}-01-01`, CAN.de), i1 = Math.min(CAN.pct.length - 1, diaEntre(ref, CAN.de));
   for (let i = Math.max(0, i0); i <= i1; i++) pts[isoMais(CAN.de, i)] = CAN.pct[i];
-  graficoCalendario($("#g-can-ano"), pts, {anos, anoAtual:a1, dec:1, unidade:"%", pct:true, marcaDia:ref, rotulo:"Volume útil do Sistema Cantareira (%)", maxVao:3, tol:1});
+  graficoCalendario($("#g-can-ano"), pts, {colCSV:"volume_util_pct", anos, anoAtual:a1, dec:1, unidade:"%", pct:true, marcaDia:ref, rotulo:"Volume útil do Sistema Cantareira (%)", maxVao:3, tol:1});
 }
 function diaCan(ref){
   const mmdd = ref.slice(5)==="02-29" ? "02-28" : ref.slice(5), a1 = +ref.slice(0,4), dados = [];
   for (let a = a1 - 4; a <= a1; a++){ const iso = a===a1 ? ref : `${a}-${mmdd}`; dados.push({a, v:pctCan(iso), rot:dBR(iso)}); }
-  graficoBarrasAnos($("#g-can-dia"), dados, {anoAtual:+ref.slice(0,4), dec:1, unidade:"%", pct:true, rotulo:`Volume útil do Sistema Cantareira em ${dBR(ref).slice(0,5)} de cada ano (%)`, legenda:"Volume útil"});
+  graficoBarrasAnos($("#g-can-dia"), dados, {colCSV:"volume_util_pct", anoAtual:+ref.slice(0,4), dec:1, unidade:"%", pct:true, rotulo:`Volume útil do Sistema Cantareira em ${dBR(ref).slice(0,5)} de cada ano (%)`, legenda:"Volume útil"});
   const neg = dados.filter(d => d.v!=null && d.v < 0);
   $("#c-dia-nota").textContent = neg.length ? `Valores negativos (${neg.map(d => d.a).join(", ")}): volume abaixo do mínimo operacional da resolução, com uso da reserva técnica; aparecem como barra vazia com o número escrito.` : "";
 }
@@ -3729,14 +3936,15 @@ function mesCan(ref){
   const rotM = iso => `${MESES[+iso.slice(5,7)-1]}/${iso.slice(2,4)}`;
   const chuva = meses.map(mi => ({rot:rotM(mi), v:agr(CAN.vaz.chuva, mi, true), mlt:CAN.mlt.pmlt[mi] ?? null, parcial: mi===ref.slice(0,7)}));
   const qnat = meses.map(mi => ({rot:rotM(mi), v:agr(CAN.vaz.qnat, mi, false), mlt:CAN.mlt.qmlt[mi] ?? null, parcial: mi===ref.slice(0,7)}));
-  graficoMensalMLT($("#g-can-chuva"), chuva, {rotulo:"Chuva acumulada no mês (mm)", unidade:"mm", dec:0, cor:"#4A7FB0"});
-  graficoMensalMLT($("#g-can-qnat"), qnat, {rotulo:"Vazão natural média do mês (m³/s)", unidade:"m³/s", dec:1, cor:"#1C3782"});
+  graficoMensalMLT($("#g-can-chuva"), chuva, {rotulo:"Chuva acumulada no mês (mm)", unidade:"mm", dec:0, cor:"#4A7FB0", csv:["chuva_mm","chuva_media_longo_termo_mm"]});
+  graficoMensalMLT($("#g-can-qnat"), qnat, {rotulo:"Vazão natural média do mês (m³/s)", unidade:"m³/s", dec:1, cor:"#1C3782", csv:["vazao_natural_m3s","vazao_natural_media_longo_termo_m3s"]});
   const c = chuva[11], qn = qnat[11], pc = (a, b) => a==null || !b ? "–" : fmt(a/b*100, 0) + "%";
   $("#c-mes-nota").innerHTML = `No mês da data de referência, até ${dBR(ref)}: chuva de ${fmt(c.v,0)} mm, ${pc(c.v, c.mlt)} da média de longo termo do mês inteiro (${fmt(c.mlt,0)} mm); vazão natural média de ${fmt(qn.v,1)} m³/s, ${pc(qn.v, qn.mlt)} da média de longo termo do mês (${fmt(qn.mlt,1)} m³/s). A SABESP atualiza as médias de longo termo a cada ano; cada mês usa a do próprio ano.`;
 }
 // barras por mês com a média de longo termo como traço sobre cada barra
 function graficoMensalMLT(host, dados, o){
   host.innerHTML = "";
+  guardaCSV(host, ["mes", ...(o.csv || ["valor","media_longo_termo"])], dados.map(d => [d.rot, d.v, d.mlt]));
   const W = 560, H = 270, m = {l:46, r:10, t:44, b:26};   // proporção fixa: os dois gráficos lado a lado ficam iguais
   const vals = dados.flatMap(d => [d.v, d.mlt]).filter(v => v!=null), hi = Math.max(...vals)*1.08 || 1;
   const faixa = (W-m.l-m.r)/dados.length, bw = Math.min(26, faixa*.6), X = i => m.l + faixa*i + (faixa-bw)/2, Y = v => m.t + (hi-v)/hi*(H-m.t-m.b);
@@ -3832,7 +4040,7 @@ function paginaSistemaOS(sis){
   $("#conteudo").innerHTML = `
     <nav class="indice" aria-label="Seções da página">${[["s-res","Reservatórios"],["s-ano","Ao longo do ano"],["s-dia","Mesmo dia em outros anos"]].map(([id, r]) => `<a href="#${PAGINA_SIS[sis]}" data-alvo="${id}">${r}</a>`).join("")}</nav>
     <section class="cartao secao tabela-bacia" id="s-res" aria-labelledby="t-s-res">
-      ${barraBaixar([["baixar-sis-csv", "CSV", "Baixar a tabela do dia em CSV"]])}
+      ${barraBaixar([["baixar-sis-csv", "CSV", "Baixar a tabela do dia em CSV"], ["baixar-sis-pdf", "PDF", "Baixar a tabela do dia em PDF"]])}
       <h2 id="t-s-res"><small>1</small>Reservatórios em <span id="s-res-dia"></span></h2>
       <p class="sub">Cada reservatório com o seu volume, sem volume equivalente do sistema.${soNiv.length ? " O Lago Paranoá não tem capacidade cadastrada e aparece pela cota (só nível)." : ""} O minigráfico mostra os 12 meses até a data de referência.<span class="dica">Clique num reservatório para abrir a ficha.</span></p>
       <div class="tab-box"><table id="tab-sis">
@@ -3841,11 +4049,13 @@ function paginaSistemaOS(sis){
         <tbody id="corpo-sis"></tbody></table></div>
     </section>
     <section class="cartao secao" id="s-ano" aria-labelledby="t-s-ano">
+      ${barraBaixar([["baixar-sis-ano-csv", "CSV", "Baixar os dados dos gráficos em CSV"], ["baixar-sis-ano", "PNG", "Baixar os gráficos como imagem"]])}
       <h2 id="t-s-ano"><small>2</small>Ao longo do ano</h2>
       <p class="sub">Volume (%) de cada reservatório dia a dia, nos cinco anos até a data de referência${soNiv.length ? "; no Lago Paranoá, a cota (m)" : ""}.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div id="s-ano-graf"></div>
     </section>
     <section class="cartao secao" id="s-dia" aria-labelledby="t-s-dia">
+      ${barraBaixar([["baixar-sis-dia-csv", "CSV", "Baixar os dados dos gráficos em CSV"], ["baixar-sis-dia", "PNG", "Baixar os gráficos como imagem"]])}
       <h2 id="t-s-dia"><small>3</small>Mesmo dia em outros anos</h2>
       <p class="sub">O valor de cada reservatório no dia da data de referência, em cada um dos cinco anos até ela.</p>
       <div id="s-dia-graf"></div>
@@ -3871,22 +4081,26 @@ function paginaSistemaOS(sis){
     L.forEach(({F}) => {
       const campo = soNivelF(F) ? "cota" : "pct", u = soNivelF(F) ? "m" : "%";
       const g1 = document.createElement("div"); g1.className = "graf"; hostA.append(g1);
-      graficoCalendario(g1, ate(pontosCal(F, campo, a1-4)), {anos, anoAtual:a1, dec: u==="m" ? 2 : 1, unidade:u, pct: u==="%", marcaDia:ref, altura:230, maxVao:3, tol:2,
+      graficoCalendario(g1, ate(pontosCal(F, campo, a1-4)), {rotCSV:nomeRes(F), anos, anoAtual:a1, dec: u==="m" ? 2 : 1, unidade:u, pct: u==="%", marcaDia:ref, altura:230, maxVao:3, tol:2,
         rotulo:`${nomeRes(F)} · ${u==="%" ? "volume (%)" : "cota (m), só nível"}`});
       const g2 = document.createElement("div"); g2.className = "graf"; hostD.append(g2);
-      graficoBarrasAnos(g2, mesmoDiaF(F, campo, ref).filter(d => d.a > a1 - 5 && d.a <= a1), {anoAtual:+ref.slice(0,4), dec: u==="m" ? 2 : 1, unidade:u, pct: u==="%", relativo: u==="m", altura:210,
+      graficoBarrasAnos(g2, mesmoDiaF(F, campo, ref).filter(d => d.a > a1 - 5 && d.a <= a1), {rotCSV:nomeRes(F), anoAtual:+ref.slice(0,4), dec: u==="m" ? 2 : 1, unidade:u, pct: u==="%", relativo: u==="m", altura:210,
         rotulo:`${nomeRes(F)} em ${dBR(ref).slice(0,5)} de cada ano (${u==="%" ? "volume, %" : "cota, m"})`, legenda: u==="%" ? "Volume" : "Cota"});
     });
   };
   ligarDataOS("dia-sis", min, ult, desenhar);
   redesenharOS = desenhar;
   desenhar();
-  $("#baixar-sis-csv").onclick = () => {
-    const ref = refOS, R = [["reservatorio","codigo","data","nivel_m","volume_hm3","volume_pct","capacidade_hm3"]].concat(L.map(({cod, F}) => {
+  $("#baixar-sis-csv").onclick = () => { const ref = refOS;
+    salvarCSV(["reservatorio","codigo","data","nivel_m","volume_hm3","volume_pct","capacidade_hm3"], L.map(({cod, F}) => {
       const c = leituraF(F, "cota", ref), p = soNivelF(F) ? null : leituraF(F, "pct", ref);
-      return [nomeRes(F), cod, c ? c.iso : ref, c && c.v, p ? (p.v*F.cap/100).toFixed(3) : null, p && p.v, F.cap]; }));
-    baixarArquivo(new Blob(["﻿" + R.map(l => l.map(v => v==null ? "" : String(v).replace(".", ",")).join(";")).join("\r\n")], {type:"text/csv"}), `sar_${sis}_${ref}.csv`);
-  };
+      return [nomeRes(F), cod, dBR(c ? c.iso : ref), c && c.v, p ? p.v*F.cap/100 : null, p && p.v, F.cap]; }), `sar_${sis}_${ref}.csv`); };
+  $("#baixar-sis-pdf").onclick = () => pdfSecao([$("#tab-sis")], `sar_${sis}_${refOS}.pdf`);
+  const nomeSis = NOME_SIS[sis];
+  $("#baixar-sis-ano").onclick = () => baixarPNG($$("#s-ano-graf svg"), `sar_${sis}_ao_longo_do_ano_ate_${refOS}.png`, `${nomeSis} · ao longo do ano · até ${dBR(refOS)}`, LEG_ANOS(+refOS.slice(0,4)));
+  $("#baixar-sis-dia").onclick = () => baixarPNG($$("#s-dia-graf svg"), `sar_${sis}_mesmo_dia_${refOS}.png`, `${nomeSis} · ${dBR(refOS).slice(0,5)} de cada ano`, []);
+  $("#baixar-sis-ano-csv").onclick = () => baixarCSVGrafico($$("#s-ano-graf .graf"), `sar_${sis}_ao_longo_do_ano_ate_${refOS}.csv`, "reservatorio");
+  $("#baixar-sis-dia-csv").onclick = () => baixarCSVGrafico($$("#s-dia-graf .graf"), `sar_${sis}_mesmo_dia_${refOS}.csv`, "reservatorio");
 }
 
 /* ---------- ficha do reservatório (três sistemas) ---------- */
@@ -3925,12 +4139,13 @@ function paginaFichaOS(cod){
       <p class="nota" id="fo-resumo" style="margin:12px 0 0"></p>
     </section>
     <section class="cartao secao" id="fo-dia" aria-labelledby="t-fo-dia">
-      ${barraBaixar([["baixar-fo-dia", "PNG", "Baixar o gráfico como imagem"]])}
+      ${barraBaixar([["baixar-fo-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-fo-dia", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-fo-dia"><small>3</small>Mesmo dia em outros anos</h2>
       <p class="sub">${niv ? "Cota" : "Volume (%)"} no dia da data de referência, em cada ano da série diária.</p>
       <div class="graf" id="fo-g-dia"></div>
     </section>
     <section class="cartao secao" id="fo-ano" aria-labelledby="t-fo-ano">
+      ${barraBaixar([["baixar-fo-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-fo-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-fo-ano"><small>4</small>Ano contra anos anteriores</h2>
       <p class="sub">A série diária de cada ano sobreposta no mesmo calendário. O ano corrente fica em destaque.<span class="dica">Clique nos anos para incluir ou tirar, até ${MAX_ANOS} ao mesmo tempo.</span></p>
       <div class="controles"><fieldset class="anos"><legend>Anos <span class="nota" id="fo-nota-anos"></span></legend><span id="fo-chips"></span></fieldset></div>
@@ -4011,14 +4226,15 @@ function paginaFichaOS(cod){
   ligarDataOS("dia-fos", F.de, ult, tudo);
   redesenharOS = () => { tudo(); graficos(); };
   tudo(); aplicar(365);
-  $("#baixar-fo-png").onclick = () => baixarPNG([...$$("#fo-graf .graf svg")], `sar_${cod}_graficos.png`, `${nome} · ${$("#fo-de").value} a ${$("#fo-ate").value}`, []);
+  $("#baixar-fo-png").onclick = () => baixarPNG([...$$("#fo-graf .graf svg")], `sar_${cod}_graficos.png`, `${nome} · ${dBR($("#fo-de").value)} a ${dBR($("#fo-ate").value)}`, []);
+  $("#baixar-fo-dia-csv").onclick = () => baixarCSVGrafico([$("#fo-g-dia")], `sar_${cod}_mesmo_dia_${refOS}.csv`);
+  $("#baixar-fo-ano").onclick = () => baixarPNG([$("#fo-g-ano svg")], `sar_${cod}_ano_contra_anos.png`, `${nome} · ${niv ? "cota" : "volume"} ao longo do ano`, []);
+  $("#baixar-fo-ano-csv").onclick = () => baixarCSVGrafico([$("#fo-g-ano")], `sar_${cod}_ano_contra_anos.csv`);
   $("#baixar-fo-dia").onclick = () => baixarPNG([$("#fo-g-dia svg")], `sar_${cod}_mesmo_dia_${refOS}.png`, `${nome} em ${dBR(refOS).slice(0,5)} de cada ano`, LEG_ANOS(+refOS.slice(0,4)));
   $("#baixar-fo-csv").onclick = () => {
     const de = $("#fo-de").value || F.de, ate = $("#fo-ate").value || ult, S = pontosF(F, niv ? ["cota"] : ["pct","cota"], de, ate);
-    const L = [niv ? ["data","cota_m"] : ["data","volume_pct","volume_hm3","nivel_m"]].concat(S.map(o => { const d = new Date(o.t).toISOString().slice(0,10);
-      return niv ? [d, o.cota] : [d, o.pct, o.pct==null ? null : (o.pct*F.cap/100).toFixed(3), o.cota]; }));
-    baixarArquivo(new Blob(["﻿" + L.map(l => l.map(v => v==null ? "" : String(v).replace(".", ",")).join(";")).join("\r\n")], {type:"text/csv"}), `sar_${cod}_${de}_${ate}.csv`);
-  };
+    salvarCSV(niv ? ["data","cota_m"] : ["data","volume_pct","volume_hm3","nivel_m"], S.map(o => { const d = dBR(new Date(o.t).toISOString().slice(0,10));
+      return niv ? [d, o.cota] : [d, o.pct, o.pct==null ? null : o.pct*F.cap/100, o.cota]; }), `sar_${cod}_${de}_${ate}.csv`); };
 }
 
 /* ============================================================ rotas */
