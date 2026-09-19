@@ -218,7 +218,8 @@ main{padding-block:26px 60px}
 .chip-f .x{font-size:15px;line-height:1}
 #d-limpar-f{margin-left:auto}
 #d-limpar-f:disabled{opacity:.45;cursor:default;background:#fff}
-#tab-dic td{white-space:normal;vertical-align:top}
+#tab-dic{table-layout:fixed;width:100%}
+#tab-dic td{white-space:normal;vertical-align:top;overflow-wrap:anywhere}
 #tab-dic td code{font:12.5px ui-monospace,Consolas,monospace;color:var(--tinta)}
 .previa-box{overflow-x:auto}
 .previa-box table{font-size:12.5px}
@@ -4497,8 +4498,9 @@ function paginaDados(){
           <h2 id="t-d-dic"><small>4</small>Dicionário de dados</h2>
           <p class="sub">Todas as colunas que o arquivo pode ter, com o nome, a unidade, a definição, os módulos em que existem e se há base horária. Cada download traz a parte do dicionário das colunas pedidas.</p>
           <div class="tab-box"><table id="tab-dic">
-            <thead><tr><th>Coluna</th><th>Nome</th><th>Unidade</th><th>Definição</th><th>Módulos</th><th>Base horária</th></tr></thead>
-            <tbody>${DIC_LINHAS().map(l => `<tr><td><code>${esc(l[0])}</code></td><td><span class="nm">${esc(l[1])}</span></td><td>${esc(l[2] || "–")}</td><td>${esc(l[3])}</td><td>${esc(l[4] || "todos")}</td><td>${esc(l[5])}</td></tr>`).join("")}</tbody></table></div>
+            <colgroup><col style="width:22%"><col style="width:18%"><col><col style="width:16%"><col style="width:10%"></colgroup>
+            <thead><tr><th>Coluna</th><th>Nome</th><th>Definição</th><th>Módulos</th><th>Base horária</th></tr></thead>
+            <tbody>${DIC_LINHAS().map(l => `<tr><td><code>${esc(l[0]).replace(/_/g, "_<wbr>")}</code></td><td><span class="nm">${esc(l[1])}</span></td><td>${esc(l[3])}</td><td>${esc(l[4] || "todos")}</td><td>${esc(l[5])}</td></tr>`).join("")}</tbody></table></div>
         </section>
       </div>
       <aside class="pedido" aria-labelledby="t-pedido">
