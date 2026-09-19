@@ -3566,7 +3566,7 @@ function paginaCantareira(){
     <section class="cartao secao" id="c-bal" aria-labelledby="t-c-bal">
       ${barraBaixar([["baixar-bal-png", "PNG", "Baixar o diagrama como imagem"]])}
       <h2 id="t-c-bal"><small>3</small>Balanço de vazões em <span id="c-bal-dia"></span></h2>
-      <p class="sub">Vazões médias do dia, em m³/s: a vazão natural que chega a cada reservatório, os túneis que levam a água de um para o outro, a transferência do Jaguari (bacia do Paraíba do Sul) para o Atibainha, a retirada em Santa Inês para a Região Metropolitana de São Paulo e as descargas para jusante. A espessura das setas acompanha a vazão.</p>
+      <p class="sub">Vazões médias do dia, em m³/s: a vazão natural que chega a cada reservatório, os túneis que levam a água de um para o outro, a transferência do Jaguari (bacia do Paraíba do Sul) para o Atibainha, a retirada em Santa Inês para a Região Metropolitana de São Paulo e as descargas para jusante. No desenho, cada reservatório aparece em corte, com a água no nível do seu volume útil.</p>
       <div class="balanco" id="c-balanco"></div>
       <div class="balanco-resumo" id="c-bal-resumo"></div>
     </section>
@@ -3645,44 +3645,57 @@ function tabelaCan(ref){
 }
 function balancoCan(ref, f0){
   const R = Object.fromEntries(CAN.res.map(r => [r.k, r])), V = k => detCan(CAN.vaz[k], ref);
-  const W = 1000, H = 360, bw = 150, bh = 70, yb = 150, xs = [85, 320, 555, 790];
-  const larg = q => q==null ? 1.2 : 1.4 + Math.sqrt(Math.max(0, q))*1.35;
-  const svg = svgEl("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":`Balanço de vazões do Sistema Cantareira em ${dBR(ref)}`});
-  const defs = svgEl("defs"); ["#1C3782","#4A7FB0","#17868F","#8A6A2E"].forEach((c,i) => { const mk = svgEl("marker",{id:`seta${i}`, viewBox:"0 0 10 10", refX:8, refY:5, markerWidth:2.6, markerHeight:2.6, orient:"auto-start-reverse"}); mk.append(svgEl("path",{d:"M0 0L10 5L0 10z", fill:c})); defs.append(mk); }); svg.append(defs);
-  const seta = (x1, y1, x2, y2, q, cor, i) => svg.append(svgEl("line",{x1, y1, x2, y2, stroke:cor, "stroke-width":larg(q), "marker-end":`url(#seta${i})`, "stroke-linecap":"butt"}));
-  const txt = (x, y, s, o = {}) => { const e = svgEl("text",{x, y, "text-anchor":o.a || "middle", "font-size":o.fs || 12, "font-family":"Arial", fill:o.cor || "#22262E", "font-weight":o.b ? 700 : 400}); e.textContent = s; svg.append(e); return e; };
+  const W = 1440, H = 600, BW = 230, BH = 112, BY = 250, CX = [170, 500, 830, 1160];
+  const MAR = "#1C3782", NAT = "#0B72C2", TRF = "#8F5B22", JUS = "#07777A", AP = "#5B6B80", TERRA = "#8A97A8", PARADO = "#9AA8BC";
+  const svg = svgEl("svg",{viewBox:`0 66 ${W} ${H - 80}`, role:"img", "aria-label":`Balanço de vazões do Sistema Cantareira em ${dBR(ref)}`, "font-family":"Arial, Helvetica, sans-serif"});
+  const txt = (x, y, s, o = {}) => { const e = svgEl("text",{x, y, "text-anchor":o.a || "middle", "font-size":o.fs || 12, fill:o.cor || "#1B2532", "font-weight":o.b ? 700 : 400}); if (o.ls) e.setAttribute("letter-spacing", o.ls); e.textContent = s; svg.append(e); return e; };
+  const rot = (x, y, s, a) => txt(x, y, s, {fs:10.5, cor:AP, ls:".06em", a});
   const q = v => v==null ? "–" : fmt(v, v < 10 ? 2 : 1);
+  // linha de 2 px com ponta aberta; vazão nula ou sem dado fica pontilhada e cinza
+  const linha = (x1, y1, x2, y2, cor, v) => { const parado = !(v > 0), c = parado ? PARADO : cor;
+    const l = svgEl("line",{x1, y1, x2, y2, stroke:c, "stroke-width":2, "stroke-linecap":"round"}); if (parado) l.setAttribute("stroke-dasharray", "3 5"); svg.append(l);
+    svg.append(svgEl("path",{d: y1===y2 ? `M${x2-9} ${y2-6}L${x2} ${y2}L${x2-9} ${y2+6}` : `M${x2-6} ${y2-9}L${x2} ${y2}L${x2+6} ${y2-9}`, fill:"none", stroke:c, "stroke-width":2, "stroke-linecap":"round", "stroke-linejoin":"round"})); };
+  const etiqueta = (x, y, s, cor, v) => { const c = v > 0 ? cor : AP, w = s.length*9 + 22;
+    svg.append(svgEl("rect",{x:x - w/2, y:y - 13, width:w, height:26, rx:13, fill:"#fff", stroke:c, "stroke-width":1.5})); txt(x, y + 5, s, {fs:14, cor:c, b:true}); };
   const ordem = ["JaguariJacarei","Cachoeira","Atibainha","PaivaCastro"], tuneis = ["T7","T6","T5"];
   const rios = {JaguariJacarei:"rio Jaguari", Cachoeira:"rio Atibaia (PCJ)", Atibainha:"rio Atibaia (PCJ)", PaivaCastro:"rio Juqueri"};
   ordem.forEach((k, i) => {
-    const r = R[k], x = xs[i], p = detCan(r.pct, ref);
-    // vazão natural chegando
-    seta(x - 30, 58, x - 30, yb - 4, detCan(r.qnat, ref), "#4A7FB0", 1);
-    txt(x - 36, 52, `natural ${q(detCan(r.qnat, ref))}`, {a:"middle", fs:11.5, cor:"#4A7FB0"});
-    // caixa do reservatório
-    svg.append(svgEl("rect",{x:x - bw/2, y:yb, width:bw, height:bh, rx:4, fill:"#fff", stroke:"#1C3782", "stroke-width":1.4}));
-    const cheio = Math.max(0, Math.min(1, (p ?? 0)/100));
-    svg.append(svgEl("rect",{x:x - bw/2 + 1, y:yb + bh - 1 - (bh-2)*cheio, width:bw - 2, height:(bh-2)*cheio, rx:3, fill:"#CFDDEC"}));
-    txt(x, yb + 26, r.nome, {b:true, cor:"#1C3782", fs:13});
-    txt(x, yb + 48, `${fmt(p,1)}% · ${fmt(detCan(r.vol, ref),1)} hm³`, {fs:12});
-    // descarga para jusante
-    seta(x + 30, yb + bh + 4, x + 30, H - 56, detCan(r.qjus, ref), "#17868F", 2);
-    txt(x + 30, H - 38, `${q(detCan(r.qjus, ref))} para jusante`, {fs:11.5, cor:"#17868F"});
-    txt(x + 30, H - 22, rios[k], {fs:11, cor:"#6F7582"});
+    const r = R[k], cx = CX[i], x = cx - BW/2, y0 = BY, y1 = BY + BH, p = detCan(r.pct, ref);
+    // reservatório em corte: encosta à esquerda, barragem à direita, água até o nível do %
+    const ex = y => x + 4 + 34*(y - (y0 + 10))/(y1 - (y0 + 10)), px = y => x + BW - 52 - 26*(y - y0)/BH;
+    const cheio = Math.max(0, Math.min(1, (p ?? 0)/100)), yn = y1 - (BH - 14)*cheio, ym = y1 - (BH - 14);
+    const pts = P => P.map(([a, b]) => `${a.toFixed(1)},${b.toFixed(1)}`).join(" ");
+    if (p != null){ svg.append(svgEl("polygon",{points:pts([[ex(yn),yn],[px(yn),yn],[px(y1),y1],[ex(y1),y1]]), fill:"#DCE8F5"}));
+      svg.append(svgEl("line",{x1:ex(yn), x2:px(yn), y1:yn, y2:yn, stroke:NAT, "stroke-width":2, "stroke-linecap":"round"})); }
+    svg.append(svgEl("line",{x1:ex(ym), x2:px(ym), y1:ym, y2:ym, stroke:"#80B4E0", "stroke-width":1.2, "stroke-dasharray":"4 4"}));
+    svg.append(svgEl("path",{d:`M${x-8} ${y0+10}L${x+4} ${y0+10}L${ex(y1)} ${y1}L${px(y1)} ${y1}`, fill:"none", stroke:TERRA, "stroke-width":2, "stroke-linecap":"round", "stroke-linejoin":"round"}));
+    svg.append(svgEl("polygon",{points:pts([[x+BW-52,y0],[x+BW-34,y0],[x+BW-6,y1],[px(y1),y1]]), fill:MAR, stroke:MAR, "stroke-width":1.5, "stroke-linejoin":"round"}));
+    svg.append(svgEl("line",{x1:x+BW-6, x2:x+BW+8, y1, y2:y1, stroke:TERRA, "stroke-width":2, "stroke-linecap":"round"}));
+    const cm = x + (BW - 60)/2 + 8;
+    txt(cm, y0 + 40, r.nome, {fs:14, cor:MAR, b:true});
+    const n = txt(cm, y0 + 72, p==null ? "–" : fmt(p,1), {fs:25, b:true}); if (p != null){ const s = svgEl("tspan",{"font-size":14, fill:NAT, dx:2}); s.textContent = "%"; n.append(s); }
+    txt(cm, y0 + 94, `${fmt(detCan(r.vol, ref),1)} hm³`, {cor:"#3D4B5C"});
+    // vazão natural, por cima
+    const qn = detCan(r.qnat, ref), xn = cx - (i===2 ? 80 : 40);
+    linha(xn, 108, xn, BY + 2, NAT, qn); rot(xn, 94, "VAZÃO NATURAL"); etiqueta(xn, 170, q(qn), NAT, qn);
+    // descarga para jusante, pelo pé da barragem
+    const qj = detCan(r.qjus, ref), xd = cx + BW/2 - 30;
+    linha(xd, y1 + 8, xd, y1 + 100, JUS, qj); etiqueta(xd, y1 + 50, q(qj), JUS, qj); txt(xd, y1 + 124, `para jusante · ${rios[k]}`, {cor:AP});
     // túnel para o próximo
-    if (i < 3){ const tq = V(tuneis[i]); seta(x + bw/2 + 4, yb + bh/2, xs[i+1] - bw/2 - 6, yb + bh/2, tq, "#1C3782", 0);
-      txt((x + xs[i+1])/2, yb + bh/2 - 12, `Túnel ${tuneis[i].slice(1)} · ${q(tq)}`, {fs:11.5, cor:"#1C3782"}); }
+    if (i < 3){ const tq = V(tuneis[i]), x1 = cx + BW/2 + 2, x2 = CX[i+1] - BW/2 + 6, y = BY + BH/2 + 8, xm = (x1 + x2)/2 - 3;
+      linha(x1, y, x2, y, MAR, tq); etiqueta(xm, y, q(tq), MAR, tq); rot(xm, y - 26, `TÚNEL ${tuneis[i].slice(1)}`); }
   });
   // transferência do Jaguari (Paraíba do Sul) para o Atibainha
-  const tr = V("TransfParaibaDoSul");
-  seta(xs[2] + 34, 58, xs[2] + 34, yb - 4, tr, "#8A6A2E", 3);
-  txt(xs[2] + 34, 22, "transferência do Jaguari", {fs:11.5, cor:"#8A6A2E"});
-  txt(xs[2] + 34, 36, `(Paraíba do Sul) ${q(tr)}`, {fs:11.5, cor:"#8A6A2E"});
+  const tr = V("TransfParaibaDoSul"), xt = CX[2] + 10;
+  linha(xt, 108, xt, BY + 2, TRF, tr); rot(xt - 8, 82, "TRANSFERÊNCIA DO JAGUARI", "start"); rot(xt - 8, 95, "(PARAÍBA DO SUL)", "start"); etiqueta(xt, 170, q(tr), TRF, tr);
   // Santa Inês
-  const esi = V("ESI");
-  seta(xs[3] + bw/2 + 4, yb + bh/2, W - 8, yb + bh/2, esi, "#1C3782", 0);
-  txt(W - 8, yb - 12, `Santa Inês ${q(esi)}`, {a:"end", fs:12, cor:"#1C3782", b:true});
-  txt(W - 8, yb + bh + 18, "para a RMSP", {a:"end", fs:11, cor:"#6F7582"});
+  const esi = V("ESI"), xe = CX[3] + BW/2 + 2, ye = BY + BH/2 + 8, xme = (xe + W - 40)/2 - 4;
+  linha(xe, ye, W - 40, ye, MAR, esi); etiqueta(xme, ye, q(esi), MAR, esi); rot(xme, ye - 26, "SANTA INÊS"); txt(xme, ye + 36, "retirada para a RMSP", {cor:AP});
+  // legenda
+  let xl = 40; [[NAT,"Vazão natural afluente"],[TRF,"Transferência do Paraíba do Sul"],[MAR,"Túneis e retirada em Santa Inês"],[JUS,"Descarga para jusante"]].forEach(([c, s]) => {
+    svg.append(svgEl("rect",{x:xl, y:H - 42, width:18, height:6, rx:3, fill:c})); txt(xl + 26, H - 35, s, {cor:AP, a:"start"}); xl += s.length*6.6 + 70; });
+  svg.append(svgEl("line",{x1:xl, x2:xl + 22, y1:H - 39, y2:H - 39, stroke:"#80B4E0", "stroke-width":1.2, "stroke-dasharray":"4 4"})); txt(xl + 30, H - 35, "volume útil máximo", {cor:AP, a:"start"});
+  txt(W - 40, H - 35, "Valores em m³/s, média do dia.", {cor:AP, a:"end"});
   $("#c-balanco").innerHTML = ""; $("#c-balanco").append(svg);
   // resumo: retirada do sistema (Art. 1º, § 2º), Santa Inês no mês e transferência, sem limites por faixa
   const jus = CAN.res.reduce((a, r) => a + (detCan(r.qjus, ref) ?? NaN), 0);
