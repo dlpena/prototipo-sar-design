@@ -172,6 +172,7 @@ main{padding-block:26px 60px}
 .lista-res .tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;color:#fff;white-space:nowrap}
 .lista-res .ret{display:inline-block;margin-left:6px;font-size:11px;color:#8A5A00;background:#FFF4DC;border-radius:8px;padding:1px 6px}
 .mais-res{margin:10px 0 0;text-align:center}
+.barra-res .acao.sec:disabled{opacity:.45;cursor:default;background:#fff}
 .vars-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin:0 0 6px}
 .var-grupo{border:1px solid var(--linha);border-radius:10px;padding:12px 16px 8px}
 .var-grupo h3{font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--apagado);margin:2px 0 6px}
@@ -342,6 +343,8 @@ body.na-inicio #conteudo{padding-top:22px}
 .busca input:focus{border-color:var(--ana);outline:0}
 .busca .acao{padding:0 20px}
 .sr{position:absolute;left:-9999px}
+.res-total{margin:0;padding:8px 12px;font-size:12.5px;color:var(--apagado);border-bottom:1px solid var(--linha);position:sticky;top:0;background:#fff}
+.res-total a{color:var(--ana-medio)}
 .resultados{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--linha-forte);border-radius:3px;box-shadow:0 8px 24px rgba(20,42,102,.16);z-index:40;max-height:360px;overflow:auto}
 .res{all:unset;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 12px;width:100%;box-sizing:border-box;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--linha)}
 .res:hover,.res:focus-visible{background:var(--ana-gelo)}
@@ -2429,23 +2432,29 @@ function paginaInicio(){
 }
 function montarBusca(){
   const I = D.inicio;
-  const indice = RES.map(r => ({nome: caso(r.nome), det: `${NOME[r.bacia]} · ${r.municipio ? r.municipio+", " : ""}${r.uf||"–"}${r.codigo ? " · código "+r.codigo : ""}`, mod:"SIN", chave: semAcento(`${r.nome} ${NOME[r.bacia]} ${r.uf||""} ${r.estado||""} ${r.municipio||""} ${r.codigo||""}`), r}))
-    .concat(I.ne_lista.map(r => ({nome: caso(r.nome), cod: String(r.codigo), det: `${r.municipio ? r.municipio+", " : ""}${r.estado} · código ${r.codigo}`, mod:"Nordeste e Semiárido", chave: semAcento(`${r.nome} ${r.estado} ${r.municipio||""} ${r.codigo}`)})))
-    .concat(D.outros ? Object.entries(D.outros.fichas).map(([cod, F]) => ({nome: F.sis==="cantareira" ? F.nome : caso(F.nome), cod, det: `${F.sis==="cantareira" ? "Sistema Cantareira, SP" : F.sis==="df" ? "Distrito Federal" : "Paraopeba, MG"} · código ${cod}`, mod:"Outros Sistemas Hídricos",
-        chave: semAcento(`${F.nome} ${F.sis==="cantareira" ? "CANTAREIRA SP SAO PAULO" : F.sis==="df" ? "DISTRITO FEDERAL DF BRASILIA" : "PARAOPEBA MG MINAS GERAIS BELO HORIZONTE"} ${cod}`)}))
-      : I.cantareira.map(r => ({nome: caso(r.nome), det: `Sistema Cantareira · código ${r.codigo}`, mod:"Outros Sistemas Hídricos", chave: semAcento(`${r.nome} CANTAREIRA SP SAO PAULO ${r.codigo}`)})));
+  // mesma lista e mesmos campos da área de dados, para os totais baterem
+  const ROT_MOD_I = {SIN:"SIN", NE:"Nordeste e Semiárido", OUTROS:"Outros Sistemas Hídricos"};
+  const indice = entidadesDados().map(e => ({nome:e.nome, cod:e.codigo, e, r:e.r, mod:ROT_MOD_I[e.mod], chave:semAcento(e.busca),
+    det:`${e.bacia ? e.bacia + " · " : ""}${e.municipio ? e.municipio + ", " : ""}${e.uf}${e.codigo ? " · código " + e.codigo : ""}${e.tipo==="só nível" ? " · só nível" : ""}${e.retirado ? " · retirado do acompanhamento" : ""}`}));
   const q = $("#q"), box = $("#resultados");
   const abrir = it => {
     if (it.mod==="Nordeste e Semiárido" && NEd.fichas && NEd.fichas[it.cod]){ location.hash = "ne/ficha/" + it.cod; return; }
     if (it.mod==="Outros Sistemas Hídricos" && D.outros && it.cod){ location.hash = "outros/ficha/" + it.cod; return; }
+    if (it.e && it.e.src==="can"){ location.hash = "outros/cantareira"; return; }
     if (it.mod!=="SIN"){ toast(`${it.nome} (${it.mod}): a ficha desse módulo fica para a próxima rodada.`); return; }
     if (it.r.nome==="FURNAS") location.hash = "ficha/FURNAS"; else if (it.r.bacia==="GRANDE") location.hash = "bacia/GRANDE"; else toast(`${it.nome}: no protótipo só a bacia do Grande e a ficha de Furnas estão montadas.`);
   };
   const buscar = () => {
     const termos = semAcento(q.value).split(/\s+/).filter(Boolean);
     if (!termos.length){ box.hidden = true; return; }
-    const achados = indice.filter(it => termos.every(tm => it.chave.includes(tm))).slice(0, 12);
-    box.innerHTML = achados.length ? achados.map((it,i) => `<button type="button" class="res" data-i="${i}"><span class="n">${esc(it.nome)}</span><span class="d">${esc(it.det)}</span><span class="m">${it.mod}</span></button>`).join("") : '<p class="nota" style="padding:8px 12px;margin:0">Nenhum reservatório encontrado.</p>';
+    // relevância: nome começa com o termo > nome contém o termo > termo em outro campo (estado, bacia, município)
+    const nota = it => { const n = semAcento(it.nome); return termos.reduce((a, tm) => a + (n.startsWith(tm) ? 3 : n.includes(tm) ? 2 : 1), 0); };
+    const todos = indice.filter(it => termos.every(tm => it.chave.includes(tm))).map(it => ({it, s:nota(it)}))
+      .sort((a, b) => b.s - a.s || a.it.nome.localeCompare(b.it.nome, "pt-BR")).map(x => x.it);
+    const achados = todos.slice(0, 30);
+    box.innerHTML = (todos.length ? `<p class="res-total">${fint(todos.length)} ${todos.length===1 ? "resultado" : "resultados"}${todos.length > achados.length ? `, mostrando ${achados.length}` : ""} · <a href="#dados" id="res-dados">ver todos na área de dados</a></p>` : "")
+      + (achados.length ? achados.map((it,i) => `<button type="button" class="res" data-i="${i}"><span class="n">${esc(it.nome)}</span><span class="d">${esc(it.det)}</span><span class="m">${it.mod}</span></button>`).join("") : '<p class="nota" style="padding:8px 12px;margin:0">Nenhum reservatório encontrado.</p>');
+    if ($("#res-dados")) $("#res-dados").onclick = ev => { ev.preventDefault(); BUSCA_DADOS = q.value.trim(); location.hash = "dados"; };
     $$(".res", box).forEach(b => b.onclick = () => abrir(achados[+b.dataset.i]));
     box.hidden = false;
   };
@@ -4366,7 +4375,9 @@ function entidadesDados(){
       vars: niv ? ["cota_m"] : can ? ["cota_m","volume_hm3","volume_util_pct","vazao_natural_m3s","descarga_jusante_m3s"] : ["cota_m","volume_hm3","volume_pct"], src:"os", F}); });
   if (CAN) L.push({id:"CAN", codigo:"", nome:"Sistema Cantareira (os quatro reservatórios)", mod:"OUTROS", sis:"cantareira", uf:"SP", municipio:"", bacia:NOME_SIS.cantareira, tipo:"sistema",
     vars:["volume_util_pct","volume_hm3","vazao_natural_m3s","descarga_jusante_m3s","retirada_santa_ines_m3s","tunel_7_m3s","tunel_6_m3s","tunel_5_m3s","transferencia_paraiba_do_sul_m3s","chuva_mm"], src:"can"});
-  L.forEach(e => e.busca = semAc(`${e.nome} ${e.codigo} ${e.municipio}`));
+  const UFN = {}; RES.forEach(r => { if (r.uf) UFN[r.uf] = r.estado; }); NEd.estados.forEach(x => UFN[x.uf] = x.estado); UFN.DF = "Distrito Federal"; UFN.SP = UFN.SP || "São Paulo";
+  L.forEach(e => { e.nomeB = semAc(e.nome);
+    e.busca = semAc(`${e.nome} ${e.codigo} ${e.municipio} ${e.uf} ${UFN[e.uf] || ""} ${e.bacia} ${ROT_MOD[e.mod]} ${e.mod==="OUTROS" ? "Outros Sistemas Hídricos " + (NOME_SIS[e.sis] || "") : ""}`); });
   return ENT_D = L;
 }
 // série embutida no protótipo de uma entidade: [{t (aaaa-mm-dd ou aaaa-mm-ddThh), v:{variável: valor}}]
@@ -4413,8 +4424,9 @@ function serieDados(e, base, de, ate){
 const INICIO_PROTO = "No protótipo o arquivo traz só o que está embutido na página: SIN, o dia mais recente (30 dias na bacia do Grande; série diária desde 2000 e horária desde 01/07/2026 em Furnas); " +
   "Nordeste e Semiárido, 12 meses (série desde 2006 nas três fichas de exemplo); Outros Sistemas, a série completa. No sistema, cada reservatório vem com a série inteira.";
 
+let BUSCA_DADOS = "";   // busca vinda da página inicial ("ver todos na área de dados")
 function paginaDados(){
-  const ENT = entidadesDados(), porId = Object.fromEntries(ENT.map(e => [e.id, e]));
+  const ENT = entidadesDados(), porId = Object.fromEntries(ENT.map(e => [e.id, e])), qInicial = BUSCA_DADOS; BUSCA_DADOS = "";
   const datas = [D.data, NEd.serie_ate, CAN ? CAN.ate : D.data, ...Object.values(FOS).map(fimF)].filter(Boolean).sort();
   const ULT = datas[datas.length - 1];
   const FILT = {uf:{r:"Estado", todos:"Todos"}, mun:{r:"Município", todos:"Todos"}, bacia:{r:"Bacia ou sistema", todos:"Todas"}};
@@ -4505,8 +4517,8 @@ function paginaDados(){
   $$(".indice a").forEach(a => a.onclick = ev => { ev.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
 
   // ---------- 1. seleção
-  const filtrados = () => { const q = semAc(st.txt).trim();
-    return ENT.filter(e => (!st.soSel || st.sel.has(e.id)) && (!st.mod.size || st.mod.has(e.mod)) && (!st.uf.size || st.uf.has(e.uf)) && (!st.mun.size || st.mun.has(e.municipio)) && (!st.bacia.size || st.bacia.has(e.bacia)) && (!q || e.busca.includes(q))); };
+  const filtrados = () => { const termos = semAc(st.txt).split(/\s+/).filter(Boolean);   // várias palavras: todas têm de bater
+    return ENT.filter(e => (!st.soSel || st.sel.has(e.id)) && (!st.mod.size || st.mod.has(e.mod)) && (!st.uf.size || st.uf.has(e.uf)) && (!st.mun.size || st.mun.has(e.municipio)) && (!st.bacia.size || st.bacia.has(e.bacia)) && termos.every(tm => e.busca.includes(tm))); };
   // filtros com busca e escolha múltipla: estado depende do módulo; município e bacia, do módulo e do estado
   const rotOpc = (k, v) => k==="uf" ? (UF_NOME[v] || v) : v;
   const campoDe = {uf:"uf", mun:"municipio", bacia:"bacia"};
@@ -4679,6 +4691,7 @@ function paginaDados(){
       toast(`Planilha com ${fint(L.length)} linhas gerada. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)`);
     }
   };
+  if (qInicial){ st.txt = qInicial; $("#d-busca").value = qInicial; $("#d-limpar-f").disabled = false; }
   opcoes(); desenharLista(); atualizar();
 }
 
