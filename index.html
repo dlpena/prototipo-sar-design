@@ -534,7 +534,17 @@ td .nm{font-weight:500}
    número, para não somar uma linha abaixo; a altura do bloco fica próxima da altura da lista */
 .equiv .comparacoes li{padding:6px 0}
 .equiv .comparacoes li:first-child{padding-top:0}
-.equiv .lado .nota{margin:14px 0 0;font-size:12px;line-height:1.45;max-width:60ch}
+.equiv .lado .nota{margin:14px 0 0;font-size:12px;line-height:1.45}
+/* desktop: a coluna de comparações vai do topo ao pé do cartão, ao lado do título; a coluna esquerda leva título,
+   subtítulo, número e nota na largura toda (Diego, 19/09/2026) */
+@media (min-width:981px){
+  .secao:has(> .equiv){display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,300px);column-gap:0;align-items:start}
+  .secao:has(> .equiv) > .equiv{display:contents}
+  .secao:has(> .equiv) > h2,.secao:has(> .equiv) > p.sub,.secao:has(> .equiv) > p.nota,.secao:has(> .equiv) .equiv > .lado{grid-column:1;padding-right:32px}
+  .secao:has(> .equiv) .equiv > .lado{border-right:0;padding-left:26px}
+  .secao:has(> .equiv) .equiv .def{max-width:none}
+  .secao:has(> .equiv) .equiv > .comparacoes{grid-column:2;grid-row:1 / span 20;align-self:stretch;align-content:center;padding:0 0 0 26px;border-left:1px solid rgba(255,255,255,.18)}
+}
 .secao:has(> .equiv) > p.nota,.secao:has(> .equiv) .lado .nota{color:#A9BBD8}
 .secao:has(> .equiv) .comparacoes li b{color:#FFFFFF}
 .secao:has(> .equiv) .baixar button{color:#C5D2EA}
