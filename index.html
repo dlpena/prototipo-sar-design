@@ -324,7 +324,10 @@ body.na-inicio #conteudo{padding-top:22px}
 /* a tabela dos estados tem seis colunas e pede mais largura que o mapa: sem isso aparecia barra de
    rolagem lateral na tabela, contra a diretriz de não ter rolagem interna (Diego) */
 .grade-ne{display:grid;grid-template-columns:minmax(0,.84fr) minmax(0,1.16fr);gap:22px;align-items:start}
-.grade-ne>#mapa-ne{align-self:center}
+.grade-ne>.col-mapa-ne{align-self:center;min-width:0}
+.col-mapa-ne .escala-uf{margin-bottom:12px;row-gap:6px}
+.col-mapa-ne .escala-uf b{flex-basis:100%;margin:0 0 2px;font-weight:600;color:var(--tinta)}
+.col-mapa-ne .escala-uf .semi{margin-left:0;padding-left:0;border-left:0}
 
 #mapa-ne svg{display:block;width:100%;height:auto;max-height:760px}
 #mapa-ne .uf-ne{transition:fill-opacity .12s,fill .12s}
@@ -343,7 +346,7 @@ th.ord-asc::after{content:' ▲';font-size:9px}
 th.ord-desc::after{content:' ▼';font-size:9px}
 /* a tabela dos estados pede 665 px: só acima de 1320 px as duas colunas cabem sem rolagem lateral;
    abaixo disso mapa em cima e tabela embaixo, do jeito que o Diego preferiu na página da bacia */
-@media (max-width:1320px){.grade-ne{grid-template-columns:1fr}.grade-ne>#mapa-ne{width:100%;max-width:620px;margin-inline:auto}}
+@media (max-width:1320px){.grade-ne{grid-template-columns:1fr}.grade-ne>.col-mapa-ne{width:100%;max-width:620px;margin-inline:auto}}
 @media (max-width:980px){#mapa-ce,#mapa-uf{height:420px}}
 /* ---------- bacia ---------- */
 .acao{display:inline-flex;align-items:center;gap:8px;background:var(--ana);color:#fff;border:0;border-radius:8px;padding:10px 16px;font-weight:700;cursor:pointer;text-decoration:none;font-size:14px}
@@ -2662,9 +2665,8 @@ function paginaNE(){
       ${barraBaixar([["baixar-ne-mapa", "PNG", "Baixar o mapa dos estados como imagem"], ["baixar-ne-csv", "CSV", "Baixar a tabela dos estados em CSV"], ["baixar-ne-pdf", "PDF", "Baixar a tabela dos estados em PDF"]])}
       <h2 id="t-n-estados"><small>1</small>Estados</h2>
       <p class="sub">Volume acumulado de cada estado na data de referência.<span class="dica">Passe o mouse no mapa ou na tabela para ligar um ao outro; clique para abrir o estado.</span></p>
-      ${legendaEscalaUF()}
       <div class="grade-ne">
-        <div id="mapa-ne" style="position:relative"></div>
+        <div class="col-mapa-ne">${legendaEscalaUF()}<div id="mapa-ne" style="position:relative"></div><p class="nota" style="margin:10px 0 0">A hachura marca o Semiárido, na delimitação do INSA. Em Minas Gerais o módulo acompanha só os reservatórios situados nele; nos nove estados do Nordeste, o estado todo. A delimitação alcança ainda parte do Espírito Santo, que não faz parte do módulo e não aparece no mapa.</p></div>
         <div class="tab-box"><table id="tab-estados">
           <thead><tr><th data-ord="estado">Estado</th><th class="r" data-ord="n" data-tipo="num">Reser&shy;va&shy;tórios</th><th class="r" data-ord="com_dado" data-tipo="num">Com volume</th><th class="r" data-ord="capacidade_com_dado_hm3" data-tipo="num">Capa&shy;cidade</th><th class="r" data-ord="volume_hm3" data-tipo="num">Volume</th><th class="r" data-ord="volume_pct" data-tipo="num">Volume</th></tr>
           <tr class="unid"><th></th><th class="r">acompa&shy;nhados</th><th class="r">na janela de ${NEd.limiar_dias} dias</th><th class="r">equiva&shy;lente, hm³</th><th class="r">hm³</th><th class="r">%</th></tr></thead>
@@ -2672,7 +2674,6 @@ function paginaNE(){
           <tfoot id="pe-estados"></tfoot>
         </table></div>
       </div>
-      <p class="nota">A hachura marca o Semiárido, na delimitação do INSA. Em Minas Gerais o módulo acompanha só os reservatórios situados nele; nos nove estados do Nordeste, o estado todo. A delimitação alcança ainda parte do Espírito Santo, que não faz parte do módulo e não aparece no mapa.</p>
     </section>
     <section class="cartao secao" id="n-vol" aria-labelledby="t-n-vol">
       <h2 id="t-n-vol"><small>2</small>Volume acumulado do Nordeste</h2>
