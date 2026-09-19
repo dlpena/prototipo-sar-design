@@ -125,7 +125,7 @@ main{padding-block:26px 60px}
 .leaflet-control-layers{font:13px Arial;box-shadow:0 1px 6px rgba(0,0,0,.2);border:0}
 .data-ref select{font:inherit;color:var(--tinta);border:1px solid var(--linha-forte);border-radius:3px;padding:4px 8px;background:#fff}
 @media (max-width:860px){#mapa-situacao{height:440px}}
-.nota{font-size:13px;color:var(--apagado)}
+.nota{font-size:13px;color:var(--apagado);overflow-wrap:anywhere}
 
 /* equivalente */
 .intro{margin:0 0 22px;padding:0 0 4px;color:var(--tinta-2);font-size:15px;line-height:1.6;background:transparent;border:0;box-shadow:none}
@@ -518,6 +518,7 @@ th.mini-th select{font:13px var(--sans);color:var(--ana);border:1px solid var(--
 .tabela-bacia table{table-layout:fixed}
 .tabela-bacia th:first-child{width:17%}
 .tabela-bacia th.mini-th{width:22%}
+.tabela-bacia th.mini-th label{white-space:normal;flex-wrap:wrap}   /* auditoria 19/09/2026: o rótulo com o seletor não quebrava e empurrava a tabela 7 px além da caixa */
 td.mini{padding:4px 12px 4px 16px;line-height:0}
 td.mini .mini-svg{display:block;width:100%}
 td.mini .sem{font-size:14px;line-height:1.4;color:var(--apagado)}
@@ -730,7 +731,9 @@ body.na-inicio main{padding-top:26px}
 .hero-marca .logo svg{height:84px}
 .hero-marca .selo{margin-bottom:6px}
 @media (max-width:640px){.hero-marca .logo svg{height:64px}}
+/*__ADMIN_CSS_INICIO__*/
 /* área administrativa (#admin) */
+/* atalho da página inicial (admin_entrada_inicio.py) */
 .acesso-adm{margin:-8px 0 10px;text-align:right;font-size:12.5px}
 .acesso-adm a{display:inline-flex;align-items:center;gap:6px;color:var(--apagado);text-decoration:none;padding:4px 8px;border-radius:6px}
 .acesso-adm a:hover{color:var(--ana);background:var(--ana-gelo)}
@@ -784,7 +787,7 @@ body.na-inicio main{padding-top:26px}
 .adm-atual{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin:0 0 4px;font-size:14px;color:var(--tinta-2)}
 .adm-atual b{color:var(--ana);font-size:17px}
 .adm-atual .tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;color:#fff}
-.adm-atual .ret,.adm-pedido .ret{font-size:11px;color:#8A5A00;background:#FFF4DC;border-radius:8px;padding:1px 6px}
+.adm-atual .ret,.adm-pedido .ret{font-size:11px;color:var(--aviso);background:var(--aviso-fundo);border-radius:8px;padding:1px 6px}
 .adm-graf-cab{display:flex;justify-content:flex-end;margin:0 0 4px;font-size:12.5px;color:var(--apagado)}
 .adm-graf-cab select{padding:4px 8px;font-size:13px;margin-left:6px}
 .adm-serie td{padding:3px 6px}
@@ -793,8 +796,8 @@ body.na-inicio main{padding-top:26px}
 .adm-cel:hover:not(:disabled){border-color:var(--linha-forte);background:#fff}
 .adm-serie td.manual{position:relative}
 .adm-serie td.manual::before{content:"";position:absolute;left:4px;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:#B7793A}
-.adm-tab td.mudou .adm-cel,.adm-serie td.mudou .adm-cel{background:#FFF4DC;border-color:#E2B866}
-.adm-pend{position:sticky;top:12px;z-index:4;display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0;padding:10px 14px;border-radius:10px;background:#FFF4DC;color:#6A4A00;font-size:13.5px;box-shadow:var(--sombra)}
+.adm-tab td.mudou .adm-cel,.adm-serie td.mudou .adm-cel{background:var(--aviso-fundo);border-color:#E2B866}
+.adm-pend{position:sticky;top:12px;z-index:4;display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0;padding:10px 14px;border-radius:10px;background:var(--aviso-fundo);color:#6A4A00;font-size:13.5px;box-shadow:var(--sombra)}
 .adm-pend input{flex:1 1 240px}
 .adm-pend[hidden]{display:none}
 .adm-forcar{white-space:nowrap}
@@ -827,7 +830,7 @@ body.na-inicio main{padding-top:26px}
 .adm-dec b{flex-basis:100%;font-size:12.5px;color:var(--ana)}
 .adm-tab tr.fora td{background:var(--fundo);color:var(--apagado)}
 .adm-tab tr.fora .nm{color:var(--apagado);text-decoration:line-through}
-.adm-tab tr.mudou td{background:#FFF4DC}
+.adm-tab tr.mudou td{background:var(--aviso-fundo)}
 .adm-comp td.ck,.adm-comp th.ck{width:48px;text-align:center}
 .adm-comp input[type=checkbox]{width:16px;height:16px;accent-color:var(--ana)}
 .adm-comp select{font:13px var(--sans);border:1px solid var(--linha-forte);border-radius:8px;padding:4px 6px;background:#fff;max-width:100%}
@@ -839,7 +842,7 @@ body.na-inicio main{padding-top:26px}
 .adm-checks{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:6px}
 .adm-checks li{padding:8px 12px;border-radius:8px;font-size:13.5px;line-height:1.45}
 .adm-checks li.erro{background:#FBE5DF;color:#7C2614}
-.adm-checks li.aviso{background:#FFF4DC;color:#6A4A00}
+.adm-checks li.aviso{background:var(--aviso-fundo);color:#6A4A00}
 .adm-checks li.ok{background:#E3F2EC;color:#17603F}
 .adm-form textarea,.adm-tx textarea{font:14px/1.5 var(--sans);letter-spacing:0;text-transform:none;color:var(--tinta);border:1px solid var(--linha-forte);border-radius:8px;padding:8px 10px;width:100%;box-sizing:border-box;resize:vertical}
 .adm-form label.largo:has(textarea){flex-basis:100%}
@@ -850,7 +853,7 @@ body.na-inicio main{padding-top:26px}
 .avisos-pub{display:grid;gap:8px;margin:0 0 18px}
 .aviso-pub{padding:11px 16px;border-radius:10px;font-size:14px;line-height:1.5;color:var(--tinta-2);background:var(--ana-gelo);border:1px solid var(--ana-bruma)}
 .aviso-pub b{color:var(--ana)}
-.aviso-pub.atencao{background:#FFF4DC;border-color:#F0D9A6;color:#5A4200}
+.aviso-pub.atencao{background:var(--aviso-fundo);border-color:#F0D9A6;color:#5A4200}
 .aviso-pub.atencao b{color:#6A4A00}
 .adm-tab .aviso-pub{padding:6px 10px;font-size:13px}
 .rev-lista{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:0}
@@ -860,6 +863,7 @@ body.na-inicio main{padding-top:26px}
 @media (max-width:640px){.adm-tx{grid-template-columns:1fr}.rev-lista li{grid-template-columns:1fr;gap:2px}}
 #conteudo.admin td,#conteudo.admin th{white-space:normal}
 #conteudo.admin td.dt,#conteudo.admin td.num,#conteudo.admin .adm-sit{white-space:nowrap}
+/*__ADMIN_CSS_FIM__*/
 </style>
 
 </head>
@@ -1254,7 +1258,7 @@ async function pdfTabelaDOM(tabelas, nome, titulo, sub){
   doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(...CINZA);
   const subL = doc.splitTextToSize(`${sub} ${fontePNG()} Gerado em ${hojeBR()}.`, larg - 80); doc.text(subL, 40, 61);
   doc.autoTable({
-    startY: 70 + subL.length*11, theme:"plain", margin:{left:40, right:40},
+    startY: 70 + subL.length*11, theme:"plain", margin:{left:40, right:40}, rowPageBreak:"avoid",
     head: [ths.map(txtTh), un ? [...un.cells].map(c => limpa(c.textContent)) : ths.map(() => "")],
     body: linhas.map(tr => [...tr.cells].map((td, j) => mini[j] ? "" : txtTd(td))),
     foot: pes.map(tr => [...tr.cells].map((td, j) => mini[j] ? "" : txtTd(td))),
@@ -1380,7 +1384,7 @@ async function pdfTabelaBacia(lista, kMini, rotMini){
   doc.text(doc.splitTextToSize(`Base diária, de montante para jusante · ${nRes} usinas com reservatório e ${nFio} a fio d'água · minigráfico: 30 dias de ${rotMini} até ${dBR(dia)}.`
     + ` Fontes: ${D.fontes.medicoes}; ${D.fontes.sar0}.`, larg - 80), 40, 61);
   doc.autoTable({
-    startY: 88, theme:"plain", margin:{left:40, right:40},
+    startY: 88, theme:"plain", margin:{left:40, right:40}, rowPageBreak:"avoid",
     head: [["Usina", "Afluente", "Defluente", "Turbinada", "Vertida", "Nível", "Volume útil", `Últimos 30 dias — ${rotMini}`],
            ["", "m³/s", "m³/s", "m³/s", "m³/s", "m", "%", UNID_MINI[kMini]]],
     body: lista.map(r => [caso(r.nome), fint(r.afl), fint(r.defl), fint(r.turb), fint(r.vert), fmt(r.cota, 2), r.tipo==="fio" ? "–" : fmt(r.vu, 1), ""]),
@@ -1401,7 +1405,7 @@ async function pdfTabelaBacia(lista, kMini, rotMini){
       if (d.section==="head" && d.row.index===1){ doc.setDrawColor(...AZUL); doc.setLineWidth(1.4); doc.line(x, y+height, x+width, y+height); }
       if (d.section!=="body") return;
       doc.setDrawColor(...LINHA); doc.setLineWidth(.6); doc.line(x, y+height, x+width, y+height);
-      const r = lista[d.row.index];
+      const r = lista[d.row.index]; if (!r) return;
       if (d.column.index===0) simboloPDF(doc, r.tipo, x+13, y+height/2);
       if (d.column.index===7 && minis[r.nome]){
         const w = Math.min(width-14, 152), h = 19;
@@ -2146,14 +2150,14 @@ function paginaFicha(){
       ${barraBaixar([["baixar-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-dia-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-dia"><small>3</small>Mesmo dia em outros anos</h2>
       <p class="sub">O valor na data de referência em cada ano da série diária.<span class="dica">Escolha a variável.</span></p>
-      <div class="controles"><fieldset><legend>Variável</legend><select id="var-dia">${["vu","cota"].map(k => `<option value="${k}">${VARS[k].r} (${VARS[k].u})</option>`).join("")}</select></fieldset></div>
+      <div class="controles"><fieldset><legend>Variável</legend><select id="var-dia" aria-label="Variável">${["vu","cota"].map(k => `<option value="${k}">${VARS[k].r} (${VARS[k].u})</option>`).join("")}</select></fieldset></div>
       <div class="graf" id="g-dia"></div>
     </section>
     <section class="cartao secao" id="f-ano" aria-labelledby="t-ano">
       ${barraBaixar([["baixar-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-ano-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-ano"><small>4</small>Ano contra anos anteriores</h2>
       <p class="sub">A série diária de cada ano sobreposta no mesmo calendário. O ano corrente fica em destaque.<span class="dica">Clique nos anos para incluir ou tirar, até ${MAX_ANOS} ao mesmo tempo.</span></p>
-      <div class="controles"><fieldset><legend>Variável</legend><select id="var-ano">${["vu","cota"].map(k => `<option value="${k}">${VARS[k].r}${k==="vu" ? " (%)" : " (m)"}</option>`).join("")}</select></fieldset>
+      <div class="controles"><fieldset><legend>Variável</legend><select id="var-ano" aria-label="Variável">${["vu","cota"].map(k => `<option value="${k}">${VARS[k].r}${k==="vu" ? " (%)" : " (m)"}</option>`).join("")}</select></fieldset>
         <fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos"></span></legend><span id="anos-chips"></span></fieldset></div>
       <div class="graf" id="g-ano"></div>
     </section>`;
@@ -3149,7 +3153,7 @@ async function pdfTabelaEstado(lista, niv, estado, uf){
   doc.text(doc.splitTextToSize(`${lista.length + niv.length} reservatórios, na ordem das tabelas em tela · cada um com a leitura de data mais próxima de ${dBR(dataRef)}, até ${NEd.limiar_dias} dias antes ou depois; fora dessa janela, sem informação e fora do volume acumulado.` +
     (niv.length ? ` Só nível: reservatório sem curva cota-volume validada, acompanhado pelo nível, sem volume.` : "") + ` Fonte: ${NEd.fontes.medicoes}.`, larg-80), 40, 61);
   const estilos = {styles:{font:"helvetica", fontSize:8.5, textColor:TINTA, cellPadding:{top:4, right:6, bottom:4, left:6}, valign:"middle"},
-    headStyles:{fontStyle:"bold", textColor:AZUL, halign:"right"}, theme:"plain", margin:{left:40, right:40}};
+    headStyles:{fontStyle:"bold", textColor:AZUL, halign:"right"}, theme:"plain", margin:{left:40, right:40}, rowPageBreak:"avoid"};
   const cabecalho = (d, esq) => {
     if (esq.includes(d.column.index)) d.cell.styles.halign = "left";
     const pl = d.column.index===0 ? 20 : 6;
@@ -3161,7 +3165,7 @@ async function pdfTabelaEstado(lista, niv, estado, uf){
     if (d.section==="head" && d.row.index===1){ doc.setDrawColor(...AZUL); doc.setLineWidth(1.4); doc.line(x, y+height, x+width, y+height); }
     if (d.section!=="body") return;
     doc.setDrawColor(...LINHA); doc.setLineWidth(.5); doc.line(x, y+height, x+width, y+height);
-    if (d.column.index===0 && cor){ const c = cor(d.row.index);
+    if (d.column.index===0 && cor && d.row.index >= 0){ const c = cor(d.row.index);
       doc.setFillColor(parseInt(c.slice(1,3),16), parseInt(c.slice(3,5),16), parseInt(c.slice(5,7),16)); doc.circle(x+11, y+height/2, 3.4, "F"); }
   };
   let y0 = 88;
@@ -3668,14 +3672,14 @@ function paginaFichaNE(cod){
       ${barraBaixar([["baixar-f-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-f-dia", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-fn-dia"><small>3</small>Mesmo dia em outros anos</h2>
       <p class="sub" id="sub-f-dia"></p>
-      <div class="controles"><fieldset><legend>Variável</legend><select id="var-dia-f">${varsComp.map(opcao).join("")}</select></fieldset></div>
+      <div class="controles"><fieldset><legend>Variável</legend><select id="var-dia-f" aria-label="Variável">${varsComp.map(opcao).join("")}</select></fieldset></div>
       <div class="graf" id="g-f-dia"></div>
     </section>
     <section class="cartao secao" id="fn-ano" aria-labelledby="t-fn-ano">
       ${barraBaixar([["baixar-f-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-f-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-fn-ano"><small>4</small>Ano contra anos anteriores</h2>
       <p class="sub">As leituras de cada ano sobrepostas no mesmo calendário, nas datas reais.<span class="dica">Clique nos anos para incluir ou tirar, até ${MAX_ANOS} ao mesmo tempo.</span></p>
-      <div class="controles"><fieldset><legend>Variável</legend><select id="var-ano-f">${varsComp.map(opcao).join("")}</select></fieldset>
+      <div class="controles"><fieldset><legend>Variável</legend><select id="var-ano-f" aria-label="Variável">${varsComp.map(opcao).join("")}</select></fieldset>
         <fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos-f"></span></legend><span id="anos-chips-f"></span></fieldset></div>
       <div class="graf" id="g-f-ano"></div>
     </section>
@@ -4830,6 +4834,7 @@ function paginaDados(){
   opcoes(); desenharLista(); atualizar();
 }
 
+/*__ADMIN_JS_INICIO__*/
 /* ============================================================ área administrativa (#admin)
    conceito em estrutura/area_administrativa.md. Área interna, com login; tudo o que se faz aqui fica na memória da
    página (pedidos, trilha, correções) para o protótipo mostrar o fluxo entre as telas. */
@@ -5180,8 +5185,9 @@ function admCadastro(){
       const nova = cap==null ? null : numBR($("#k-cap").value), mudaCap = nova != null && nova > 0 && Math.abs(nova - cap) > 1e-9; let h = mud.map(m => `${m[0]}: ${esc(m[1])} → <b>${esc(m[2])}</b>`);
       if (mudaCap){ h.push(`Capacidade: ${fmt(cap, 2)} → <b>${fmt(nova, 2)} hm³</b>`);
         if (ult){ h.push(`Volume (%) em ${dBR(ult.t)}: ${fmt(ult.v.volume_hm3/cap*100, 2)}% → <b>${fmt(ult.v.volume_hm3/nova*100, 2)}%</b> (${fmt(ult.v.volume_hm3, 2)} hm³)`); }
-        const est = e.src==="ne" && !e.retirado && !r.sem_info ? NEd.estados.find(x => x.uf === e.uf) : null;
-        if (est && est.capacidade_com_dado_hm3) h.push(`Volume acumulado ${esc(est.estado)} em ${dBR(NEd.data)}: ${fmt(est.volume_pct, 2)}% → <b>${fmt(est.volume_hm3/(est.capacidade_com_dado_hm3 + nova - cap)*100, 2)}%</b>`); }
+        // volume acumulado do estado pelo cálculo da página do NE: só muda se o reservatório tem medição na janela
+        const NE = e.src==="ne" ? sitNEAdm() : null, rj = NE && NE.R[e.r.i], est = NE && NE.S.estados.find(x => x.uf === e.uf);
+        if (rj && !rj.sem_info && est && est.capacidade_com_dado_hm3) h.push(`Volume acumulado ${esc(est.estado)} em ${dBR(NEd.data)}: ${fmt(est.volume_pct, 2)}% → <b>${fmt(est.volume_hm3/(est.capacidade_com_dado_hm3 + nova - cap)*100, 2)}%</b>`); }
       $("#k-efeito").innerHTML = h.length ? `<b>Efeito${mudaCap ? " a partir de " + dBR($("#k-vig").value || hoje) : ""}.</b> ` + h.join(" · ") : "Nenhuma alteração.";
       $("#k-ir").textContent = mudaCap ? "Enviar para aprovação" : "Gravar"; $("#k-ir").disabled = !h.length || !podeEditar(); return {h, mudaCap}; };
     $$("#k-form input").forEach(i => i.oninput = efeito); efeito();
@@ -5666,6 +5672,8 @@ function admCodigos(){
 }
 
 /* ---------------- composição dos agrupamentos */
+// o Nordeste na data dos dados mais recentes, pelo mesmo cálculo da página do módulo (medição mais próxima na janela)
+function sitNEAdm(){ const s = dataRef; dataRef = NEd.data; const S = situacaoNE(); dataRef = s; const R = {}; S.lista.forEach(r => R[r.i] = r); return {S, R}; }
 function admAgrupamentos(){
   const E = entidadesDados(), dt = NEd.data;
   const G = [...NEd.estados.map(x => ({k:"NE:" + x.uf, tipo:"ne", r:`Nordeste e Semiárido · ${x.estado}`, uf:x.uf, est:x})),
@@ -5681,8 +5689,9 @@ function admAgrupamentos(){
     <section class="cartao secao" id="ag-lista" aria-labelledby="t-ag-lista"><h2 id="t-ag-lista"><small>1</small>Agregados</h2>
       <p class="sub">Escolha um agregado para ver e mudar a composição.</p><div class="adm-agr" id="ag-cards"></div></section>
     <section class="cartao secao" id="ag-comp" aria-labelledby="t-ag-comp"><h2 id="t-ag-comp"><small>2</small>Composição</h2><div id="ag-corpo"></div></section>`;
-  const totNE = () => { let V = 0, C = 0; NEd.estados.forEach(x => { V += x.volume_hm3 || 0; C += x.capacidade_com_dado_hm3 || 0; }); return {V, C}; };
-  const soma = (L, excl) => { let V = 0, C = 0; L.forEach(e => { if (excl.has(e.id) || e.r.volume_hm3==null) return; V += e.r.volume_hm3; C += e.r.capacidade_hm3; }); return {V, C}; };
+  const NE = sitNEAdm(), naJ = e => NE.R[e.r.i];   // valor do reservatório na janela; vazio se retirado ou fora do volume
+  const totNE = () => ({V:NE.S.total.volume_hm3, C:NE.S.total.capacidade_com_dado_hm3});
+  const agr = (L, excl) => { let V = 0, C = 0; L.forEach(e => { const r = naJ(e); if (excl.has(e.id) || !r || r.sem_info) return; V += r.volume_hm3; C += r.capacidade_hm3; }); return {V, C}; };
   function cardsG(){ const grupo = t => G.filter(x => x.tipo===t);
     $("#ag-cards").innerHTML = [["ne","Nordeste e Semiárido (volume acumulado por estado)"],["sin","SIN (bacias, divisão do ONS)"],["os","Outros Sistemas"]].map(([t, r]) => `<div class="adm-agr-g"><b>${r}</b><div>${grupo(t).map(x => { const n = membros(x).length - fora(x).size;
       return `<button type="button" class="preset${x.k===g.k ? " ativo" : ""}" data-k="${esc(x.k)}">${esc(x.r.split(" · ")[1].replace(/^bacia /, ""))} <span>${fint(n)}</span></button>`; }).join("")}</div></div>`).join("");
@@ -5692,26 +5701,27 @@ function admAgrupamentos(){
     let efeito = "", tabela = "";
     // a tabela abre com 25 linhas (os que saem ou mudam de bacia primeiro); o efeito conta todos
     const M = todos ? Mt : Mt.filter(e => tent.has(e.id) || mov[e.id]).concat(Mt.filter(e => !tent.has(e.id) && !mov[e.id])).slice(0, 25);
-    if (g.tipo==="ne"){ const a = soma(Mt, fora(g)), b = soma(Mt, tent), T = totNE(), Tb = {V:T.V - (a.V - b.V), C:T.C - (a.C - b.C)};
+    if (g.tipo==="ne"){ const a = agr(Mt, fora(g)), b = agr(Mt, tent), T = totNE(), Tb = {V:T.V - (a.V - b.V), C:T.C - (a.C - b.C)};
       const pc = x => x.C ? fmt(x.V/x.C*100, 2) + "%" : "–";
       efeito = `Em ${dBR(dt)}: volume acumulado ${esc(g.est.estado)} ${pc(a)} → <b>${pc(b)}</b> (${fmt(b.V, 2)} de ${fmt(b.C, 2)} hm³) · conjunto do Nordeste e Semiárido ${pc(T)} → <b>${pc(Tb)}</b>.`;
-      tabela = `<thead><tr><th class="ck">Entra</th><th>Reservatório</th><th>Município</th><th class="r">Capacidade (hm³)</th><th class="r">Volume em ${dBR(dt).slice(0,5)} (hm³)</th><th class="r">Volume (%)</th></tr></thead><tbody>${M.map(e => `<tr${tent.has(e.id) ? ' class="fora"' : ""}><td class="ck"><input type="checkbox" data-id="${esc(e.id)}"${tent.has(e.id) ? "" : " checked"}${dis}></td><td><span class="nm">${esc(e.nome)}</span>${retiradoAdm(e) ? '<span class="ret">retirado do acompanhamento</span>' : ""}<span class="rio">código ${esc(e.codigo)}</span></td><td>${esc(e.municipio)}</td>
-        <td class="r num">${fmt(e.r.capacidade_hm3, 2)}</td><td class="r num">${e.r.volume_hm3==null ? "sem medição" : fmt(e.r.volume_hm3, 2)}</td><td class="r num">${e.r.volume_pct==null ? "–" : fmt(e.r.volume_pct, 2)}</td></tr>`).join("")}</tbody>`; }
+      tabela = `<thead><tr><th class="ck">Entra</th><th>Reservatório</th><th>Município</th><th class="r">Capacidade (hm³)</th><th>Medição usada</th><th class="r">Volume (hm³)</th><th class="r">Volume (%)</th></tr></thead><tbody>${M.map(e => { const r = naJ(e);
+        return `<tr${tent.has(e.id) ? ' class="fora"' : ""}><td class="ck"><input type="checkbox" data-id="${esc(e.id)}"${tent.has(e.id) ? "" : " checked"}${dis} aria-label="${esc(e.nome)} entra no agregado"></td><td><span class="nm">${esc(e.nome)}</span>${retiradoAdm(e) ? '<span class="ret">retirado do acompanhamento</span>' : ""}<span class="rio">código ${esc(e.codigo)}</span></td><td>${esc(e.municipio)}</td>
+        <td class="r num">${fmt(e.r.capacidade_hm3, 2)}</td><td>${!r ? "não entra (retirado)" : r.sem_info ? "sem medição na janela" : dBR(r.data)}</td><td class="r num">${r && !r.sem_info ? fmt(r.volume_hm3, 2) : "–"}</td><td class="r num">${r && !r.sem_info ? fmt(r.volume_pct, 2) : "–"}</td></tr>`; }).join("")}</tbody>`; }
     else if (g.tipo==="sin"){ const bacias = [...new Set(E.filter(e => e.src==="sin").map(e => e.bacia))].sort((a, b) => a.localeCompare(b, "pt-BR"));
       const nM = Object.keys(mov).length, destinos = {}; Object.values(mov).forEach(b => destinos[b] = (destinos[b] || 0) + 1);
       efeito = nM ? `Bacia ${esc(g.bacia)}: ${fint(Mt.length)} → <b>${fint(Mt.length - nM)}</b> usinas · ${Object.entries(destinos).map(([b, n]) => `bacia ${esc(b)}: ${fint(E.filter(e => e.src==="sin" && baciaDe(e)===b).length)} → <b>${fint(E.filter(e => e.src==="sin" && baciaDe(e)===b).length + n)}</b>`).join(" · ")}. Mudam a página da bacia, a tabela de bacias do SIN e o filtro da área de dados.` : "Nenhuma mudança.";
       tabela = `<thead><tr><th>Usina</th><th>Tipo</th><th>UF</th><th>Bacia</th></tr></thead><tbody>${M.map(e => `<tr${mov[e.id] ? ' class="mudou"' : ""}><td><span class="nm">${esc(e.nome)}</span><span class="rio">código ${esc(e.codigo)}</span></td><td>${esc(e.tipo)}</td><td>${e.uf}</td>
         <td><select data-mv="${esc(e.id)}"${dis}>${bacias.map(b => `<option${(mov[e.id] || g.bacia)===b ? " selected" : ""}>${esc(b)}</option>`).join("")}</select></td></tr>`).join("")}</tbody>`; }
     else { efeito = `Composição: ${fint(Mt.length - tent.size)} de ${fint(Mt.length)} reservatórios. O efeito no agregado do sistema é calculado pelo sistema na aprovação.`;
-      tabela = `<thead><tr><th class="ck">Entra</th><th>Reservatório</th><th>Município</th></tr></thead><tbody>${M.map(e => `<tr${tent.has(e.id) ? ' class="fora"' : ""}><td class="ck"><input type="checkbox" data-id="${esc(e.id)}"${tent.has(e.id) ? "" : " checked"}${dis}></td><td><span class="nm">${esc(e.nome)}</span><span class="rio">código ${esc(e.codigo)}</span></td><td>${esc(e.municipio)}</td></tr>`).join("")}</tbody>`; }
+      tabela = `<thead><tr><th class="ck">Entra</th><th>Reservatório</th><th>Município</th></tr></thead><tbody>${M.map(e => `<tr${tent.has(e.id) ? ' class="fora"' : ""}><td class="ck"><input type="checkbox" data-id="${esc(e.id)}"${tent.has(e.id) ? "" : " checked"}${dis} aria-label="${esc(e.nome)} entra no agregado"></td><td><span class="nm">${esc(e.nome)}</span><span class="rio">código ${esc(e.codigo)}</span></td><td>${esc(e.municipio)}</td></tr>`).join("")}</tbody>`; }
     const mudou = g.tipo==="sin" ? Object.keys(mov).length : [...tent].filter(x => !fora(g).has(x)).length + [...fora(g)].filter(x => !tent.has(x)).length;
-    $("#ag-corpo").innerHTML = `<p class="sub"><b>${esc(g.r)}</b> · ${fint(Mt.length)} ${g.tipo==="sin" ? "usinas" : "reservatórios"}${g.tipo==="ne" ? `, ${fint(Mt.filter(e => e.r.volume_hm3!=null).length)} com volume em ${dBR(dt)}` : ""}.${g.tipo==="ne" ? " Só entra no volume acumulado quem tem medição na janela; quem sai da composição deixa de entrar mesmo com medição." : ""}</p>
+    $("#ag-corpo").innerHTML = `<p class="sub"><b>${esc(g.r)}</b> · ${fint(Mt.length)} ${g.tipo==="sin" ? "usinas" : "reservatórios"}${g.tipo==="ne" ? `, ${fint(Mt.filter(e => naJ(e) && !naJ(e).sem_info).length)} com medição na janela de ${fint(NEd.limiar_dias)} dias em torno de ${dBR(dt)}` : ""}.${g.tipo==="ne" ? " Só entra no volume acumulado quem tem medição na janela; quem sai da composição deixa de entrar mesmo com medição." : ""}</p>
       <p class="adm-efeito"><b>Efeito.</b> ${efeito}</p>
       <div class="adm-form"><label>Vigência<input type="date" id="ag-vig" value="${hoje}"${dis}></label><label class="largo">Motivo<input type="text" id="ag-mot" placeholder="${g.tipo==="sin" ? "Ex.: bacia da calha do Paraná separada, como no ONS" : "Ex.: reservatório de outro sistema de abastecimento"}"${dis}></label>
         <button type="button" class="acao" id="ag-ir"${mudou && podeEditar() ? "" : " disabled"}>Enviar para aprovação</button><button type="button" class="acao sec" id="ag-desf"${mudou ? "" : " disabled"}>Desfazer as mudanças</button></div>
       <div class="tab-box adm-tab adm-comp"><table>${tabela}</table></div>
       ${Mt.length > M.length ? `<p class="mais-res"><button type="button" class="acao sec" id="ag-todos">Mostrar todos (${fint(Mt.length - M.length)} restantes)</button></p>` : ""}
-      ${g.tipo==="ne" ? `<p class="nota">Volumes e capacidades de ${dBR(dt)} embutidos no protótipo; a soma dos reservatórios reproduz o volume acumulado publicado de cada estado e do conjunto.</p>` : ""}`;
+      ${g.tipo==="ne" ? `<p class="nota">Mesmo cálculo da página do Nordeste e Semiárido: cada reservatório com a medição mais próxima de ${dBR(dt)}, até ${fint(NEd.limiar_dias)} dias antes ou depois; o valor de partida é o volume acumulado que a página mostra.</p>` : ""}`;
     $$("#ag-corpo [data-id]").forEach(c => c.onchange = () => { if (c.checked) tent.delete(c.dataset.id); else tent.add(c.dataset.id); comp(); });
     $$("#ag-corpo [data-mv]").forEach(s => s.onchange = () => { if (s.value===g.bacia) delete mov[s.dataset.mv]; else mov[s.dataset.mv] = s.value; comp(); });
     $("#ag-desf").onclick = () => { tent = new Set(fora(g)); mov = {}; comp(); };
@@ -5791,7 +5801,7 @@ function admParametros(){
       <div class="adm-pend" id="pa-pend" hidden></div>
       <div class="tab-box adm-tab"><table><thead><tr><th>Grupo</th><th>Parâmetro</th><th class="r">Valor</th><th>Unidade</th><th>Onde vale</th><th>Origem do valor</th><th>Aprovação</th></tr></thead>
         <tbody>${PARAM_ADM.map(p => `<tr><td>${esc(p.g)}</td><td><span class="nm">${esc(p.r)}</span>${ADM.params[p.k]!=null ? `<span class="rio">alterado; original ${fmt(p.v, p.dec)}</span>` : ""}</td>
-          <td class="r"><input class="adm-cel" data-k="${p.k}" inputmode="decimal" value="${fmt(parAdm(p.k), p.dec).replace(/\./g, "")}"${podeEditar() ? "" : " disabled"}></td><td>${esc(p.u)}</td><td>${esc(p.onde)}</td><td>${esc(p.fonte)}</td><td>${p.apr ? "sim" : "não"}</td></tr>`).join("")}</tbody></table></div>
+          <td class="r"><input class="adm-cel" data-k="${p.k}" inputmode="decimal" aria-label="${esc(p.r)}" value="${fmt(parAdm(p.k), p.dec).replace(/\./g, "")}"${podeEditar() ? "" : " disabled"}></td><td>${esc(p.u)}</td><td>${esc(p.onde)}</td><td>${esc(p.fonte)}</td><td>${p.apr ? "sim" : "não"}</td></tr>`).join("")}</tbody></table></div>
       <p class="nota">No protótipo, só o painel de cobertura usa o valor gravado; as páginas públicas e a crítica não são recalculadas com ele.</p></section>
     <section class="cartao secao" id="pa-hor" aria-labelledby="t-pa-hor"><h2 id="t-pa-hor"><small>2</small>Horários das integrações</h2>
       <p class="sub">Horários previstos de cada execução. O painel de integrações marca como "não executou" a execução prevista que não aconteceu. Os horários abaixo são ilustrativos: os reais serão levantados com a STI.</p>
@@ -5846,6 +5856,7 @@ function revisoesLeiaMe(S){ const ids = new Set(S.map(e => e.id)), R = ADM.revis
   return R.length ? [``, `Revisões da série depois da publicação (${R.length}):`, ...R.map(r => `- ${r.quando} · ${r.nome}${r.cod ? " (código " + r.cod + ")" : ""}: ${r.texto}. Motivo: ${r.motivo}.`),
     `No protótipo, as revisões são listadas, mas os valores deste arquivo não as incorporam.`] : [``, `Revisões da série depois da publicação: nenhuma para os reservatórios selecionados.`]; }
 
+/*__ADMIN_JS_FIM__*/
 /* ============================================================ rotas */
 const DESKTOP = () => window.matchMedia("(min-width:1024px)").matches;
 
