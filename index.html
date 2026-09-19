@@ -4568,14 +4568,15 @@ function paginaDados(){
   const temVar = (e, k) => e.vars.includes(k) && (st.base==="dia" || (e.hora && VAR_HORA.has(k)));
   const desenharVars = () => {
     const S = selEnt(), grupos = [...new Set(CAT_VARS.map(v => v.g))];
-    $("#d-vars").innerHTML = grupos.map(g => { const VG = CAT_VARS.filter(v => v.g===g);
+    $("#d-vars").innerHTML = (S.length ? "" : `<p class="aviso-dados" style="grid-column:1/-1;margin:0">Selecione reservatórios no passo 1: aqui ficam habilitadas só as variáveis que eles têm, já marcadas. Desmarque as que não quiser.</p>`) +
+      grupos.map(g => { const VG = CAT_VARS.filter(v => v.g===g);
       if (S.length && !VG.some(v => S.some(e => temVar(e, v.k))))   // grupo que nenhum selecionado tem: uma linha só
         return `<div class="var-grupo vazio"><h3>${g}</h3><p class="nota" style="margin:0 0 6px">${VG.length} variáveis (${VG.map(v => v.r.toLowerCase()).join(", ")}): nenhum dos selecionados tem${st.base==="hora" ? " na base horária" : ""}.</p></div>`;
       return `<div class="var-grupo"><h3>${g}</h3>${VG.map(v => {
-      const n = S.filter(e => temVar(e, v.k)).length, ind = S.length && !n, pct = S.length ? n/S.length*100 : 0;
+      const n = S.filter(e => temVar(e, v.k)).length, ind = !S.length || !n, pct = S.length ? n/S.length*100 : 0;
       return `<label class="var-item${ind ? " indisp" : ""}" title="${esc(v.def)}"><input type="checkbox" data-var="${v.k}" ${st.vars.has(v.k) && !ind ? "checked" : ""}${ind ? " disabled" : ""}>
         <span class="nm">${v.r}<small>${v.u}</small></span>
-        <span class="disp">${S.length ? `<i><b style="width:${pct}%"></b></i>${n ? `${fint(n)} de ${fint(S.length)}` : st.base==="hora" && v.k!=="nivel_regua_m" && !VAR_HORA.has(v.k) ? "sem base horária" : "nenhum selecionado tem"}` : "selecione reservatórios para ver quem tem"}</span></label>`; }).join("")}</div>`; }).join("");
+        <span class="disp">${S.length ? `<i><b style="width:${pct}%"></b></i>${n ? `${fint(n)} de ${fint(S.length)}` : st.base==="hora" && v.k!=="nivel_regua_m" && !VAR_HORA.has(v.k) ? "sem base horária" : "nenhum selecionado tem"}` : ""}</span></label>`; }).join("")}</div>`; }).join("");
     $$("#d-vars input[data-var]").forEach(c => c.onchange = () => { c.checked ? st.vars.add(c.dataset.var) : st.vars.delete(c.dataset.var); atualizar(false); });
     const temSIN = S.some(e => e.mod==="SIN"), bh = $('[data-base="hora"]');
     bh.disabled = !temSIN && st.base!=="hora"; bh.title = temSIN ? "Base horária: só reservatórios do SIN, até 1 ano por pedido" : "A base horária existe só para o SIN: selecione ao menos uma usina do SIN";
