@@ -881,6 +881,10 @@ body.na-inicio main{padding-top:26px}
   #conteudo.admin .adm-det td{background:transparent}
   .abas-adm a{padding:6px 10px;font-size:13px}
 }
+.adm-topo{margin-top:18px;padding-top:14px;border-top:1px solid var(--linha)}
+.adm-topo h3{font:600 15px var(--sans);color:var(--ana);margin:0 0 4px}
+.adm-cascata{max-width:420px;border:1px solid var(--linha);border-radius:10px;padding:10px 12px;background:#fff;margin-top:8px}
+.adm-cascata svg{display:block;width:100%;height:auto}
 /*__ADMIN_CSS_FIM__*/
 </style>
 
@@ -5274,7 +5278,7 @@ function admAprovacoes(){
     `<span><b>${ag.length}</b> ${ag.length===1 ? "pedido aguardando" : "pedidos aguardando"}</span>`);
   const cartao = p => { const meu = p.por === ADM_USU[ADM.perfil], pode = ADM.perfil==="aprovador" && !meu && p.situacao==="aguardando";
     return `<article class="adm-pedido ${p.situacao==="aguardando" ? "" : "fechado"}" data-n="${p.n}"><header><span class="adm-tipo">${esc(p.tipo)}</span><b>${esc(p.res)}</b>${p.cod ? `<span class="cod">código ${esc(p.cod)}</span>` : ""}${p.exemplo ? '<span class="ret">exemplo</span>' : ""}<span class="adm-sit ${p.situacao==="aprovado" ? "ok" : p.situacao==="devolvido" ? "erro" : "fila"}">${p.situacao}</span></header>
-      <p class="quem">Pedido por <b>${esc(p.por)}</b> em ${esc(p.quando)}${p.decisao ? ` · ${esc(p.decisao)}` : ""}</p><p class="efeito">${p.efeito}</p><p class="motivo"><b>Motivo.</b> ${esc(p.motivo)}</p>
+      <p class="quem">Pedido por <b>${esc(p.por)}</b> em ${esc(p.quando)}${p.decisao ? ` · ${esc(p.decisao)}` : ""}</p><p class="efeito">${p.efeito}</p>${p.cascata ? `<div class="adm-cascata" data-casc="${p.n}"></div>` : ""}<p class="motivo"><b>Motivo.</b> ${esc(p.motivo)}</p>
       ${p.situacao==="aguardando" ? `<div class="adm-form"><label class="largo">Comentário<input type="text" class="coment" placeholder="Obrigatório para devolver"${pode ? "" : " disabled"}></label><button type="button" class="acao ap"${pode ? "" : " disabled"}>Aprovar</button><button type="button" class="acao sec dv"${pode ? "" : " disabled"}>Devolver</button></div>
         ${pode ? "" : `<p class="nota">${ADM.perfil !== "aprovador" ? "Só o perfil aprovador decide. Troque o perfil no alto da página para simular." : "Quem pede não aprova o próprio pedido."}</p>`}` : ""}</article>`; };
   const fech = ADM.pedidos.filter(p => p.situacao !== "aguardando");
@@ -5283,6 +5287,7 @@ function admAprovacoes(){
     <section class="cartao secao" id="p-ag" aria-labelledby="t-p-ag"><h2 id="t-p-ag"><small>1</small>Aguardando</h2><p class="sub">Cada pedido traz o efeito calculado quando foi feito. Aprovado, vale em todo o sistema; devolvido, volta a quem pediu com o comentário.</p>
       ${ag.length ? ag.map(cartao).join("") : '<p class="nota">Nenhum pedido aguardando.</p>'}</section>
     <section class="cartao secao" id="p-fe" aria-labelledby="t-p-fe"><h2 id="t-p-fe"><small>2</small>Decididos</h2><p class="sub">Pedidos aprovados ou devolvidos nesta sessão.</p>${fech.length ? fech.map(cartao).join("") : '<p class="nota">Nenhum pedido decidido nesta sessão.</p>'}</section>`;
+  ADM.pedidos.filter(p => p.cascata).forEach(p => { const h = $(`[data-casc="${p.n}"]`); if (h) h.append(cascataTopoSVG(p.cascata, topoGrande().foz, "__nova")); });
   $$(".adm-pedido").forEach(el => { const p = ADM.pedidos.find(x => x.n === Number(el.dataset.n)), decide = sit => { const c = $(".coment", el).value.trim();
       if (sit==="devolvido" && !c){ toast("Escreva o comentário para devolver."); $(".coment", el).focus(); return; }
       const quem = ADM_USU[ADM.perfil]; p.situacao = sit; p.decisao = `${sit} por ${quem} em ${agoraAdm()}${c ? ": " + c : ""}`; if (sit==="aprovado" && p.aplicar) p.aplicar(); if (sit==="devolvido" && p.devolver) p.devolver();
@@ -5527,6 +5532,85 @@ function admSuspeitos(){
   lista();
 }
 
+/* ---------------- topologia da cascata: cada usina com o rio e a usina imediatamente a jusante (null = foz da bacia) */
+// bacia do Grande no protótipo: ordem das usinas do SAR (montante → jusante) e o rio Pardo entrando no Grande entre
+// Porto Colômbia e Marimbondo, como no diagrama da página da bacia
+function topoGrande(){
+  if (ADM.topo) return ADM.topo;
+  const L = [...D.grande.res].sort((a, b) => a.ordem - b.ordem), PARDO = ["CACONDE","E. DA CUNHA","LIMOEIRO"];
+  const princ = L.filter(r => !PARDO.includes(r.nome)), pardo = L.filter(r => PARDO.includes(r.nome)), N = {};
+  const add = (r, rio) => N[r.nome] = {id:r.nome, nome:caso(r.nome), rio, tipo:r.tipo, jusante:null};
+  princ.forEach(r => add(r, "rio Grande")); pardo.forEach(r => add(r, "rio Pardo"));
+  princ.forEach((r, i) => N[r.nome].jusante = princ[i+1] ? princ[i+1].nome : null);
+  pardo.forEach((r, i) => N[r.nome].jusante = pardo[i+1] ? pardo[i+1].nome : "MARIMBONDO");
+  return ADM.topo = {nos:N, foz:"rio Paraná"};
+}
+const riosTopo = nos => [...new Set(Object.values(nos).map(n => n.rio))];
+// usinas de um rio, de montante para jusante
+function cadeiaRio(nos, rio){
+  const R = Object.values(nos).filter(n => n.rio === rio), topo = R.find(n => !R.some(m => m.jusante === n.id)), L = [];
+  for (let n = topo; n && n.rio === rio && !L.includes(n); n = nos[n.jusante]) L.push(n);
+  return L;
+}
+// aplica a posição escolhida: devolve a topologia nova, o texto do efeito e o erro, se houver
+function aplicaTopo(base, tp, novo){
+  const nos = JSON.parse(JSON.stringify(base.nos)), dsc = id => id ? nos[id].nome : `a foz no ${base.foz}`;
+  if (!tp || !tp.rio) return {erro:"Escolha o rio e a posição da usina na cascata."};
+  if (tp.rio === "__novo"){
+    const nomeRio = (tp.nomeRio || "").trim();
+    if (!nomeRio) return {erro:"Informe no campo Rio o nome do afluente novo."};
+    if (riosTopo(nos).some(r => semAc(r) === semAc(nomeRio) || semAc(r) === semAc("rio " + nomeRio))) return {erro:`O rio ${nomeRio} já está na cascata: escolha-o na lista.`};
+    const C = cadeiaRio(nos, tp.desagua || ""), k = tp.pos;
+    if (!C.length || k === "" || k == null) return {erro:"Escolha em que rio e entre quais usinas o afluente novo deságua."};
+    const jus = +k < C.length ? C[+k].id : C[C.length-1].jusante;
+    nos[novo.id] = {...novo, rio:nomeRio, jusante:jus};
+    return {nos, efeito:`${novo.nome}, no ${nomeRio} (afluente novo), descarrega em ${dsc(jus)}; o ${nomeRio} deságua no ${tp.desagua} ${+k===0 ? `acima de ${C[0].nome}` : +k < C.length ? `entre ${C[+k-1].nome} e ${C[+k].nome}` : `abaixo de ${C[C.length-1].nome}`}.`};
+  }
+  const C = cadeiaRio(nos, tp.rio), k = tp.pos;
+  if (k === "" || k == null) return {erro:"Escolha a posição da usina no rio."};
+  const kk = +k, jus = kk < C.length ? C[kk].id : C[C.length-1].jusante, mon = kk > 0 ? C[kk-1] : null;
+  nos[novo.id] = {...novo, rio:tp.rio, jusante:jus};
+  if (mon) mon.jusante = novo.id;
+  // afluente que chegava na usina de baixo: entra acima ou abaixo da nova, conforme a escolha
+  const afl = kk > 0 && kk < C.length ? riosTopo(nos).filter(r => r !== tp.rio && r !== novo.rio).map(r => cadeiaRio(nos, r)).filter(A => A.length && A[A.length-1].jusante === C[kk].id) : [];
+  const partes = [`${novo.nome} entra no ${tp.rio} ${kk===0 ? `acima de ${C[0].nome} (nova cabeceira)` : kk < C.length ? `entre ${C[kk-1].nome} e ${C[kk].nome}` : `abaixo de ${C[C.length-1].nome}`} e descarrega em ${dsc(jus)}`];
+  if (mon) partes.push(`${mon.nome} passa a descarregar em ${novo.nome}`);
+  afl.forEach(A => { const ult = A[A.length-1], rio = A[0].rio;
+    if ((tp.afl || {})[rio] === "acima"){ ult.jusante = novo.id; partes.push(`o ${rio} passa a desaguar acima de ${novo.nome} (${ult.nome} descarrega em ${novo.nome})`); }
+    else partes.push(`o ${rio} continua desaguando abaixo de ${novo.nome}, em ${C[kk].nome}`); });
+  return {nos, efeito:partes.join("; ") + ".", afl:afl.map(A => A[0].rio)};
+}
+// cascata vertical gerada da topologia: rio principal na primeira coluna, afluentes à direita, entrando acima da usina
+// em que deságuam; a usina nova em destaque
+function cascataTopoSVG(nos, foz, destaque){
+  const principal = (Object.values(nos).find(n => n.jusante == null) || {}).rio, linhas = [];
+  const colocar = (rio, prof) => cadeiaRio(nos, rio).forEach(n => {
+    riosTopo(nos).filter(r => r !== rio).forEach(r => { const A = cadeiaRio(nos, r); if (A.length && A[A.length-1].jusante === n.id) colocar(r, prof + 1); });
+    linhas.push({n, prof}); });
+  colocar(principal, 0);
+  const maxP = Math.max(0, ...linhas.map(l => l.prof)), passo = 46, topo = 58, xc = p => 26 + p*42, xt = xc(maxP) + 26, W = 360;
+  // folga antes de cada afluente, para o nome do rio não encostar na usina de cima
+  const Y = []; linhas.forEach((l, i) => { const ant = linhas[i-1]; Y.push(i ? Y[i-1] + passo + (l.n.rio !== ant.n.rio && l.prof > ant.prof ? 26 : 0) : topo); });
+  const y = i => Y[i], H = Y[Y.length - 1] + 56;
+  const svg = svgEl("svg",{class:"vert cascata-topo", viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":"Prévia da cascata da bacia com a usina nova"});
+  const t = (x, yy, s, at = {}) => { const e = svgEl("text",{x, y:yy, "font-family":"Arial", "font-size":12, fill:"#3D4B5C", ...at}); e.textContent = s; svg.append(e); return e; };
+  // cada rio: linha vertical do primeiro ao último nó; afluente liga na coluna de quem recebe
+  riosTopo(nos).forEach(rio => { const idx = linhas.map((l, i) => l.n.rio === rio ? i : -1).filter(i => i >= 0); if (!idx.length) return;
+    const p = linhas[idx[0]].prof, x = xc(p), y0 = y(idx[0]) - 20, y1 = y(idx[idx.length-1]);
+    if (rio === principal){ svg.append(svgEl("path",{d:`M${x} ${y0} V${H - 26}`, stroke:"#C6D1DE", "stroke-width":6, "stroke-linecap":"round", fill:"none"})); t(Math.max(4, x - 18), y0 - 12, rio, {fill:"#1C3782", "font-style":"italic", "font-size":12.5}); }
+    else { const ult = linhas[idx[idx.length-1]].n, iRec = linhas.findIndex(l => l.n.id === ult.jusante), pr = iRec >= 0 ? linhas[iRec].prof : 0, yj = y1 + passo/2;
+      svg.append(svgEl("path",{d:`M${x} ${y0} V${yj - 12} Q${x} ${yj} ${x - 12} ${yj} H${xc(pr)}`, stroke:"#C6D1DE", "stroke-width":4, "stroke-linecap":"round", fill:"none"}));
+      t(x + 10, y0 - 4, rio, {fill:"#1C3782", "font-style":"italic", "font-size":12.5}); } });
+  t(xc(0) + 12, H - 8, foz, {fill:"#5B6B80", "font-style":"italic"});
+  linhas.forEach(({n, prof}, i) => { const x = xc(prof), yy = y(i), nova = n.id === destaque;
+    if (nova) svg.append(svgEl("circle",{cx:x, cy:yy, r:17, fill:"none", stroke:"#B7793A", "stroke-width":2.5}));
+    if (n.tipo === "fio") svg.append(svgEl("circle",{cx:x, cy:yy, r:9, fill:nova ? "#B7793A" : "#4A7FB0", stroke:"#fff", "stroke-width":2}));
+    else svg.append(svgEl("path",{d:`M${x} ${yy-13} L${x-12} ${yy+9} L${x+12} ${yy+9} Z`, fill:nova ? "#B7793A" : "#1C3782", stroke:"#fff", "stroke-width":2, "stroke-linejoin":"round"}));
+    t(xt, yy + 4, n.nome, {fill:nova ? "#8F5B22" : "#1C3782", "font-weight":700, "font-size":13});
+    if (nova) t(xt + n.nome.length*7.6 + 8, yy + 4, "nova", {fill:"#8F5B22", "font-size":11}); });
+  return svg;
+}
+
 /* ---------------- inclusão de reservatório: rascunho → revisão → publicação */
 const FONTES_INC = ["ONS", "FUNCEME", "AESA", "APAC", "COGERH", "HidroInfoAna (observador)", "SABESP", "GDH/Coletor", "Operador do reservatório", "Outra"];
 const UF_TODAS = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
@@ -5540,15 +5624,44 @@ function admInclusao(){
       <div class="adm-form grade" id="in-campos"></div>
       <div class="adm-vars" id="in-vars"></div>
       <div class="adm-mapa" id="in-mapa"></div>
+      <div id="in-topo"></div>
     </section>
     <section class="cartao secao" id="in-conf" aria-labelledby="t-in-conf"><h2 id="t-in-conf"><small>2</small>Conferência</h2>
       <p class="sub">Campos obrigatórios, nome parecido no mesmo estado, reservatório a menos de 2 km e código na fonte já usado por outro reservatório.</p>
       <div id="in-checks"></div>
       <div class="adm-form"><label class="largo">Motivo da inclusão<input type="text" id="in-mot" placeholder="Ex.: açude novo acompanhado pela FUNCEME"></label>
-        <button type="button" class="acao sec" id="in-rasc"${podeEditar() ? "" : " disabled"}>Salvar rascunho</button><button type="button" class="acao" id="in-env"${podeEditar() ? "" : " disabled"}>Enviar para revisão</button><button type="button" class="acao sec" id="in-ex"${podeEditar() ? "" : " disabled"}>Usar um exemplo</button></div></section>
+        <button type="button" class="acao sec" id="in-rasc"${podeEditar() ? "" : " disabled"}>Salvar rascunho</button><button type="button" class="acao" id="in-env"${podeEditar() ? "" : " disabled"}>Enviar para revisão</button><button type="button" class="acao sec" id="in-ex"${podeEditar() ? "" : " disabled"}>Exemplo no Nordeste</button><button type="button" class="acao sec" id="in-ex-sin"${podeEditar() ? "" : " disabled"}>Exemplo no SIN</button></div></section>
     <section class="cartao secao" id="in-lista" aria-labelledby="t-in-lista"><h2 id="t-in-lista"><small>3</small>Inclusões</h2>
       <p class="sub">Rascunho, em revisão, devolvido ou publicado. O publicado entra na busca da página inicial e na área de dados e aparece na cobertura aguardando a primeira carga.</p><div id="in-itens"></div></section>`;
-  const vazio = () => ({n:null, mod:"NE", sis:"", nome:"", rio:"", municipio:"", uf:"CE", bacia:"", lat:"", lon:"", fonte:"FUNCEME", codfonte:"", tipo:"reservatorio", cap:"", vars:null, sit:"novo"});
+  const vazio = () => ({n:null, mod:"NE", sis:"", nome:"", rio:"", municipio:"", uf:"CE", bacia:"", lat:"", lon:"", fonte:"FUNCEME", codfonte:"", tipo:"reservatorio", cap:"", vars:null, sit:"novo", topo:{rio:"", pos:"", desagua:"", afl:{}}});
+  const ehGrande = () => f.mod==="SIN" && semAc(f.bacia).trim() === "grande";
+  const novoNo = () => ({id:"__nova", nome:(f.nome || "Usina nova").trim(), tipo:f.tipo==="fio" ? "fio" : "res"});
+  const calcTopo = () => aplicaTopo(topoGrande(), {...f.topo, nomeRio:f.rio}, novoNo());
+  // posição na cascata (SIN): rio e entre quais usinas, ou afluente novo e onde deságua; prévia da cascata da bacia
+  function topoForm(){
+    const el = $("#in-topo"); if (!el) return;
+    if (f.mod !== "SIN"){ el.innerHTML = ""; return; }
+    if (!f.topo) f.topo = {rio:"", pos:"", desagua:"", afl:{}};
+    if (!ehGrande()){ el.innerHTML = `<div class="adm-topo"><h3>Posição na cascata</h3><p class="nota">Escolha a bacia. No protótipo, só a bacia do Grande tem a topologia montada; no sistema, cada bacia do SIN tem a sua, e o diagrama da página da bacia é gerado dela.</p></div>`; return; }
+    const T = topoGrande(), rios = riosTopo(T.nos), tp = f.topo, nov = tp.rio === "__novo", C = cadeiaRio(T.nos, nov ? tp.desagua : tp.rio);
+    const opPos = C.length ? [[0, `Acima de ${C[0].nome} (nova cabeceira)`], ...C.slice(1).map((n, i) => [i + 1, `Entre ${C[i].nome} e ${n.nome}`]), [C.length, `Abaixo de ${C[C.length-1].nome}`]] : [];
+    const r = calcTopo();
+    el.innerHTML = `<div class="adm-topo"><h3>Posição na cascata</h3>
+      <p class="nota">O diagrama da bacia é gerado do cadastro: cada usina guarda o rio e a usina imediatamente a jusante. Escolha onde a usina nova entra; a prévia mostra a cascata como vai ficar.</p>
+      <div class="adm-form">
+        <label>Rio<select id="tp-rio"><option value="">Escolha</option>${rios.map(x => `<option${tp.rio===x ? " selected" : ""}>${esc(x)}</option>`).join("")}<option value="__novo"${nov ? " selected" : ""}>Afluente novo (o do campo Rio)</option></select></label>
+        ${nov ? `<label>Deságua no<select id="tp-des"><option value="">Escolha</option>${rios.map(x => `<option${tp.desagua===x ? " selected" : ""}>${esc(x)}</option>`).join("")}</select></label>` : ""}
+        ${(nov ? tp.desagua : tp.rio) ? `<label class="largo">${nov ? "Onde deságua" : "Posição no rio"}<select id="tp-pos"><option value="">Escolha</option>${opPos.map(([k, s]) => `<option value="${k}"${String(tp.pos)===String(k) ? " selected" : ""}>${esc(s)}</option>`).join("")}</select></label>` : ""}
+        ${(r.afl || []).map(rio => `<label class="largo">O ${esc(rio)} deságua<select data-afl="${esc(rio)}"><option value="abaixo"${(tp.afl || {})[rio]!=="acima" ? " selected" : ""}>abaixo da usina nova</option><option value="acima"${(tp.afl || {})[rio]==="acima" ? " selected" : ""}>acima da usina nova</option></select></label>`).join("")}
+      </div>
+      ${r.erro ? `<p class="adm-efeito">${esc(r.erro)}</p>` : `<p class="adm-efeito"><b>Efeito na cascata.</b> ${esc(r.efeito)} O diagrama da página da bacia, a tabela, o mapa e o KMZ passam a mostrar a usina quando a inclusão for aprovada.</p><div class="adm-cascata" id="tp-prev"></div>`}</div>`;
+    if (!r.erro) $("#tp-prev").append(cascataTopoSVG(r.nos, T.foz, "__nova"));
+    const sel = (id, fn) => { const s = $("#" + id); if (s) s.onchange = () => { fn(s.value); topoForm(); conferir(); }; };
+    sel("tp-rio", v => { tp.rio = v; tp.pos = ""; tp.afl = {}; });
+    sel("tp-des", v => { tp.desagua = v; tp.pos = ""; });
+    sel("tp-pos", v => { tp.pos = v; tp.afl = {}; });
+    $$("#in-topo [data-afl]").forEach(s => s.onchange = () => { tp.afl = {...tp.afl, [s.dataset.afl]:s.value}; topoForm(); conferir(); });
+  }
   let f = ADM.incAtual || vazio(); ADM.incAtual = f;
   const varsMod = m => m==="SIN" ? ["cota_m","afluente_m3s","defluente_m3s","turbinada_m3s","vertida_m3s","vazao_natural_m3s","volume_util_pct"] : m==="NE" ? ["cota_m","volume_hm3","volume_pct"] : ["cota_m","volume_hm3","volume_pct","volume_util_pct"];
   let mapa = null, marca = null;
@@ -5566,9 +5679,10 @@ function admInclusao(){
       ${f.mod!=="SIN" ? `<label>Capacidade (hm³)<input type="text" data-f="cap" inputmode="decimal" value="${esc(f.cap)}" placeholder="sem curva: só nível"></label>` : ""}`;
     $("#in-vars").innerHTML = `<b>Variáveis</b>` + CAT_VARS.filter(v => varsMod(f.mod).includes(v.k)).map(v => `<label><input type="checkbox" value="${v.k}"${f.vars.includes(v.k) ? " checked" : ""}> ${esc(nomeVar(v))}</label>`).join("")
       + (f.mod!=="SIN" ? `<span class="nota">Sem capacidade e sem curva cota-volume, o reservatório entra só com o nível; a curva se envia depois, em Cadastro e CAV.</span>` : "");
+    topoForm();
     $$("#in-campos [data-f]").forEach(i => i.oninput = i.onchange = () => { const k = i.dataset.f; f[k] = i.value;
       if (k==="mod"){ f.vars = varsMod(f.mod); if (f.mod==="OUTROS" && !f.sis) f.sis = "df"; f.fonte = f.mod==="SIN" ? "ONS" : f.mod==="OUTROS" ? "GDH/Coletor" : "FUNCEME"; campos(); }
-      if (k==="lat" || k==="lon") ponto(); conferir(); });
+      if (k==="lat" || k==="lon") ponto(); if (["bacia","rio","nome","tipo"].includes(k)) topoForm(); conferir(); });
     $$("#in-vars input").forEach(c => c.onchange = () => { f.vars = $$("#in-vars input:checked").map(x => x.value); conferir(); });
     conferir();
   }
@@ -5599,6 +5713,9 @@ function admInclusao(){
       const usado = m ? Object.entries(m).find(([k]) => semAc(k)===semAc(cf)) : null, extra = ADM.codigos.find(x => x.fonte===f.fonte && semAc(x.cf)===semAc(cf));
       const cod = usado ? usado[1] : extra ? extra.sar : null;
       if (cod != null){ const e = E.find(x => String(x.codigo)===String(cod)); R.push(["erro", `O código ${cf} da ${f.fonte} já corresponde ao código SAR ${cod}${e ? " (" + e.nome + ")" : ""}.`]); } }
+    if (f.mod==="SIN"){ if (!String(f.bacia || "").trim()) R.push(["erro", "Falta a bacia (divisão do ONS)."]);
+      else if (ehGrande()){ const tr = calcTopo(); if (tr.erro) R.push(["erro", "Cascata: " + tr.erro]); }
+      else R.push(["aviso", "Bacia sem topologia montada no protótipo: a posição na cascata será definida no sistema."]); }
     if (!R.some(r => r[0]==="erro") && !R.length) R.push(["ok", "Nada a apontar: nenhum nome parecido no estado, nenhum reservatório a menos de 2 km e código na fonte livre."]);
     return R;
   }
@@ -5612,8 +5729,9 @@ function admInclusao(){
     const alvo = {nome:f.nome, codigo:"", id:null};
     if (sit==="rascunho"){ trilhaAdm("Inclusão: rascunho", alvo, `${ROT_MOD[f.mod]}, ${f.municipio}/${f.uf}`, mot, "rascunho"); toast("Rascunho salvo."); }
     else { const R = checks().filter(r => r[0]==="aviso"), g = f;
-      pedidoAdm("Incluir reservatório", alvo, `<b>${esc(f.nome)}</b> · ${ROT_MOD[f.mod]}${f.mod==="OUTROS" ? " (" + esc(NOME_SIS[f.sis] || "sistema novo") + ")" : ""} · ${esc(f.municipio)}/${f.uf} · ${esc(f.lat)}, ${esc(f.lon)} · fonte ${esc(f.fonte)} (${esc(f.codfonte)}) · ${f.vars.length} variáveis${f.cap ? " · capacidade " + esc(f.cap) + " hm³" : " · só nível"}.${R.length ? " Avisos da conferência: " + R.map(r => esc(r[1])).join(" ") : ""}`, mot, () => publicar(g));
-      const p = ADM.pedidos[0]; p.devolver = () => { g.sit = "devolvido"; g.coment = p.decisao; }; }
+      pedidoAdm("Incluir reservatório", alvo, `<b>${esc(f.nome)}</b> · ${ROT_MOD[f.mod]}${f.mod==="OUTROS" ? " (" + esc(NOME_SIS[f.sis] || "sistema novo") + ")" : ""} · ${esc(f.municipio)}/${f.uf} · ${esc(f.lat)}, ${esc(f.lon)} · fonte ${esc(f.fonte)} (${esc(f.codfonte)}) · ${f.vars.length} variáveis${f.mod==="SIN" ? "" : f.cap ? " · capacidade " + esc(f.cap) + " hm³" : " · só nível"}.${f.mod==="SIN" && ehGrande() ? " <b>Cascata:</b> " + esc(calcTopo().efeito) : ""}${R.length ? " Avisos da conferência: " + R.map(r => esc(r[1])).join(" ") : ""}`, mot, () => publicar(g));
+      const p = ADM.pedidos[0]; p.devolver = () => { g.sit = "devolvido"; g.coment = p.decisao; };
+      if (f.mod==="SIN" && ehGrande()){ const tr = calcTopo(); if (!tr.erro) p.cascata = tr.nos; } }
     ADM.incAtual = vazio(); f = ADM.incAtual; $("#in-mot").value = ""; campos(); ponto(); itens(); }
   function publicar(g){
     const nInc = ADM.inclusoes.filter(x => x.sit==="publicado").length + 1;
@@ -5622,6 +5740,8 @@ function admInclusao(){
       bacia: g.mod==="OUTROS" ? (NOME_SIS[g.sis] || g.bacia) : g.bacia, tipo:"incluído, aguardando a primeira carga", vars:g.vars, hora:g.mod==="SIN", src:"novo", coord:la!=null && lo!=null ? [la, lo] : null, r:{nome:g.nome.toUpperCase(), bacia:""}};
     e.nomeB = semAc(e.nome); e.busca = semAc(`${e.nome} ${e.codigo} ${e.municipio} ${e.uf} ${e.bacia} ${ROT_MOD[e.mod]}`);
     entidadesDados().push(e); COB = null;
+    // SIN: a topologia da bacia passa a ter a usina, com o código provisório (as próximas inclusões já a veem)
+    if (g.mod==="SIN" && semAc(g.bacia).trim()==="grande"){ const tr = aplicaTopo(topoGrande(), {...g.topo, nomeRio:g.rio}, {id:g.codigo, nome:g.nome.trim(), tipo:g.tipo==="fio" ? "fio" : "res"}); if (!tr.erro) ADM.topo = {...ADM.topo, nos:tr.nos}; }
     if (g.codfonte) ADM.codigos.unshift({fonte:g.fonte, cf:g.codfonte, sar:g.codigo, nome:g.nome, uf:g.uf, vig:new Date().toISOString().slice(0,10), mot:"inclusão do reservatório", sit:"nova"});
   }
   function itens(){ const L = ADM.inclusoes;
@@ -5632,7 +5752,13 @@ function admInclusao(){
     $$("#in-itens [data-n]").forEach(b => b.onclick = () => { f = ADM.incAtual = ADM.inclusoes.find(x => x.n === Number(b.dataset.n)); $("#in-mot").value = f.mot || ""; campos(); ponto(); $("#in-form").scrollIntoView({behavior:"smooth", block:"start"}); }); }
   $("#in-rasc").onclick = () => salvar("rascunho");
   $("#in-env").onclick = () => salvar("em revisão");
-  $("#in-ex").onclick = () => { Object.assign(f, {mod:"NE", nome:"Açude Exemplo", rio:"Riacho Exemplo", municipio:"Quixadá", uf:"CE", bacia:"Banabuiú", lat:"-4,97", lon:"-39,02", fonte:"FUNCEME", codfonte:"99999", cap:"", vars:["cota_m"]});
+  $("#in-ex-sin").onclick = () => { const G = D.grande.res, a = G.find(r => r.nome==="P. COLOMBIA"), b = G.find(r => r.nome==="MARIMBONDO");
+    const la = Math.round((a.lat + b.lat)/2*1e4)/1e4, lo = Math.round((a.lon + b.lon)/2*1e4)/1e4;
+    Object.assign(f, {mod:"SIN", nome:"UHE Exemplo", rio:"rio Grande", municipio:"Exemplo", uf:"MG", bacia:"Grande", lat:String(la).replace(".", ","), lon:String(lo).replace(".", ","),
+      fonte:"ONS", codfonte:"EXEMPLO-1", tipo:"fio", cap:"", vars:null, topo:{rio:"rio Grande", pos:"", desagua:"", afl:{}}});
+    const C = cadeiaRio(topoGrande().nos, "rio Grande"); f.topo.pos = String(C.findIndex(n => n.id==="MARIMBONDO"));
+    $("#in-mot").value = "Exemplo do protótipo: usina fictícia entre Porto Colômbia e Marimbondo"; campos(); ponto(); if (mapa) mapa.setView([la, lo], 8); };
+  $("#in-ex").onclick = () => { Object.assign(f, {mod:"NE", nome:"Açude Exemplo", rio:"Riacho Exemplo", municipio:"Quixadá", uf:"CE", bacia:"Banabuiú", lat:"-4,97", lon:"-39,02", fonte:"FUNCEME", codfonte:"99999", cap:"", vars:["cota_m"], tipo:"reservatorio"});
     $("#in-mot").value = "Exemplo do protótipo: nome e posição fictícios"; campos(); ponto(); if (mapa) mapa.setView([-4.97, -39.02], 10); };
   campos(); iniciarMapa(); itens();
 }
