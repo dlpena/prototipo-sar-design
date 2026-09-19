@@ -131,6 +131,17 @@ main{padding-block:26px 60px}
 .intro{margin:0 0 22px;padding:0 0 4px;color:var(--tinta-2);font-size:15px;line-height:1.6;background:transparent;border:0;box-shadow:none}
 .intro p{margin:0;text-wrap:pretty}
 .intro p+p{margin-top:8px}
+/* saiba mais: texto de método recolhido; a frase essencial fica fora dele, visível */
+details.saiba{margin:10px 0 0}
+details.saiba>summary{display:inline-flex;align-items:center;gap:7px;cursor:pointer;list-style:none;color:var(--ana-medio);font-size:14px;font-weight:500}
+details.saiba>summary::-webkit-details-marker{display:none}
+details.saiba>summary::before{content:"";width:6px;height:6px;border:solid currentColor;border-width:0 1.8px 1.8px 0;transform:rotate(-45deg);transition:transform .15s}
+details.saiba[open]>summary::before{transform:rotate(45deg) translate(-2px,-1px)}
+details.saiba>summary:hover{color:var(--ana)}
+details.saiba>summary:focus-visible{outline:2px solid var(--ana-medio);outline-offset:3px;border-radius:3px}
+details.saiba .saiba-corpo{margin:10px 0 0;padding:14px 18px;background:var(--branco);border:1px solid var(--linha);border-radius:10px;font-size:14px;line-height:1.55}
+details.saiba .saiba-corpo p{margin:0}
+details.saiba .saiba-corpo p+p{margin-top:8px}
 main>section+section,main>.secao+.secao{margin-top:22px}
 .equiv{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,300px);gap:0}
 .equiv .lado{padding:22px 26px;border-right:1px solid var(--linha)}
@@ -1089,7 +1100,7 @@ function paginaSIN(){
   $("#titulo-pag").innerHTML = `
     <p class="trilha"><a href="#inicio">Início</a><span class="sep">›</span>Sistema Interligado Nacional</p>
     <h1>Sistema Interligado Nacional</h1>
-    <div class="carimbo"><span>Dados do dia <b>${dBR(D.data)}</b></span><span>Base diária</span><span><b>${nRes}</b> usinas em <b>${ORDEM_BACIAS.length}</b> bacias</span></div>`;
+    <div class="carimbo"><span>Dados mais recentes <b>${dBR(D.data)}</b></span><span>Base diária</span><span><b>${nRes}</b> usinas em <b>${ORDEM_BACIAS.length}</b> bacias</span></div>`;
   const main = $("#conteudo");
   main.innerHTML = `
     <section class="cartao intro" aria-label="Sobre o módulo">
@@ -1142,7 +1153,7 @@ function paginaSIN(){
       <ul class="comparacoes">
         <li><span>Em 7 dias</span><b class="num">${dif(v0,v7)}</b></li>
         <li><span>Em 30 dias</span><b class="num">${dif(v0,v30)}</b></li>
-        <li><span>Mesmo dia em ${+ult.slice(0,4)-1}</span><b class="num">${fmt(vAno,1)}%</b></li>
+        <li><span>Mesmo dia de ${+ult.slice(0,4)-1}</span><b class="num">${fmt(vAno,1)}%</b></li>
       </ul>
     </div>
     </section>
@@ -1156,15 +1167,15 @@ function paginaSIN(){
 
     <section class="cartao secao" id="s-dia" aria-labelledby="t-dia">
       ${barraBaixar([["baixar-barras-png", "PNG", "Baixar o gráfico como imagem"]])}
-      <h2 id="t-dia"><small>4</small>O mesmo dia em outros anos</h2>
-      <p class="sub">O reservatório equivalente na mesma data de cada ano disponível: comparação direta entre anos, sem o efeito da sazonalidade.</p>
+      <h2 id="t-dia"><small>4</small>Mesmo dia em outros anos</h2>
+      <p class="sub">O reservatório equivalente na mesma data de cada ano disponível: comparação entre anos sem o efeito da sazonalidade.</p>
       <div class="cab-graf" style="margin-bottom:6px"><span></span><label class="data-ref">Data de referência <input type="date" id="dia-ref" min="${ult.slice(0,4)}-01-01" max="${ult}" value="${ult}"></label></div>
       <div class="graf" id="g-barras"></div>
     </section>
 
     <section class="cartao secao" id="s-usinas" aria-labelledby="t-usinas">
       <h2 id="t-usinas"><small>5</small>Mapa das usinas</h2>
-      <p class="sub">Localização das usinas, com os dados do último dia disponível.<span class="dica">Passe o mouse ou clique num símbolo para ler o valor; use as camadas para escolher o mapa-base e os grupos.</span></p>
+      <p class="sub">Localização das usinas, com os dados mais recentes.<span class="dica">Passe o mouse ou clique num símbolo para ler o valor; use as camadas para escolher o mapa-base e os grupos.</span></p>
       ${barraBaixar([["baixar-kmz", "KMZ", "Baixar as usinas visíveis em KMZ (Google Earth)"]])}
       <p class="resumo-filtros" id="resumo-filtros"></p>
       <div id="mapa-situacao"></div>
@@ -1693,7 +1704,7 @@ function paginaFicha(){
       <div>
         <h1>${simbolo("res",22)}${caso(F.nome)}</h1>
         <p class="lead">Usina com reservatório no rio ${F.rio}, bacia do Grande, Minas Gerais.</p>
-        <div class="carimbo"><span>Código SAR <b>${F.codigo}</b></span><span>Último dia fechado <b>${dBR(ult.data)}</b></span><span>Base diária desde <b>${dBR(DI[0].data)}</b></span><span>Base horária desde <b>${fHora(HO[0].t)}</b>, última <b>${fHora(HO[HO.length-1].t)}</b></span></div>
+        <div class="carimbo"><span>Código SAR <b>${F.codigo}</b></span><span>Dados diários mais recentes <b>${dBR(ult.data)}</b></span><span>Base diária desde <b>${dBR(DI[0].data)}</b></span><span>Base horária desde <b>${fHora(HO[0].t)}</b>, última <b>${fHora(HO[HO.length-1].t)}</b></span></div>
       </div>
     </div>
     <div class="barra-data"><label class="data-ref" for="dia-sit"><b>Data de referência</b></label><input type="date" id="dia-sit" value="${ult.data}" min="${DI[0].data}" max="${ult.data}" aria-label="Data de referência"><button class="hoje" id="dia-sit-hoje" title="Voltar para os dados mais recentes">Dados mais recentes</button><span class="dica">Base diária. Situação e mesmo dia em outros anos seguem esta data.</span></div>`;
@@ -1703,7 +1714,7 @@ function paginaFicha(){
     </nav>
     <section class="cartao secao" id="f-sit" aria-labelledby="t-sit">
       <h2 id="t-sit"><small>1</small>Situação em <span id="dia-sit-txt">${dBR(ult.data)}</span></h2>
-      <p class="sub">Base diária, na data de referência (o padrão são os dados mais recentes). Ao lado, a usina e as vizinhas da cascata do Grande.<span class="dica">Mude a data de referência no alto da página para ver outro dia.</span></p>
+      <p class="sub">Base diária, na data de referência (o padrão são os dados mais recentes). Ao lado, a usina e as vizinhas da cascata do Grande.<span class="dica">Mude a data de referência para ver outro dia.</span></p>
       <p class="nota" id="aviso-sit" style="margin:0 0 8px"></p>
       <div class="sit-grid">
         <div class="valores" id="valores-ficha"></div>
@@ -1728,7 +1739,7 @@ function paginaFicha(){
     <section class="cartao secao" id="f-dia" aria-labelledby="t-dia">
       ${barraBaixar([["baixar-dia-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-dia"><small>3</small>Mesmo dia em outros anos</h2>
-      <p class="sub">O valor do dia da data de referência em cada ano da série diária.<span class="dica">Escolha a variável.</span></p>
+      <p class="sub">O valor na data de referência em cada ano da série diária.<span class="dica">Escolha a variável.</span></p>
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-dia">${["vu","cota"].map(k => `<option value="${k}">${VARS[k].r} (${VARS[k].u})</option>`).join("")}</select></fieldset></div>
       <div class="graf" id="g-dia"></div>
     </section>
@@ -2132,9 +2143,9 @@ function paginaInicio(){
     </section>
     <section class="sobre-sar" aria-labelledby="t-sobre">
       <h2 id="t-sobre">Sobre o SAR</h2>
-      <p>${esc(T.inicio[0])}</p>
+      <p>O Sistema de Acompanhamento de Reservatórios (SAR) reúne e organiza os dados de operação dos principais reservatórios do Brasil. Foi criado pela Agência Nacional de Águas e Saneamento Básico (ANA) em 2013 e lançado em 2014.</p>
     </section>
-    <p class="nota fontes-inicio">Fontes: ${esc(D.fontes.equivalente)}; ${esc(I.ne.fonte)}; ${esc(I.fonte_cantareira)}. Textos introdutórios: páginas do SAR atual (gov.br/ana/sar), lidas em 17/09/2026.</p>`;
+    <p class="nota fontes-inicio">Fontes: ${esc(D.fontes.equivalente)}; ${esc(NEd.fontes.medicoes)}, com a regra da página do módulo; ${D.outros ? esc(D.outros.fontes.sabesp) + "; " + esc(D.outros.fontes.coletor) : esc(I.fonte_cantareira)}. Criação e lançamento do SAR: página Sobre o SAR (gov.br/ana/sar), lida em 17/09/2026.</p>`;
   $$("#conteudo [data-rota]").forEach(b => b.onclick = () => { location.hash = b.dataset.rota; });
   $$("#conteudo [data-fora]").forEach(b => b.onclick = () => toast(`${b.dataset.fora}: fora desta rodada do protótipo. A estrutura desse módulo ainda vai ser definida.`));
   montarBusca();
@@ -2452,7 +2463,7 @@ function paginaNE(){
   $("#titulo-pag").innerHTML = `
     <p class="trilha"><a href="#inicio">Início</a><span class="sep">›</span>Nordeste e Semiárido</p>
     <h1>Nordeste e Semiárido</h1>
-    <p class="lead">${esc(T.ne[0])}</p>
+    <p class="lead">Açudes dos nove estados do Nordeste e do semiárido de Minas Gerais: volume acumulado de cada estado e do conjunto, situação de cada reservatório e, onde ainda não há volume calculado, o nível lido na régua.</p>
     <div class="carimbo"><span><b>${fint(SIT.total.n)}</b> reservatórios acompanhados em <b>${SIT.estados.filter(e => e.n).length}</b> dos ${SIT.estados.length} estados</span><span><b>${fint(SIT.total.n_vol)}</b> com volume</span><span><b>${fint(SIT.total.nivel_n)}</b> só com nível</span><span id="carimbo-com"></span></div>
     ${seletorData("data-ne")}`;
   $("#conteudo").innerHTML = `
@@ -2460,8 +2471,14 @@ function paginaNE(){
       <a href="#ne" data-alvo="n-estados">Estados</a><a href="#ne" data-alvo="n-vol">Volume acumulado</a><a href="#ne" data-alvo="n-ano">Ao longo do ano</a><a href="#ne" data-alvo="n-dia">Mesmo dia em outros anos</a><a href="#ne" data-alvo="n-faixas">Faixas e cobertura</a><a href="#ne" data-alvo="n-mapa">Mapa dos reservatórios</a>
     </nav>
     <section class="cartao intro" aria-label="Sobre o módulo">
-      <p>Os reservatórios do semiárido não têm medição diária regular. Para a <b>data de referência</b> escolhida, cada reservatório entra com a medição de data mais próxima, até ${NEd.limiar_dias} dias antes ou depois, como faz o portal do SAR; quem não tiver medição nessa janela aparece como <b>sem informação</b> e fica fora do volume acumulado, e a capacidade equivalente soma só as capacidades de quem entrou. No portal, o mapa pinta sempre o valor mais recente de cada reservatório, ainda que antigo; aqui o sem informação fica cinza, para o mapa, a tabela e o agregado contarem a mesma história.</p>
-      <p>Reservatórios com régua lida por observador, mas sem curva cota-volume validada, aparecem como <b>só nível</b>: contam como acompanhados e mostram se subiram ou desceram, mas não entram no volume acumulado. Os <b>${fint(OCULTOS.size)}</b> reservatórios cadastrados sem nenhuma leitura nos últimos 12 meses saem das contagens desta página e seguem na área de dados.</p>
+      <p>Os reservatórios do semiárido não são medidos todos os dias. Para a <b>data de referência</b>, cada um entra com a medição mais próxima, até ${NEd.limiar_dias} dias antes ou depois.</p>
+      <details class="saiba"><summary>Como o volume acumulado é calculado</summary><div class="saiba-corpo">
+        <p><b>Volume acumulado e capacidade equivalente.</b> O volume acumulado (hm³) reúne o volume dos reservatórios com medição na janela de ${NEd.limiar_dias} dias; a capacidade equivalente (hm³), a capacidade desses mesmos reservatórios. O volume acumulado (%) é a razão entre os dois. A conta é a mesma para cada estado e para o Nordeste.</p>
+        <p><b>Sem informação.</b> O reservatório sem medição de volume na janela não entra em nenhuma das duas parcelas e é contado como sem informação; no mapa, aparece em cinza.</p>
+        <p><b>Só nível.</b> Reservatório com régua lida por observador, mas sem curva cota-volume validada: conta como acompanhado e mostra se subiu ou desceu, mas não entra no volume acumulado.</p>
+        <p><b>Sem leitura há 12 meses.</b> Os ${fint(OCULTOS.size)} reservatórios cadastrados sem nenhuma leitura nos últimos 12 meses saem das contagens desta página e seguem na área de dados.</p>
+        <p><b>Séries e comparações.</b> Os gráficos ao longo do ano, o mesmo dia em outros anos e as comparações usam uma curva encadeada, explicada abaixo do gráfico "Ao longo do ano".</p>
+      </div></details>
     </section>
     <section class="cartao secao" id="n-estados" aria-labelledby="t-n-estados">
       ${barraBaixar([["baixar-ne-mapa", "PNG", "Baixar o mapa dos estados como imagem"], ["baixar-ne-csv", "CSV", "Baixar a tabela dos estados em CSV"]])}
@@ -2477,7 +2494,7 @@ function paginaNE(){
           <tfoot id="pe-estados"></tfoot>
         </table></div>
       </div>
-      <p class="nota">A hachura marca o Semiárido. Em Minas Gerais o módulo acompanha apenas os reservatórios situados nele, e não o estado inteiro; nos nove estados do Nordeste o recorte é o estado todo. Contorno do Semiárido: ${esc(NEd.mapa.semiarido_fonte || "INSA")}. A delimitação alcança ainda parte do Espírito Santo, que não faz parte do módulo e por isso não aparece no mapa.</p>
+      <p class="nota">A hachura marca o Semiárido, na delimitação do INSA. Em Minas Gerais o módulo acompanha só os reservatórios situados nele; nos nove estados do Nordeste, o estado todo. A delimitação alcança ainda parte do Espírito Santo, que não faz parte do módulo e não aparece no mapa.</p>
     </section>
     <section class="cartao secao" id="n-vol" aria-labelledby="t-n-vol">
       <h2 id="t-n-vol"><small>2</small>Volume acumulado do Nordeste</h2>
@@ -2554,10 +2571,10 @@ function paginaNE(){
     $("#pe-estados").innerHTML = `<tr><th>Nordeste</th><th class="r num">${fint(tot.n)}</th><th class="r num">${fint(tot.com_dado)}</th><th class="r num">${fint(tot.capacidade_com_dado_hm3)}</th><th class="r num">${fint(tot.volume_hm3)}</th><th class="r num">${fmt(tot.volume_pct,1)}</th></tr>`;
     mapaUF.atualizar();
 
-    $("#vol-sub").textContent = `Soma dos ${fint(tot.com_dado)} reservatórios com medição na janela de ${NEd.limiar_dias} dias em torno de ${ref}.`;
+    $("#vol-sub").textContent = `Volume acumulado dos ${fint(tot.com_dado)} reservatórios com medição na janela de ${NEd.limiar_dias} dias em torno de ${ref}, em % da capacidade equivalente, que reúne a capacidade desses mesmos reservatórios.`;
     $("#vol-valor").innerHTML = `${fmt(tot.volume_pct,1)}<small>%</small>`;
     $("#vol-quando").textContent = `volume acumulado em ${ref}`;
-    $("#vol-nota").textContent = `${fint(tot.volume_hm3)} de ${fint(tot.capacidade_com_dado_hm3)} hm³ de capacidade equivalente · capacidade total do módulo ${fint(tot.capacidade_hm3)} hm³ · as comparações ao lado e os gráficos 3 e 4 vêm da curva encadeada calculada da série de cada reservatório`;
+    $("#vol-nota").textContent = `${fint(tot.volume_hm3)} de ${fint(tot.capacidade_com_dado_hm3)} hm³ de capacidade equivalente · capacidade de todos os reservatórios com volume, medidos ou não: ${fint(tot.capacidade_hm3)} hm³ · as comparações ao lado e os gráficos 3 e 4 vêm da curva encadeada calculada da série de cada reservatório`;
     const md = {}; mesmoDiaCurva("NE", $("#g-ne-dia"), `Volume acumulado (%) em ${ref.slice(0,5)}`).forEach(x => { if (x.v!=null) md[x.a] = x.v; });
     const anos = Object.keys(md).map(Number).sort(), ano = +dataRef.slice(0,4);
     const v0 = md[ano], vAnt = md[ano-1], v5 = md[ano-5];
@@ -2576,14 +2593,14 @@ function paginaNE(){
     $("#sub-mapa").innerHTML = `Cada reservatório com volume pela faixa do seu volume em ${ref}, e os só com nível pela variação em 30 dias. Os sem informação aparecem em cinza. O tamanho do círculo acompanha a capacidade.<span class="dica">Passe o mouse para ler o valor e a data da leitura.</span>`;
     mapaRes.atualizar(comCoord.concat(P.niveis.filter(r => r.lat!=null)));
     $("#nota-mapa").textContent = (lista.length > comCoord.length ? `${fint(lista.length - comCoord.length)} dos ${fint(lista.length)} reservatórios do módulo não têm coordenada no cadastro e não aparecem no mapa. ` : "") + `Mapa-base e imagem de satélite vêm de serviços externos; onde a rede os bloqueia, ficam só os pontos e os contornos.`;
-    $("#fontes-ne").innerHTML = `Fontes: ${esc(NEd.fontes.medicoes)}; ${esc(NEd.fontes.resumo)}; ${esc(NEd.fontes.equivalente)}; ${esc(NEd.fontes.coordenadas)}; ${esc(NEd.fontes.regra)}. ` +
+    $("#fontes-ne").innerHTML = `Fontes: ${esc(NEd.fontes.medicoes)}; ${esc(NEd.fontes.resumo)}; ${esc(NEd.fontes.equivalente)}; ${esc(NEd.fontes.coordenadas)}; ${esc(NEd.fontes.regra)}; contorno do Semiárido: ${esc(NEd.mapa.semiarido_fonte || "INSA")}. ` +
       `${esc(NEd.nivel.fonte)}; crítica das leituras de nível com as regras descritas nas páginas de estado. Estações de fora do cadastro do SAR só entram com nome de açude, barragem ou reservatório: ficaram de fora ${fint(NEd.nivel.descartes.montante)} réguas a montante (medem o rio que chega) e ${fint(NEd.nivel.descartes.nome)} estações cujo nome não indica açude; em Minas Gerais, só as dentro do Semiárido. ` +
       `Não entram nas contagens os ${fint(OCULTOS.size)} reservatórios do cadastro sem nenhuma leitura nos últimos 12 meses, nem as ${fint(Object.values(NVE).reduce((a, e) => a + e.a_verificar.length, 0))} estações com série a verificar (salto de mais de ${fint(NEd.nivel.filtro.suspeito_cm)} cm entre duas leituras que a crítica não explica). ` +
-      `Volume acumulado do módulo pelo serviço de volume equivalente do portal em ${dBR(coletada)}${coletada===dataRef ? "" : ", a data coletada mais próxima"}: ${tot.volume_pct_portal==null ? "–" : fmt(tot.volume_pct_portal,1)+"%"} (o portal soma também reservatórios fora da janela de ${NEd.limiar_dias} dias). ` +
+      `Volume acumulado do módulo pelo serviço de volume equivalente do portal em ${dBR(coletada)}${coletada===dataRef ? "" : ", a data coletada mais próxima"}: ${tot.volume_pct_portal==null ? "–" : fmt(tot.volume_pct_portal,1)+"%"} (o portal inclui também reservatórios com medição fora da janela de ${NEd.limiar_dias} dias). ` +
       `<br>A data de referência é livre, de ${dBR(NEd.serie_min)} a ${dBR(NEd.serie_ate)}: a série de 12 meses de cada reservatório está embutida na página e a regra dos ${NEd.limiar_dias} dias é aplicada no navegador. ` +
       `As seções 3 e 4 e as comparações usam a curva encadeada (${esc(CURVA.fonte)}); o valor do portal fica acima só para comparação.` +
       `<br>Contagem: a lista de medições do portal devolve ${fint(CT.api_linhas)} linhas para o módulo, com CRISTALÂNDIA (BA) repetida quatro vezes (duas em Brumado e duas em Ituaçu, com capacidade, volume e data idênticos); ` +
-      `esta página conta ${fint(CT.listados)}, sem as ${CT.descartadas} linhas repetidas. O resumo por estado do portal soma ${fint(CT.resumo_soma)} e a sua própria linha do Nordeste diz ${fint(CT.resumo_nordeste)}: ` +
+      `esta página conta ${fint(CT.listados)}, sem as ${CT.descartadas} linhas repetidas. O resumo por estado do portal totaliza ${fint(CT.resumo_soma)} e a sua própria linha do Nordeste diz ${fint(CT.resumo_nordeste)}: ` +
       `a Paraíba aparece no resumo com uma entidade a mais que na lista, CUREMA/MÃE D'ÁGUA, que não tem medição própria. Verificado em 17/09/2026.`;
   };
   ligarSeletor("data-ne", aplicar);
@@ -2929,7 +2946,7 @@ function paginaEstado(uf){
     .concat(curva ? [["u-ano","Ao longo do ano"], ["u-dia","Mesmo dia em outros anos"]] : [], [["u-hist","Monitoramento"]]);
   const num = id => secoes.findIndex(s => s[0]===id) + 1;
   const lead = misto ? "Parte dos reservatórios tem volume calculado. Nos demais há régua lida por observador, mas ainda não há curva cota-volume validada para transformar a leitura em volume: para eles a página mostra o nível."
-    : temVol ? "Reservatórios acompanhados pela ANA em convênio com o órgão gestor estadual, no recorte do semiárido."
+    : temVol ? `Todos os reservatórios acompanhados ${em} ${estado} têm volume calculado.`
     : `Nenhum reservatório ${de} ${estado} tem volume calculado hoje. Há réguas lidas por observador, mas sem curva cota-volume validada para transformar a leitura em volume: a página mostra o nível.`;
   const aviso = [
     temNiv ? `<p><b>Como ler o nível.</b> É a cota da régua lida pelo observador, ainda não validada pela ANA. Ela mostra se o reservatório subiu ou desceu, não quanta água há: sem a curva cota-volume não há volume nem percentual, e esses reservatórios ficam fora do volume acumulado. Também não compara um reservatório com outro, porque cada régua tem a sua referência.</p>` : "",
@@ -3063,7 +3080,7 @@ function paginaEstado(uf){
     fontes.push(esc(NEd.nivel.fonte_hist));
     const portal = (NEd.portal_por_data[coletada] || {})[uf];
     $("#fontes-uf").innerHTML = `Fontes: ${fontes.join("; ")}.` +
-      (temVol && portal!=null ? ` Para comparação, o serviço de volume equivalente do portal dá ${fmt(portal,1)}% em ${dBR(coletada)}${coletada===dataRef ? "" : ", a data coletada mais próxima"} (o portal soma também reservatórios fora da janela de ${NEd.limiar_dias} dias).` : "") +
+      (temVol && portal!=null ? ` Para comparação, o serviço de volume equivalente do portal dá ${fmt(portal,1)}% em ${dBR(coletada)}${coletada===dataRef ? "" : ", a data coletada mais próxima"} (o portal inclui também reservatórios com medição fora da janela de ${NEd.limiar_dias} dias).` : "") +
       (temNiv ? ` Crítica das leituras de nível antes de exibir: ${fint(descartadas)} leituras descartadas neste estado, por três regras — erro grosseiro ` +
         `(mais de ${fint(F.grosso_cm/100)} m da mediana do ano da estação), pico de um dia (mais de ${fint(F.pico_cm)} cm das duas leituras vizinhas, no mesmo sentido) ` +
         `e degrau que volta (salto de mais de ${fmt(F.degrau_cm/100,1)} m desfeito em até ${fint(F.volta_dias)} dias).` : "");
@@ -3458,7 +3475,7 @@ function paginaOutros(){
   const sisDF = s => OS.sistemas[s].res.map(r => `<div class="l"><span>${esc(caso(r.nome))}</span><span class="num">${r.pct!=null ? fmt(r.pct,1)+"%" : r.cota!=null ? fmt(r.cota,2)+" m <small class=\"nota\">só nível</small>" : "–"}</span></div>`).join("");
   const dataSis = s => { const ds = OS.sistemas[s].res.map(r => r.data).filter(Boolean).sort(); return ds.length ? ds[ds.length-1] : null; };
   $("#conteudo").innerHTML = `
-    <section class="cartao intro" aria-label="Sobre o módulo">${T.outros.map(p => `<p>${esc(p)}</p>`).join("")}</section>
+    <section class="cartao intro" aria-label="Sobre o módulo"><p>Três sistemas de abastecimento público, com dados diários: o Sistema Cantareira, que abastece grande parte da Região Metropolitana de São Paulo; os reservatórios do Distrito Federal (Descoberto, Santa Maria e Lago Paranoá); e o Sistema Paraopeba (Rio Manso, Vargem das Flores e Serra Azul), que contribui para o abastecimento da Região Metropolitana de Belo Horizonte.</p></section>
     <nav class="indice" aria-label="Seções da página"><a href="#outros" data-alvo="o-sis">Sistemas</a></nav>
     <section class="cartao secao" id="o-sis" aria-labelledby="t-o-sis">
       <h2 id="t-o-sis"><small>1</small>Sistemas</h2>
@@ -3521,14 +3538,14 @@ function paginaCantareira(){
     <p class="trilha"><a href="#inicio">Início</a><span class="sep">›</span><a href="#outros">Outros Sistemas Hídricos</a><span class="sep">›</span>Sistema Cantareira</p>
     <h1>Sistema Cantareira</h1>
     <p class="lead">Jaguari-Jacareí, Cachoeira, Atibainha e Paiva Castro, ligados por túneis, abastecem a Região Metropolitana de São Paulo pela Estação Elevatória Santa Inês e liberam água para as bacias dos rios Piracicaba, Capivari e Jundiaí (PCJ). A operação segue a Resolução Conjunta ANA/DAEE nº 925/2017.</p>
-    <div class="carimbo"><span>Último dia <b>${dBR(ult)}</b></span><span>Base diária</span><span><b>4</b> reservatórios · <b>${fmt(CAN.vu,2)}</b> hm³ de volume útil</span><span>Série do sistema desde <b>${dBR(CAN.de)}</b></span></div>
+    <div class="carimbo"><span>Dados mais recentes <b>${dBR(ult)}</b></span><span>Base diária</span><span><b>4</b> reservatórios · <b>${fmt(CAN.vu,2)}</b> hm³ de volume útil</span><span>Série do sistema desde <b>${dBR(CAN.de)}</b></span></div>
     <div class="barra-data"><label class="data-ref" for="dia-can"><b>Data de referência</b></label><input type="date" id="dia-can" value="${refOS}" min="${min}" max="${ult}" aria-label="Data de referência"><button class="hoje" id="dia-can-hoje" title="Voltar para os dados mais recentes">Dados mais recentes</button><span class="dica">Base diária. Situação, reservatórios, balanço e postos seguem esta data.</span></div>`;
   const secoes = [["c-sit","Situação"],["c-res","Reservatórios"],["c-bal","Balanço de vazões"],["c-ano","Ao longo do ano"],["c-dia","Mesmo dia em outros anos"],["c-mes","Chuva e afluência"],["c-pcj","Postos do PCJ"]];
   $("#conteudo").innerHTML = `
     <nav class="indice" aria-label="Seções da página">${secoes.map(([id, r]) => `<a href="#outros/cantareira" data-alvo="${id}">${r}</a>`).join("")}</nav>
     <section class="cartao secao" id="c-sit" aria-labelledby="t-c-sit">
       <h2 id="t-c-sit"><small>1</small>Situação em <span id="c-sit-dia"></span></h2>
-      <p class="sub">Volume útil do sistema: a soma do volume útil dos quatro reservatórios sobre ${fmt(CAN.vu,2)} hm³, como define a Resolução Conjunta ANA/DAEE nº 925/2017 (Art. 1º, § 1º).</p>
+      <p class="sub">O volume útil armazenado nos quatro reservatórios, agregado e expresso em % do volume útil total do sistema, de ${fmt(CAN.vu,2)} hm³, como define a Resolução Conjunta ANA/DAEE nº 925/2017 (Art. 1º, § 1º).</p>
       <div class="equiv">
         <div class="lado">
           <div class="valor num" id="c-valor"></div>
@@ -3620,8 +3637,8 @@ function situacaoCan(ref, p0, f0){
   $("#c-regua").innerHTML = [0,20,30,40,60,100].map(v => `<b style="left:${v}%">${v}</b>`).join("") + (p0!=null ? `<span class="regua-marca" style="left:${Math.max(0, Math.min(100, p0))}%;top:-19px" title="${fmt(p0,1)}%"></span>` : "");
   $("#c-comp").innerHTML = `<li><span>Em 7 dias</span><b class="num">${dif(p0, pctCan(isoMais(ref,-7)))}</b></li>
     <li><span>Em 30 dias</span><b class="num">${dif(p0, pctCan(isoMais(ref,-30)))}</b></li>
-    <li><span>Mesmo dia de ${ant.slice(0,4)}</span><b class="num">${fmt(pctCan(ant),1)}%</b></li>
-    <li><span>Mesmo dia de ${+ref.slice(0,4)-5}<small>cinco anos antes</small></span><b class="num">${fmt(pctCan(`${+ref.slice(0,4)-5}${ref.slice(4)}`),1)}%</b></li>`;
+    <li><span>Mesmo dia de ${ant.slice(0,4)}<small>${dif(p0, pctCan(ant))}</small></span><b class="num">${fmt(pctCan(ant),1)}%</b></li>
+    <li><span>Mesmo dia de ${+ref.slice(0,4)-5}<small>${dif(p0, pctCan(`${+ref.slice(0,4)-5}${ref.slice(4)}`))}</small></span><b class="num">${fmt(pctCan(`${+ref.slice(0,4)-5}${ref.slice(4)}`),1)}%</b></li>`;
 }
 function miniOS(host, vals){
   const W = Math.max(60, Math.round(host.getBoundingClientRect().width) || 132), H = 30, m = 3, P = vals.map((v,i) => [i,v]).filter(p => p[1]!=null);
@@ -3814,7 +3831,7 @@ function paginaSistemaOS(sis){
     <p class="trilha"><a href="#inicio">Início</a><span class="sep">›</span><a href="#outros">Outros Sistemas Hídricos</a><span class="sep">›</span>${NOME_SIS[sis]}</p>
     <h1>${NOME_SIS[sis]}</h1>
     <p class="lead">${TEXTO_SIS[sis]}</p>
-    <div class="carimbo"><span>Último dia <b>${dBR(ult)}</b></span><span>Base diária</span><span><b>${comVol.length}</b> reservatórios com volume${soNiv.length ? ` · <b>${soNiv.length}</b> só com nível` : ""}</span><span>Série desde <b>${dBR(L.map(x => x.F.de).sort()[0])}</b></span></div>
+    <div class="carimbo"><span>Dados mais recentes <b>${dBR(ult)}</b></span><span>Base diária</span><span><b>${comVol.length}</b> reservatórios com volume${soNiv.length ? ` · <b>${soNiv.length}</b> só com nível` : ""}</span><span>Série desde <b>${dBR(L.map(x => x.F.de).sort()[0])}</b></span></div>
     ${barraDataOS("dia-sis", refOS, min, ult, "Base diária. Tabela e gráficos seguem esta data.")}`;
   $("#conteudo").innerHTML = `
     <nav class="indice" aria-label="Seções da página">${[["s-res","Reservatórios"],["s-ano","Ao longo do ano"],["s-dia","Mesmo dia em outros anos"]].map(([id, r]) => `<a href="#${PAGINA_SIS[sis]}" data-alvo="${id}">${r}</a>`).join("")}</nav>
@@ -3892,7 +3909,7 @@ function paginaFichaOS(cod){
     <p class="trilha"><a href="#inicio">Início</a><span class="sep">›</span><a href="#outros">Outros Sistemas Hídricos</a><span class="sep">›</span><a href="#${PAGINA_SIS[F.sis]}">${NOME_SIS[F.sis]}</a><span class="sep">›</span>${esc(nome)}</p>
     <h1>${esc(nome)}</h1>
     <p class="lead">${can ? `Reservatório do Sistema Cantareira (Resolução Conjunta ANA/DAEE nº 925/2017), com ${fmt(F.cap,2)} hm³ de volume útil operacional.` : niv ? `Reservatório do ${NOME_SIS[F.sis]}, acompanhado pela cota: sem capacidade cadastrada, não há volume.` : `Reservatório do ${F.sis==="df" ? "Distrito Federal" : "Sistema Paraopeba"}, com ${fmt(F.cap,2)} hm³ de capacidade.`}</p>
-    <div class="carimbo"><span>Código SAR <b>${cod}</b></span><span>Último dia <b>${dBR(ult)}</b></span><span>Base diária desde <b>${dBR(F.de)}</b></span><span>Fonte <b>${can ? "SABESP" : "Coletor do SAR"}</b></span></div>
+    <div class="carimbo"><span>Código SAR <b>${cod}</b></span><span>Dados mais recentes <b>${dBR(ult)}</b></span><span>Base diária desde <b>${dBR(F.de)}</b></span>${can ? `<span>Fonte <b>SABESP</b></span>` : ""}</div>
     ${barraDataOS("dia-fos", refOS, F.de, ult, "Base diária. Situação e mesmo dia em outros anos seguem esta data.")}`;
   const secoes = [["fo-sit","Situação"],["fo-graf","Gráficos"],["fo-dia","Mesmo dia em outros anos"],["fo-ano","Ano contra anos anteriores"]];
   const rot = niv ? "Cota (m)" : "Volume (%)";
@@ -3900,7 +3917,7 @@ function paginaFichaOS(cod){
     <nav class="indice" aria-label="Seções da página">${secoes.map(([id, r]) => `<a href="#outros/ficha/${cod}" data-alvo="${id}">${r}</a>`).join("")}</nav>
     <section class="cartao secao" id="fo-sit" aria-labelledby="t-fo-sit">
       <h2 id="t-fo-sit"><small>1</small>Situação em <span id="fo-sit-dia"></span></h2>
-      <p class="sub">Base diária, na data de referência (o padrão são os dados mais recentes).${can ? " Vazões médias do dia, em m³/s." : ""}<span class="dica">Mude a data de referência no alto da página para ver outro dia.</span></p>
+      <p class="sub">Base diária, na data de referência (o padrão são os dados mais recentes).${can ? " Vazões médias do dia, em m³/s." : ""}<span class="dica">Mude a data de referência para ver outro dia.</span></p>
       <div class="valores" id="fo-valores"></div>
     </section>
     <section class="cartao secao" id="fo-graf" aria-labelledby="t-fo-graf">
