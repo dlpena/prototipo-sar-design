@@ -356,6 +356,7 @@ body.na-inicio #conteudo{padding-top:22px}
 .hero-mapa svg{display:block;width:100%;height:auto;max-height:460px}
 .legenda-hero{position:absolute;left:18px;bottom:14px;display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--tinta-2)}
 .legenda-hero b{color:var(--ana);font-size:13px;margin-bottom:2px}
+.legenda-hero .fora{font-size:12px;color:var(--apagado)}
 .legenda-hero i{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin-right:6px;border:1px solid #fff}
 .itens{margin:0 0 12px;padding:0;list-style:none;counter-reset:it;display:grid;gap:6px}
 .itens li{position:relative;padding-left:34px;color:var(--tinta-2);font-size:15px;line-height:1.45;counter-increment:it}
@@ -2493,6 +2494,17 @@ function paginaInicio(){
   const I = D.inicio, T = I.textos, ult = D.equivalente.ultimo_dia, S = D.equivalente.serie;
   const vSIN = S[ult], ne = I.ne.total, semDado = I.ne.estados.filter(e => e.volume_pct==null).map(e => e.estado);
   const salvaRef = dataRef; dataRef = NEd.data; const sNE = situacaoNE(); dataRef = salvaRef;   // o NE no dia da última medição, como na página do módulo
+  // mapa e contagem pelas listas dos módulos: o total é a soma das contagens dos módulos (Diego, 19/09/2026)
+  const aXY = (() => { const R = RES.filter(r => r.x!=null && r.lat!=null), n = R.length;
+    const reg = (xs, ys) => { const mx = xs.reduce((a, b) => a + b, 0)/n, my = ys.reduce((a, b) => a + b, 0)/n;
+      const b = xs.reduce((a, x, i) => a + (x - mx)*(ys[i] - my), 0)/xs.reduce((a, x) => a + (x - mx)**2, 0); return [b, my - b*mx]; };
+    const [bx, ax] = reg(R.map(r => r.lon), R.map(r => r.x)), [by, ay] = reg(R.map(r => r.lat), R.map(r => r.y));
+    return (lat, lon) => [ax + bx*lon, ay + by*lat]; })();
+  const PM = {SIN: RES.map(r => r.x!=null ? [r.x, r.y] : r.lat!=null ? aXY(r.lat, r.lon) : null),
+    NE: [...sNE.lista, ...sNE.niveis].map(r => r.lat!=null ? aXY(r.lat, r.lon) : null),
+    OUTROS: Object.keys(FOS).map(c => COORD_OS[c] ? aXY(COORD_OS[c][0], COORD_OS[c][1]) : null)};
+  const CT = {SIN: RES.length, NE: sNE.total.n, OUTROS: OS ? 4 + OS.sistemas.df.res.length + OS.sistemas.rmbh.res.length : Object.keys(FOS).length};
+  CT.total = CT.SIN + CT.NE + CT.OUTROS; CT.fora = Object.values(PM).flat().filter(p => !p).length;
   $("#titulo-pag").innerHTML = "";
   $("#conteudo").innerHTML = `
     <p class="acesso-adm"><a href="#admin"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Acesso restrito · Administração</a></p>
@@ -2513,9 +2525,9 @@ function paginaInicio(){
         <svg viewBox="0 0 ${D.sin.w} ${D.sin.h}">
           <path d="${D.sin.brasil}" fill="#E6E9EE"/>
           ${D.sin.ufs.map(u => `<path d="${u.d}" fill="none" stroke="#fff" stroke-width="1.1"/>`).join("")}
-          ${["NE","OUTROS","SIN"].map(m => I.pontos.filter(q => q.m===m).map(q => `<circle cx="${q.x}" cy="${q.y}" r="${m==="SIN" ? 4.2 : 3.4}" fill="${COR_MOD[m]}" stroke="#fff" stroke-width="1"/>`).join("")).join("")}
+          ${["NE","OUTROS","SIN"].map(m => PM[m].filter(Boolean).map(([x, y]) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${m==="SIN" ? 4.2 : 3.4}" fill="${COR_MOD[m]}" stroke="#fff" stroke-width="1"/>`).join("")).join("")}
         </svg>
-        <div class="legenda-hero"><b>${fint(I.pontos.length)} reservatórios acompanhados</b><span><i style="background:${COR_MOD.SIN}"></i>Sistema Interligado Nacional (${fint(I.pontos.filter(q => q.m==="SIN").length)})</span><span><i style="background:${COR_MOD.NE}"></i>Nordeste e Semiárido (${fint(I.pontos.filter(q => q.m==="NE").length)})</span><span><i style="background:${COR_MOD.OUTROS}"></i>Outros Sistemas Hídricos (${fint(I.pontos.filter(q => q.m==="OUTROS").length)})</span></div>
+        <div class="legenda-hero"><b>${fint(CT.total)} reservatórios acompanhados</b><span><i style="background:${COR_MOD.SIN}"></i>Sistema Interligado Nacional (${fint(CT.SIN)})</span><span><i style="background:${COR_MOD.NE}"></i>Nordeste e Semiárido (${fint(CT.NE)})</span><span><i style="background:${COR_MOD.OUTROS}"></i>Outros Sistemas Hídricos (${fint(CT.OUTROS)})</span>${CT.fora ? `<span class="fora">${fint(CT.fora)} sem coordenada no cadastro ficam fora do mapa</span>` : ""}</div>
       </div>
     </section>
 
