@@ -2659,7 +2659,7 @@ function paginaNE(){
       </div></details>
     </section>
     <section class="cartao secao" id="n-estados" aria-labelledby="t-n-estados">
-      ${barraBaixar([["baixar-ne-uf-kmz", "KMZ", "Baixar os estados em KMZ (Google Earth), com a legenda"], ["baixar-ne-csv", "CSV", "Baixar a tabela dos estados em CSV"], ["baixar-ne-pdf", "PDF", "Baixar a tabela dos estados em PDF"]])}
+      ${barraBaixar([["baixar-ne-csv", "CSV", "Baixar a tabela dos estados em CSV"], ["baixar-ne-pdf", "PDF", "Baixar a tabela dos estados em PDF"]])}
       <h2 id="t-n-estados"><small>1</small>Estados</h2>
       <p class="sub">Volume acumulado de cada estado na data de referência.<span class="dica">Passe o mouse no mapa ou na tabela para ligar um ao outro; clique para abrir o estado.</span></p>
       ${legendaEscalaUF()}
@@ -2785,19 +2785,6 @@ function paginaNE(){
   aplicar();
 
   // downloads (leem a data e a lista do momento do clique)
-  $("#baixar-ne-uf-kmz").onclick = () => {
-    const cls = e => e.volume_pct==null ? "sem" : "e" + ESC_UF.findIndex(f => e.volume_pct >= f.de && (f.ate==null || e.volume_pct < f.ate));
-    const estilos = {sem:{linha:"#FFFFFF", preench:SEM_COR, opac:"d9"}, semi:{linha:"#6B5B45", largura:2}};
-    ESC_UF.forEach((f, i) => estilos["e" + i] = {linha:"#FFFFFF", preench:f.cor, opac:"d9"});
-    const corpo = SIT.estados.map(e => { const g = D.geo.ufs.find(g => g.uf===e.uf); if (!g) return "";
-      return `<Placemark><name>${xk(e.estado)}</name><styleUrl>#${cls(e)}</styleUrl><description><![CDATA[<b>${e.volume_pct==null ? "sem volume na data" : fmt(e.volume_pct,1) + "% de volume acumulado"}</b><br/>` +
-        `Volume acumulado: ${e.volume_pct==null ? "–" : fint(e.volume_hm3) + " hm³"}<br/>Capacidade equivalente: ${e.volume_pct==null ? "–" : fint(e.capacidade_com_dado_hm3) + " hm³"}<br/>` +
-        `Reservatórios acompanhados: ${e.n}<br/>Com volume medido na janela de ${NEd.limiar_dias} dias: ${e.com_dado}${e.uf==="MG" ? "<br/>Em Minas Gerais, só os reservatórios do Semiárido" : ""}<br/>Data de referência: ${dBR(dataRef)}]]></description>${poligonoKML(g.aneis)}</Placemark>`; }).join("");
-    const semi = NEd.mapa.semiarido_geo ? `<Placemark><name>Semiárido (delimitação do INSA)</name><styleUrl>#semi</styleUrl>${poligonoKML(NEd.mapa.semiarido_geo)}</Placemark>` : "";
-    montarKMZ({arquivo:`sar_ne_estados_${dataRef}.kmz`, nome:`SAR · Nordeste e Semiárido · estados · ${dBR(dataRef)}`, n:SIT.estados.length,
-      descricao:`Volume acumulado de cada estado em ${dBR(dataRef)}: volume dos reservatórios com medição na janela de ${NEd.limiar_dias} dias, em % da capacidade equivalente desses mesmos reservatórios.`,
-      legenda:{titulo:`Volume acumulado · ${dBR(dataRef)}`, grupos:[{itens:ESC_UF.map(f => ({r:rotEsc(f), cor:f.cor, forma:"area"})).concat([{r:"Sem volume na data", cor:SEM_COR, forma:"area"}, {r:"Semiárido (INSA)", cor:"#6B5B45", forma:"linha"}])}]},
-      estilos, corpo: pastaKML("Estados", corpo) + semi}); };
   $("#baixar-ne-pdf").onclick = () => pdfSecao([$("#tab-estados")], `sar_ne_estados_${dataRef}.pdf`);
   $("#baixar-ne-ano-csv").onclick = () => baixarCSVGrafico([$("#g-ne-ano")], `sar_ne_ao_longo_do_ano_ate_${dataRef}.csv`);
   $("#baixar-ne-dia-csv").onclick = () => baixarCSVGrafico([$("#g-ne-dia")], `sar_ne_mesmo_dia_${dataRef}.csv`);
@@ -3670,7 +3657,6 @@ function paginaOutros(){
     <section class="cartao intro" aria-label="Sobre o módulo"><p>Três sistemas de abastecimento público, com dados diários: o Sistema Cantareira, que abastece grande parte da Região Metropolitana de São Paulo; os reservatórios do Distrito Federal (Descoberto, Santa Maria e Lago Paranoá); e o Sistema Paraopeba (Rio Manso, Vargem das Flores e Serra Azul), que contribui para o abastecimento da Região Metropolitana de Belo Horizonte.</p></section>
     <nav class="indice" aria-label="Seções da página"><a href="#outros" data-alvo="o-sis">Sistemas</a></nav>
     <section class="cartao secao" id="o-sis" aria-labelledby="t-o-sis">
-      ${barraBaixar([["baixar-os-kmz", "KMZ", "Baixar os reservatórios em KMZ (Google Earth), com a legenda"]])}
       <h2 id="t-o-sis"><small>1</small>Sistemas</h2>
       <p class="sub">Os três sistemas de abastecimento acompanhados pelo SAR, com o dado mais recente de cada um.<span class="dica">Passe o mouse no mapa ou nos cartões para ligar um ao outro; clique para abrir o sistema.</span></p>
       <div class="os-grade">
@@ -3695,17 +3681,6 @@ function paginaOutros(){
   $$(".indice a").forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
   const abrir = s => { location.hash = PAGINA_SIS[s]; };
   $$("[data-abrir]").forEach(b => b.onclick = () => abrir(b.dataset.abrir));
-  $("#baixar-os-kmz").onclick = () => {
-    const estilos = {}; ["cantareira","df","rmbh"].forEach(s => { estilos[s] = {forma:"circulo", cor:COR_SIS[s], escala:.75}; estilos[s + "_nv"] = {forma:"est", cor:COR_SIS[s], escala:.75}; });
-    const can = CAN.res.map(r => { const c = COORD_OS[r.codigo]; return c ? pontoKML(r.nome, "cantareira",
-      `<b>${fmt(r.pct[r.pct.length-1],1)}% do volume útil</b><br/>Volume útil: ${fmt(r.vol[r.vol.length-1],1)} hm³<br/>Nível: ${fmt(r.cota[r.cota.length-1],2)} m<br/>Código: ${r.codigo}<br/>Data do dado: ${dBR(CAN.ate)}`, c[1], c[0]) : ""; }).join("");
-    const sis = s => OS.sistemas[s].res.map(r => { const c = COORD_OS[r.codigo]; if (!c) return ""; const nv = r.pct==null;
-      return pontoKML(caso(r.nome), s + (nv ? "_nv" : ""), `<b>${nv ? (r.cota==null ? "–" : fmt(r.cota,2) + " m de cota (só nível)") : fmt(r.pct,1) + "% do volume"}</b><br/>${nv ? "Sem capacidade cadastrada: sem volume" : `Volume: ${fmt(r.volume,1)} hm³<br/>Capacidade: ${fmt(r.capacidade,2)} hm³`}<br/>Nível: ${fmt(r.cota,2)} m<br/>Código: ${r.codigo}<br/>Data do dado: ${r.data ? dBR(r.data) : "–"}`, c[1], c[0]); }).join("");
-    montarKMZ({arquivo:"sar_outros_sistemas.kmz", nome:"SAR · Outros Sistemas Hídricos", n:4 + OS.sistemas.df.res.length + OS.sistemas.rmbh.res.length,
-      descricao:"Reservatórios dos três sistemas de abastecimento acompanhados pelo SAR, com o dado mais recente de cada um. No Cantareira, volume útil sobre o volume útil operacional do quadro da Resolução Conjunta ANA/DAEE nº 925/2017.",
-      legenda:{titulo:"Outros Sistemas Hídricos", grupos:[{titulo:"Sistema", itens:["cantareira","df","rmbh"].map(s => ({r:NOME_SIS[s], cor:COR_SIS[s], forma:"circulo"}))},
-        {titulo:"Símbolo", itens:[{r:"reservatório com volume", cor:"#5B6B80", forma:"circulo"}, {r:"só nível (sem capacidade cadastrada)", cor:"#5B6B80", forma:"est"}]}]},
-      estilos, corpo:pastaKML(NOME_SIS.cantareira, can) + pastaKML(NOME_SIS.df, sis("df")) + pastaKML(NOME_SIS.rmbh, sis("rmbh"))}); };
   // mapa: Brasil recortado no Sudeste e Centro-Oeste, pontos dos reservatórios por sistema
   const P = D.inicio.pontos.filter(q => q.m==="OUTROS").map(q => ({...q, s: q.y < 450 ? "df" : q.x > 560 ? "rmbh" : "cantareira"}));
   const cx = s => { const L = P.filter(q => q.s===s); return [L.reduce((a,q) => a+q.x, 0)/L.length, L.reduce((a,q) => a+q.y, 0)/L.length]; };
