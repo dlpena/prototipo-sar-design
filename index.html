@@ -1291,7 +1291,7 @@ function paginaSIN(){
     </nav>
 
     <section class="cartao secao" id="s-bacias" aria-labelledby="t-bacias">
-      ${barraBaixar([["baixar-kmz-sin", "KMZ", "Baixar as bacias em KMZ (Google Earth), com a legenda"], ["baixar-bacias-csv", "CSV", "Baixar a tabela das bacias em CSV"], ["baixar-bacias-pdf", "PDF", "Baixar a tabela das bacias em PDF"]])}
+      ${barraBaixar([["baixar-bacias-csv", "CSV", "Baixar a tabela das bacias em CSV"], ["baixar-bacias-pdf", "PDF", "Baixar a tabela das bacias em PDF"]])}
       <h2 id="t-bacias"><small>1</small>Bacias</h2>
       <p class="sub">As usinas estão agrupadas em ${ORDEM_BACIAS.length} bacias, segundo a divisão adotada pelo ONS.<span class="dica">Passe o mouse para destacar e clique para abrir a página da bacia.</span></p>
     <div class="explorar">
@@ -1366,12 +1366,6 @@ function paginaSIN(){
   mapaSIN($("#mapa-sin"));
   const anoEq = +ult.slice(0,4);
   const basesBacias = () => ORDEM_BACIAS.map(b => { const l = POR_BACIA(b); return {b, nome:NOME[b], comRes:l.filter(r => r.tipo!=="fio" && r.vu!=null).length, nFio:l.filter(r => r.tipo==="fio").length}; });
-  $("#baixar-kmz-sin").onclick = () => { const B = basesBacias();
-    montarKMZ({arquivo:`sar_sin_bacias_${D.data}.kmz`, nome:`SAR · Bacias do SIN · ${dBR(D.data)}`, n:B.length,
-      descricao:`As ${B.length} bacias do Sistema Interligado Nacional acompanhadas pelo SAR, na divisão adotada pelo ONS, com o número de usinas de cada uma.`,
-      legenda:{titulo:"Bacias do SIN", grupos:[{itens:[{r:"Bacia acompanhada pelo SAR", cor:"#CFDDEC", forma:"area"}]}]},
-      estilos:{bacia:{linha:"#1C3782", preench:"#CFDDEC", opac:"b3"}},
-      corpo:B.map(x => { const g = D.geo.bacias.find(g => g.bacia===x.b); return g ? `<Placemark><name>${xk(x.nome)}</name><styleUrl>#bacia</styleUrl><description><![CDATA[<b>${x.comRes}</b> usinas com reservatório<br/><b>${x.nFio}</b> usinas a fio d'água]]></description>${poligonoKML(g.aneis)}</Placemark>` : ""; }).join("")}); };
   $("#baixar-bacias-csv").onclick = () => salvarCSV(["bacia","usinas_com_reservatorio","usinas_a_fio_dagua"], basesBacias().map(x => [x.nome, x.comRes, x.nFio]), "sar_sin_bacias.csv");
   $("#baixar-bacias-pdf").onclick = () => pdfSecao([$("#tab-bacias"), $("#tab-bacias-2")], "sar_sin_bacias.pdf");
   $("#baixar-equiv-csv").onclick = () => baixarCSVGrafico([$("#g-equiv")], "sar_sin_equivalente.csv");
