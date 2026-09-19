@@ -4393,7 +4393,8 @@ function paginaDados(){
   const datas = [D.data, NEd.serie_ate, CAN ? CAN.ate : D.data, ...Object.values(FOS).map(fimF)].filter(Boolean).sort();
   const ULT = datas[datas.length - 1];
   const st = {sel:new Set(), txt:"", mod:"", uf:"", mun:"", bacia:"", soSel:false, mostrar:12, base:"dia",
-              vars:new Set(["cota_m","nivel_regua_m","volume_hm3","volume_pct","volume_util_pct"]), de:isoMais(ULT, -365), ate:ULT, preset:"12m", formato:"csv"};
+              vars:new Set(CAT_VARS.map(v => v.k)),   // todas marcadas: valem as que os selecionados têm; quem quiser menos desmarca
+              de:isoMais(ULT, -365), ate:ULT, preset:"12m", formato:"csv"};
   const UF_NOME = {}; RES.forEach(r => { if (r.uf) UF_NOME[r.uf] = r.estado; }); NEd.estados.forEach(e => UF_NOME[e.uf] = e.estado); UF_NOME.DF = "Distrito Federal"; UF_NOME.SP = UF_NOME.SP || "São Paulo";
   const nMod = m => ENT.filter(e => e.mod===m).length;
   $("#titulo-pag").innerHTML = `
