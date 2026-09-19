@@ -3136,8 +3136,8 @@ function paginaEstado(uf){
     ${seletorData("data-uf")}`;
   const tabVol = `<div class="tab-box"><table id="tab-uf-vol">
         <thead><tr><th data-ord="nome">Reservatório</th><th data-ord="municipio">Município</th><th data-ord="bacia">Bacia</th><th class="r" data-ord="capacidade_hm3" data-tipo="num">Capacidade</th><th class="r" data-ord="cota" data-tipo="num">Cota</th><th class="r" data-ord="volume_hm3" data-tipo="num">Volume</th><th class="r" data-ord="volume_pct" data-tipo="num">Volume</th><th class="r" data-ord="dias" data-tipo="num">Medição usada</th>
-          <th class="mini-th"><label>12 meses <select id="var-mini-uf" aria-label="Variável do minigráfico"><option value="cota" selected>cota</option><option value="pct">volume</option></select></label></th></tr>
-        <tr class="unid"><th></th><th></th><th></th><th class="r">hm³</th><th class="r">m</th><th class="r">hm³</th><th class="r">%</th><th class="r">data · distância</th><th class="mini-th" id="mini-unid-uf">m</th></tr></thead>
+          <th class="mini-th"><label>12 meses <select id="var-mini-uf" aria-label="Variável do minigráfico"><option value="pct" selected>volume</option><option value="cota">cota</option></select></label></th></tr>
+        <tr class="unid"><th></th><th></th><th></th><th class="r">hm³</th><th class="r">m</th><th class="r">hm³</th><th class="r">%</th><th class="r">data · distância</th><th class="mini-th" id="mini-unid-uf">%</th></tr></thead>
         <tbody id="corpo-uf-vol"></tbody>
       </table></div>`;
   const tabNiv = `<div class="tab-box"><table id="tab-uf-niv">
