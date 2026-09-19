@@ -4325,8 +4325,7 @@ function paginaFichaOS(cod){
 /* ============================================================ área de dados (#dados)
    conceito em estrutura/area_dados.md: catálogo único de variáveis, seleção entre módulos, base horária só do SIN */
 const CAT_VARS = [
-  {k:"cota_m", r:"Cota", u:"m", g:"Nível e volume", def:"Cota do nível d'água do reservatório."},
-  {k:"nivel_regua_m", r:"Nível na régua", u:"m", g:"Nível e volume", def:"Leitura da régua pelo observador, em reservatório sem curva cota-volume validada. Cada régua tem a sua referência: não é cota e não se compara entre reservatórios."},
+  {k:"cota_m", r:"Cota", u:"m", g:"Nível e volume", def:"Nível d'água do reservatório. Em reservatório sem curva cota-volume validada, vem sem volume."},
   {k:"volume_hm3", r:"Volume", u:"hm³", g:"Nível e volume", def:"Volume armazenado. No Cantareira, volume útil operacional."},
   {k:"volume_pct", r:"Volume, % da capacidade", u:"%", g:"Nível e volume", def:"Volume armazenado em % da capacidade do cadastro."},
   {k:"volume_util_pct", r:"Volume útil", u:"%", g:"Nível e volume", def:"Volume útil armazenado em % do volume útil. No Cantareira, do volume útil operacional do quadro da Resolução Conjunta ANA/DAEE nº 925/2017."},
@@ -4359,7 +4358,7 @@ function entidadesDados(){
     L.push({id:"NE:" + i, codigo:r.codigo, nome:caso(r.nome), mod:"NE", uf:r.uf, municipio:r.municipio || "", bacia:caso(r.bacia || ""),
       tipo: ret ? "com volume" : "com volume", retirado:ret, vars:["cota_m","volume_hm3","volume_pct"], src:"ne", r}); });
   ESTACOES_NV.forEach((st, k) => L.push({id:"NV:" + k, codigo:st.codigo || "", nome:caso(st.nome), mod:"NE", uf:st.uf, municipio:st.municipio || "", bacia:"",
-    tipo:"só nível", vars:["nivel_regua_m"], src:"nv", st}));
+    tipo:"só nível", vars:["cota_m"], src:"nv", st}));
   Object.entries(FOS).forEach(([cod, F]) => { const can = F.sis==="cantareira", niv = soNivelF(F), m = MUN_OS[cod] || ["",""];
     L.push({id:"OS:" + cod, codigo:cod, nome:nomeRes(F), mod:"OUTROS", sis:F.sis, uf:m[0], municipio:m[1], bacia:NOME_SIS[F.sis],
       tipo: niv ? "só nível (sem capacidade cadastrada)" : "com volume",
@@ -4389,7 +4388,7 @@ function serieDados(e, base, de, ate){
     else (e.r.s || []).forEach(l => push(isoDia(l[0]), {volume_pct:l[1], volume_hm3:l[2], cota_m:l[3] ?? null}));
     return out;
   }
-  if (e.src==="nv"){ (e.st.s || []).forEach(l => push(isoDia(l[0]), {nivel_regua_m: l[1]==null ? null : l[1]/100})); return out; }
+  if (e.src==="nv"){ (e.st.s || []).forEach(l => push(isoDia(l[0]), {cota_m: l[1]==null ? null : l[1]/100})); return out; }
   if (e.src==="os"){
     const F = e.F, can = F.sis==="cantareira", RC = can ? CAN.res.find(x => String(x.codigo)===String(e.codigo)) : null;
     const i0 = de ? Math.max(0, diaEntre(de, F.de)) : 0, i1 = Math.min(F.cota.length - 1, diaEntre(ate, F.de));
@@ -4576,7 +4575,7 @@ function paginaDados(){
       const n = S.filter(e => temVar(e, v.k)).length, ind = !S.length || !n, pct = S.length ? n/S.length*100 : 0;
       return `<label class="var-item${ind ? " indisp" : ""}" title="${esc(v.def)}"><input type="checkbox" data-var="${v.k}" ${st.vars.has(v.k) && !ind ? "checked" : ""}${ind ? " disabled" : ""}>
         <span class="nm">${v.r}<small>${v.u}</small></span>
-        <span class="disp">${S.length ? `<i><b style="width:${pct}%"></b></i>${n ? `${fint(n)} de ${fint(S.length)}` : st.base==="hora" && v.k!=="nivel_regua_m" && !VAR_HORA.has(v.k) ? "sem base horária" : "nenhum selecionado tem"}` : ""}</span></label>`; }).join("")}</div>`; }).join("");
+        <span class="disp">${S.length ? `<i><b style="width:${pct}%"></b></i>${n ? `${fint(n)} de ${fint(S.length)}` : st.base==="hora" && !VAR_HORA.has(v.k) ? "sem base horária" : "nenhum selecionado tem"}` : ""}</span></label>`; }).join("")}</div>`; }).join("");
     $$("#d-vars input[data-var]").forEach(c => c.onchange = () => { c.checked ? st.vars.add(c.dataset.var) : st.vars.delete(c.dataset.var); atualizar(false); });
     const temSIN = S.some(e => e.mod==="SIN"), bh = $('[data-base="hora"]');
     bh.disabled = !temSIN && st.base!=="hora"; bh.title = temSIN ? "Base horária: só reservatórios do SIN, até 1 ano por pedido" : "A base horária existe só para o SIN: selecione ao menos uma usina do SIN";
@@ -4655,7 +4654,7 @@ function paginaDados(){
       `Seleção: ${S.length} reservatórios (SIN ${cont("SIN")}; Nordeste e Semiárido ${cont("NE")}; Outros Sistemas ${cont("OUTROS")}).`,
       `Variáveis: ${varsEf().map(v => `${v.k} (${v.u})`).join(", ")}.`, `Período: ${st.de ? dBR(st.de) : "início da série"} a ${dBR(st.ate)}, base ${st.base==="hora" ? "horária" : "diária"}.`, ``,
       `Série: só as leituras aceitas pela crítica. Regras de cota: erro grosseiro, pico de um dia e degrau que volta (descritas nas páginas de estado do Nordeste); o volume do mesmo dia sai junto com a cota descartada.`,
-      `Nordeste e Semiárido: data da leitura real, sem preenchimento nem interpolação. Nível na régua é leitura de observador em reservatório sem curva cota-volume validada.`,
+      `Nordeste e Semiárido: data da leitura real, sem preenchimento nem interpolação. Reservatório sem curva cota-volume validada vem com a cota e sem volume.`,
       ...(st.base==="hora" ? [`Base horária: dados abertos do ONS (Dados Hidráulicos por Reservatório – Base horária), não consistidos pelo ONS: são de responsabilidade dos agentes de geração, podem ter lacunas e ser alterados. A afluência horária é calculada por balanço e oscila, com negativos e picos que não são vazão real.`] : []),
       ``, `Fontes: ${D.fontes.medicoes}; ${NEd.fontes.medicoes}; ${NEd.nivel ? NEd.nivel.fonte : ""}; ${OS ? OS.fontes.sabesp + "; " + OS.fontes.coletor : ""}.`,
       ``, `Consulta equivalente na API pública (endereço ilustrativo; API a ser criada): ${urlAPI()}`, ``, INICIO_PROTO].join("\r\n"); };
