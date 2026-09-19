@@ -2384,7 +2384,7 @@ function resNa(i){
     if (d <= NEd.limiar_dias && d < dist){ dist = d; melhor = s[k]; }
     else if (s[k][0] - alvo > NEd.limiar_dias) break;   // a série é crescente
   }
-  return {...base, volume_pct: melhor ? melhor[1] : null, volume_hm3: melhor ? melhor[2] : null,
+  return {...base, volume_pct: melhor ? melhor[1] : null, volume_hm3: melhor ? melhor[2] : null, cota: melhor ? (melhor[3] ?? null) : null,
           data: melhor ? isoDia(melhor[0]) : null, dias: melhor ? alvo - melhor[0] : null,
           sem_info: !melhor, faixa: melhor ? faixaPct(melhor[1]) : "sem"};
 }
@@ -2879,7 +2879,7 @@ async function kmzEstadoNE(lista, estado){
   const x = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   const com = lista.filter(r => r.lat!=null && r.modo!=="nivel"), niv = lista.filter(r => r.lat!=null && r.modo==="nivel");
   const pasta = k => { const L = com.filter(r => r.faixa===k); return L.length ? `<Folder><name>${x(ROT_FAIXA(k))}</name>${L.map(r =>
-    `<Placemark><name>${x(caso(r.nome))}</name><styleUrl>#${k}</styleUrl><description><![CDATA[<b>${r.volume_pct==null ? "sem informação" : fmt(r.volume_pct,1)+"% do volume"}</b><br>Volume: ${r.volume_hm3==null?"–":fmt(r.volume_hm3,1)} hm³<br>Capacidade: ${r.capacidade_hm3==null?"–":fmt(r.capacidade_hm3,1)} hm³<br>Município: ${x(r.municipio||"–")}<br>Bacia: ${x(caso(r.bacia||"–"))}<br>Última medição: ${r.data ? dBR(r.data) : "–"} (${dDias(r)})]]></description><Point><coordinates>${r.lon},${r.lat},0</coordinates></Point></Placemark>`).join("")}</Folder>` : ""; };
+    `<Placemark><name>${x(caso(r.nome))}</name><styleUrl>#${k}</styleUrl><description><![CDATA[<b>${r.volume_pct==null ? "sem informação" : fmt(r.volume_pct,1)+"% do volume"}</b><br>Volume: ${r.volume_hm3==null?"–":fmt(r.volume_hm3,1)} hm³<br>Cota: ${r.cota==null?"–":fmt(r.cota,2)} m<br>Capacidade: ${r.capacidade_hm3==null?"–":fmt(r.capacidade_hm3,1)} hm³<br>Município: ${x(r.municipio||"–")}<br>Bacia: ${x(caso(r.bacia||"–"))}<br>Última medição: ${r.data ? dBR(r.data) : "–"} (${dDias(r)})]]></description><Point><coordinates>${r.lon},${r.lat},0</coordinates></Point></Placemark>`).join("")}</Folder>` : ""; };
   const pastaNivel = () => niv.length ? `<Folder><name>Só nível (sem curva cota-volume)</name>${niv.map(r =>
     `<Placemark><name>${x(caso(r.nome))}</name><styleUrl>#nv_${r.sem_info ? "sem" : r.tend}</styleUrl><description><![CDATA[<b>${r.nivel_m==null ? "sem leitura na janela" : fmt(r.nivel_m,2)+" m na régua"}</b><br>Em 30 dias: ${r.var30==null ? "–" : sinal(r.var30)+" m"}<br>Município: ${x(r.municipio||"–")}<br>Leitura usada: ${r.data ? dBR(r.data)+" ("+dDias(r)+")" : "última em "+(r.ultima ? dBR(r.ultima) : "–")}<br>Leitura do observador, não validada; sem volume por falta de curva cota-volume.]]></description><Point><coordinates>${r.lon},${r.lat},0</coordinates></Point></Placemark>`).join("")}</Folder>` : "";
   const estilos = {}; ["restricao","atencao","normal","sem"].forEach(k => estilos[k] = {forma:"circulo", cor:FX[k].cor, escala:.7});
@@ -2924,15 +2924,15 @@ async function pdfTabelaEstado(lista, niv, estado, uf){
   if (lista.length){
     if (niv.length) subtitulo(`Com volume · ${lista.length} reservatórios`);
     doc.autoTable({...estilos, startY: y0,
-      head: [["Reservatório","Município","Bacia","Capacidade","Volume","Volume","Medição usada","Situação"],
-             ["","","","hm³","hm³","%","data · distância",""]],
+      head: [["Reservatório","Município","Bacia","Capacidade","Volume","Volume","Cota","Medição usada","Situação"],
+             ["","","","hm³","hm³","%","m","data · distância",""]],
       body: lista.map(r => [caso(r.nome), r.municipio || "–", caso(r.bacia || "–"), r.capacidade_hm3==null?"–":fmt(r.capacidade_hm3,1),
-        r.volume_hm3==null?"–":fmt(r.volume_hm3,1), r.volume_pct==null?"–":fmt(r.volume_pct,1),
+        r.volume_hm3==null?"–":fmt(r.volume_hm3,1), r.volume_pct==null?"–":fmt(r.volume_pct,1), r.cota==null?"–":fmt(r.cota,2),
         `${r.data ? dBR(r.data) : "–"} · ${dDias(r)}`, r.sem_info ? "Sem informação" : FX[r.faixa].rot]),
       columnStyles:{0:{halign:"left", fontStyle:"bold", textColor:AZUL, cellWidth:150, cellPadding:{top:4, right:6, bottom:4, left:20}},
                     1:{halign:"left", cellWidth:96}, 2:{halign:"left", cellWidth:96}, 3:{halign:"right", cellWidth:62},
-                    4:{halign:"right", cellWidth:62}, 5:{halign:"right", cellWidth:52}, 6:{halign:"left", cellWidth:110}, 7:{halign:"left"}},
-      didParseCell: d => cabecalho(d, [0,1,2,6,7]),
+                    4:{halign:"right", cellWidth:62}, 5:{halign:"right", cellWidth:52}, 6:{halign:"right", cellWidth:56}, 7:{halign:"left", cellWidth:110}, 8:{halign:"left"}},
+      didParseCell: d => cabecalho(d, [0,1,2,7,8]),
       didDrawCell: d => fios(d, i => FX[lista[i].faixa].cor)});
     y0 = doc.lastAutoTable.finalY + 26;
   }
@@ -3135,9 +3135,9 @@ function paginaEstado(uf){
     <div class="carimbo"><span><b>${fint(n)}</b> reservatórios</span>${misto ? `<span><b>${fint(vol.length)}</b> com volume</span><span><b>${fint(niv.length)}</b> só com nível</span>` : ""}<span id="carimbo-uf"></span></div>
     ${seletorData("data-uf")}`;
   const tabVol = `<div class="tab-box"><table id="tab-uf-vol">
-        <thead><tr><th data-ord="nome">Reservatório</th><th data-ord="municipio">Município</th><th data-ord="bacia">Bacia</th><th class="r" data-ord="capacidade_hm3" data-tipo="num">Capacidade</th><th class="r" data-ord="volume_hm3" data-tipo="num">Volume</th><th class="r" data-ord="volume_pct" data-tipo="num">Volume</th><th class="r" data-ord="dias" data-tipo="num">Medição usada</th>
+        <thead><tr><th data-ord="nome">Reservatório</th><th data-ord="municipio">Município</th><th data-ord="bacia">Bacia</th><th class="r" data-ord="capacidade_hm3" data-tipo="num">Capacidade</th><th class="r" data-ord="volume_hm3" data-tipo="num">Volume</th><th class="r" data-ord="volume_pct" data-tipo="num">Volume</th><th class="r" data-ord="cota" data-tipo="num">Cota</th><th class="r" data-ord="dias" data-tipo="num">Medição usada</th>
           <th class="mini-th"><label>12 meses <select id="var-mini-uf" aria-label="Variável do minigráfico"><option value="cota" selected>cota</option><option value="pct">volume</option></select></label></th></tr>
-        <tr class="unid"><th></th><th></th><th></th><th class="r">hm³</th><th class="r">hm³</th><th class="r">%</th><th class="r">data · distância</th><th class="mini-th" id="mini-unid-uf">m</th></tr></thead>
+        <tr class="unid"><th></th><th></th><th></th><th class="r">hm³</th><th class="r">hm³</th><th class="r">%</th><th class="r">m</th><th class="r">data · distância</th><th class="mini-th" id="mini-unid-uf">m</th></tr></thead>
         <tbody id="corpo-uf-vol"></tbody>
       </table></div>`;
   const tabNiv = `<div class="tab-box"><table id="tab-uf-niv">
@@ -3194,6 +3194,7 @@ function paginaEstado(uf){
         <td class="r num">${r.capacidade_hm3==null ? "–" : fmt(r.capacidade_hm3,1)}</td>
         <td class="r num">${r.volume_hm3==null ? "–" : fmt(r.volume_hm3,1)}</td>
         <td class="r num">${r.volume_pct==null ? "–" : fmt(r.volume_pct,1)}</td>
+        <td class="r num">${r.cota==null ? "–" : fmt(r.cota,2)}</td>
         <td class="r"><span class="num">${r.data ? dBR(r.data) : "–"}</span><small class="dias${r.sem_info ? " velho" : ""}"> ${dDias(r)}</small></td>
         <td class="mini"><span class="mini-svg" data-mini-ne="${r.i}"></span></td>`;
       tr.addEventListener("click", () => fichaToast(r)); corpoVol.append(tr);
@@ -3277,9 +3278,9 @@ function paginaEstado(uf){
   $("#baixar-uf-pdf").onclick = () => pdfTabelaEstado(vol, niv, estado, uf);
   $("#baixar-uf-csv").onclick = () => {
     const nn = v => v==null ? "" : String(v).replace(".", ",");
-    const l = [["reservatorio","municipio","bacia","modo","capacidade_hm3","volume_hm3","volume_pct","nivel_m","variacao_30d_m","leitura_usada","dias_da_referencia","situacao"].join(";")]
-      .concat(vol.map(r => [caso(r.nome), r.municipio, caso(r.bacia || ""), "volume", nn(r.capacidade_hm3), nn(r.volume_hm3), nn(r.volume_pct), "", "", r.data ? dBR(r.data) : "", r.dias ?? "", r.sem_info ? "sem informação" : FX[r.faixa].rot].join(";")))
-      .concat(niv.map(r => [caso(r.nome), r.municipio, "", "só nível", "", "", "", nn(r.nivel_m), nn(r.var30==null ? null : Math.round(r.var30*100)/100), r.data ? dBR(r.data) : "", r.dias ?? "", r.sem_info ? "sem leitura na janela" : ""].join(";")));
+    const l = [["reservatorio","municipio","bacia","modo","capacidade_hm3","volume_hm3","volume_pct","cota_m","nivel_m","variacao_30d_m","leitura_usada","dias_da_referencia","situacao"].join(";")]
+      .concat(vol.map(r => [caso(r.nome), r.municipio, caso(r.bacia || ""), "volume", nn(r.capacidade_hm3), nn(r.volume_hm3), nn(r.volume_pct), nn(r.cota), "", "", r.data ? dBR(r.data) : "", r.dias ?? "", r.sem_info ? "sem informação" : FX[r.faixa].rot].join(";")))
+      .concat(niv.map(r => [caso(r.nome), r.municipio, "", "só nível", "", "", "", "", nn(r.nivel_m), nn(r.var30==null ? null : Math.round(r.var30*100)/100), r.data ? dBR(r.data) : "", r.dias ?? "", r.sem_info ? "sem leitura na janela" : ""].join(";")));
     baixarArquivo(new Blob(["﻿" + l.join("\r\n")], {type:"text/csv;charset=utf-8"}), `sar_${u}_${dataRef}.csv`);
     toast("CSV gerado. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)");
   };
@@ -3319,6 +3320,7 @@ function mapaResNE(host, ufs, op = {}){
         `<div class="valor num">${r.volume_pct==null ? "sem informação" : fmt(r.volume_pct,1)+' <small>% do volume</small>'}</div>` +
         `<div class="l"><span><i class="bola" style="background:${c}"></i>${r.sem_info ? "Sem informação" : FX[r.faixa].rot}</span></div>` +
         `<div class="l"><span>Volume</span><span class="num">${r.volume_hm3==null?"–":fmt(r.volume_hm3,1)} hm³</span></div>` +
+        `<div class="l"><span>Cota</span><span class="num">${r.cota==null?"–":fmt(r.cota,2)} m</span></div>` +
         `<div class="l"><span>Capacidade</span><span class="num">${r.capacidade_hm3==null?"–":fmt(r.capacidade_hm3,1)} hm³</span></div>` +
         `<div class="l"><span>Município</span><span>${esc(r.municipio||"–")}</span></div>` +
         `<div class="l"><span>Bacia</span><span>${esc(caso(r.bacia||"–"))}</span></div>` +
