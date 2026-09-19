@@ -469,7 +469,7 @@ footer b{color:var(--ana)}
 .os-mapa svg{display:block;width:100%;height:auto;max-height:520px}
 .os-mapa .os-ponto{cursor:pointer}
 .os-cartoes{display:grid;gap:12px}
-.os-cartao{border:1px solid var(--linha);border-left:4px solid var(--ana-medio);border-radius:4px;padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;align-items:start}
+.os-cartao{border:1px solid var(--linha);border-left:6px solid var(--ana-medio);border-radius:10px;padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;align-items:start}
 .os-cartao:hover,.os-cartao.acesa{border-color:var(--ana-medio);background:var(--ana-gelo)}
 .os-cartao h3{margin:0;font-size:16px;color:var(--ana)}
 .os-cartao .n{font-size:34px;font-weight:700;color:var(--ana);line-height:1.05}
@@ -3406,7 +3406,7 @@ function regraPeriodo(k, iso){
                : {periodo:"seco", mm12:null, mm34:null, piso:R.piso, art:"Art. 5º, § 6º, II"};
 }
 function mediaMovel(arr, i, n = 15){ const v = arr.slice(Math.max(0, i-n+1), i+1).filter(x => x!=null); return i+1 >= n && v.length >= n-3 ? v.reduce((a,b) => a+b, 0)/v.length : null; }
-const COR_SIS = {cantareira:"#1C3782", df:"#4A7FB0", rmbh:"#17868F"};
+const COR_SIS = {cantareira:"#1C3782", df:"#0A9396", rmbh:"#B7793A"};   // mesmo trio dos módulos da página inicial (19/09/2026)
 const NOME_SIS = {cantareira:"Sistema Cantareira", df:"Distrito Federal", rmbh:"Paraopeba"};
 let refOS = CAN ? CAN.ate : D.data, redesenharOS = null, sisOS = null;
 // a data de referência vale dentro de um sistema; ao trocar de sistema volta ao último dia dele
