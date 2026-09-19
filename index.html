@@ -131,6 +131,83 @@ main{padding-block:26px 60px}
 .intro{margin:0 0 22px;padding:0 0 4px;color:var(--tinta-2);font-size:15px;line-height:1.6;background:transparent;border:0;box-shadow:none}
 .intro p{margin:0;text-wrap:pretty}
 .intro p+p{margin-top:8px}
+/* ---------- área de dados ---------- */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.dados-grade{display:grid;grid-template-columns:minmax(0,1fr) 312px;gap:24px;align-items:start}
+.dados-grade>.fluxo{min-width:0}
+.pedido{position:sticky;top:24px;background:var(--branco);border:1px solid var(--linha);border-radius:var(--raio);box-shadow:var(--sombra);padding:20px 20px 18px}
+.pedido h2{font:600 17px var(--sans);color:var(--ana);margin:0 0 14px}
+.pedido dl{margin:0;display:grid;gap:12px}
+.pedido dt{font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--apagado)}
+.pedido dd{margin:3px 0 0;font-size:13.5px;color:var(--tinta-2);line-height:1.45}
+.pedido dd .n{font:700 24px var(--sans);color:var(--ana);font-variant-numeric:tabular-nums;margin-right:4px}
+.pedido .mods{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:4px;font-size:12.5px}
+.pedido .mods span{display:inline-flex;align-items:center;gap:5px}
+.pedido .mods i{width:8px;height:8px;border-radius:50%}
+.pedido .limpar{all:unset;cursor:pointer;color:var(--ana-medio);font-size:12.5px;text-decoration:underline;margin-top:4px}
+.pedido .formato{margin:16px 0 12px}
+.pedido .acao{width:100%;justify-content:center;box-sizing:border-box;padding:12px 16px}
+.pedido .acao[disabled]{background:var(--linha-forte);color:#fff;cursor:not-allowed}
+.pedido .motivo{font-size:12.5px;color:var(--apagado);margin:8px 0 0;line-height:1.4}
+.seg{display:inline-flex;border:1px solid var(--linha-forte);border-radius:8px;overflow:hidden;background:#fff}
+.seg button{all:unset;cursor:pointer;padding:7px 14px;font-size:13.5px;color:var(--ana)}
+.seg button+button{border-left:1px solid var(--linha-forte)}
+.seg button[aria-pressed=true]{background:var(--ana);color:#fff}
+.seg button:disabled{color:#9AA8BC;cursor:not-allowed;background:var(--fundo)}
+.seg button:focus-visible{outline:2px solid var(--ana-medio);outline-offset:-2px}
+.busca-dados{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:4px 0 12px}
+.busca-dados input[type=search]{flex:1 1 320px;min-width:0;font:15px var(--sans);color:var(--tinta);padding:11px 14px;border:1px solid var(--linha-forte);border-radius:8px;background:#fff}
+.busca-dados input[type=search]:focus{outline:2px solid var(--ana-medio);outline-offset:0;border-color:transparent}
+.filtros-dados{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:0 0 14px;font-size:13px;color:var(--tinta-2)}
+.filtros-dados label{display:inline-flex;align-items:center;gap:6px}
+.filtros-dados select{font:13.5px var(--sans);color:var(--ana);border:1px solid var(--linha-forte);border-radius:8px;padding:6px 8px;background:#fff;max-width:230px}
+.barra-res{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;margin:0 0 6px;font-size:13px;color:var(--tinta-2)}
+.barra-res .acoes{display:flex;flex-wrap:wrap;gap:8px}
+.lista-res td.ck,.lista-res th.ck{width:30px;padding-right:0}
+.lista-res input[type=checkbox]{width:16px;height:16px;accent-color:var(--ana);cursor:pointer}
+.lista-res tbody tr{cursor:pointer}
+.lista-res tbody tr.sel td{background:var(--ana-gelo)}
+.lista-res tbody tr:hover td{background:var(--ana-bruma)}
+.lista-res td{white-space:normal}
+.lista-res .tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;color:#fff;white-space:nowrap}
+.lista-res .ret{display:inline-block;margin-left:6px;font-size:11px;color:#8A5A00;background:#FFF4DC;border-radius:8px;padding:1px 6px}
+.mais-res{margin:10px 0 0;text-align:center}
+.vars-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin:0 0 6px}
+.var-grupo{border:1px solid var(--linha);border-radius:10px;padding:12px 16px 8px}
+.var-grupo h3{font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--apagado);margin:2px 0 6px}
+.var-item{display:grid;grid-template-columns:18px minmax(0,1fr);gap:2px 8px;padding:7px 0;align-items:start;cursor:pointer;border-top:1px solid var(--linha)}
+.var-item:first-of-type{border-top:0}
+.var-item input{width:16px;height:16px;margin:2px 0 0;accent-color:var(--ana);cursor:pointer}
+.var-item .nm{font-size:14px;color:var(--tinta)}
+.var-item .nm small{color:var(--apagado);margin-left:4px}
+.var-item .disp{grid-column:2;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--apagado)}
+.var-item .disp i{flex:0 0 64px;height:4px;border-radius:2px;background:var(--linha);position:relative;overflow:hidden}
+.var-item .disp i b{position:absolute;inset:0 auto 0 0;background:var(--ana-vivo);border-radius:2px}
+.var-item.indisp{cursor:not-allowed}
+.var-item.indisp .nm,.var-item.indisp .disp{opacity:.5}
+.linha-base{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:0 0 16px;font-size:13px;color:var(--tinta-2)}
+.linha-base b{font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--apagado)}
+.periodo{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:16px 0 0;font-size:13px;color:var(--tinta-2)}
+.periodo b{font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--apagado)}
+.periodo .datas{display:inline-flex;gap:12px;white-space:nowrap}
+.var-grupo.vazio{background:var(--fundo);border-style:dashed}
+.periodo .presets{display:inline-flex;flex-wrap:wrap;gap:8px}
+.periodo input[type=date]{font:13.5px var(--sans);color:var(--ana);border:1px solid var(--linha-forte);border-radius:8px;padding:5px 8px;background:#fff}
+.aviso-dados{margin:12px 0 0;padding:10px 14px;border-radius:8px;background:#FFF4DC;color:#6A4A00;font-size:13px;line-height:1.45}
+.previa-box{overflow-x:auto}
+.previa-box table{font-size:12.5px}
+.previa-box td,.previa-box th{white-space:normal;padding:6px 6px;min-width:0}
+.previa-box td.num,.previa-box td.dt{white-space:nowrap}
+.previa-box th{text-transform:none;letter-spacing:0;font:600 11.5px ui-monospace,Consolas,monospace;color:var(--tinta-2);white-space:normal;overflow-wrap:normal;vertical-align:bottom}
+.pacote{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;margin:16px 0 0}
+.pacote h3{font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--apagado);margin:0 0 8px}
+.pacote ul{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:13.5px;color:var(--tinta-2)}
+.pacote ul b{color:var(--tinta);font-weight:600}
+.api-box{display:flex;gap:8px;align-items:flex-start;background:var(--ana-gelo);border-radius:8px;padding:10px 12px}
+.api-box code{flex:1;font:12.5px ui-monospace,Consolas,monospace;word-break:break-all;color:var(--tinta)}
+.api-box button{all:unset;cursor:pointer;font-size:12.5px;color:var(--ana-medio);white-space:nowrap}
+@media (max-width:1180px){.dados-grade{grid-template-columns:1fr}.pedido{position:static}.pacote{grid-template-columns:1fr}}
+
 /* saiba mais: texto de método recolhido; a frase essencial fica fora dele, visível */
 details.saiba{margin:10px 0 0}
 details.saiba>summary{display:inline-flex;align-items:center;gap:7px;cursor:pointer;list-style:none;color:var(--ana-medio);font-size:14px;font-weight:500}
@@ -815,7 +892,7 @@ body.na-inicio main{padding-top:26px}
       <button type="button" data-rota="sin">Sistema Interligado Nacional</button>
       <button type="button" data-rota="ne">Nordeste e semiárido</button>
       <button type="button" data-rota="outros">Outros sistemas hídricos</button>
-      <button type="button" data-fora="Dados" class="nav-dados">Dados</button>
+      <button type="button" data-rota="dados" class="nav-dados">Dados</button>
     </nav>
     <nav class="lateral-indice" aria-label="Seções da página" hidden></nav>
     <div class="lateral-pe"><span class="selo">Protótipo</span></div>
@@ -975,7 +1052,8 @@ async function baixarPNG(svgs, nome, titulo, legenda, info = {}){
 const AZUL = [40, 51, 119], CINZA = [111, 117, 130], LINHA = [226, 228, 232], TINTA = [34, 38, 46];
 /* ============================================================ padrão de exportação (19/09/2026)
    mapas: KMZ; tabelas: CSV e PDF; gráficos: PNG e CSV */
-const nCSV = v => v==null || v==="" || (typeof v==="number" && isNaN(v)) ? "" : typeof v==="number" ? String(Math.round(v*10000)/10000).replace(".", ",") : String(v);
+// texto com ponto e vírgula, aspas ou quebra de linha vai entre aspas (senão quebra as colunas do CSV)
+const nCSV = v => v==null || v==="" || (typeof v==="number" && isNaN(v)) ? "" : typeof v==="number" ? String(Math.round(v*10000)/10000).replace(".", ",") : /[;"\r\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
 function salvarCSV(cab, linhas, nome){
   const l = [cab.join(";")].concat(linhas.map(r => r.map(nCSV).join(";")));
   baixarArquivo(new Blob(["﻿" + l.join("\r\n")], {type:"text/csv;charset=utf-8"}), nome);
@@ -2313,7 +2391,7 @@ function paginaInicio(){
         <h2 id="t-dados">Área de dados</h2>
         <p>Baixe as séries de vários reservatórios de uma vez, no período e no formato que escolher, ou acesse por API.</p>
       </div>
-      <button type="button" class="acao" data-fora="Dados">Entrar na área de dados</button>
+      <button type="button" class="acao" data-rota="dados">Entrar na área de dados</button>
     </section>
     <section class="sobre-sar" aria-labelledby="t-sobre">
       <h2 id="t-sobre">Sobre o SAR</h2>
@@ -4218,6 +4296,320 @@ function paginaFichaOS(cod){
       return niv ? [d, o.cota] : [d, o.pct, o.pct==null ? null : o.pct*F.cap/100, o.cota]; }), `sar_${cod}_${de}_${ate}.csv`); };
 }
 
+
+/* ============================================================ área de dados (#dados)
+   conceito em estrutura/area_dados.md: catálogo único de variáveis, seleção entre módulos, base horária só do SIN */
+const CAT_VARS = [
+  {k:"cota_m", r:"Cota", u:"m", g:"Nível e volume", def:"Cota do nível d'água do reservatório."},
+  {k:"nivel_regua_m", r:"Nível na régua", u:"m", g:"Nível e volume", def:"Leitura da régua pelo observador, em reservatório sem curva cota-volume validada. Cada régua tem a sua referência: não é cota e não se compara entre reservatórios."},
+  {k:"volume_hm3", r:"Volume", u:"hm³", g:"Nível e volume", def:"Volume armazenado. No Cantareira, volume útil operacional."},
+  {k:"volume_pct", r:"Volume, % da capacidade", u:"%", g:"Nível e volume", def:"Volume armazenado em % da capacidade do cadastro."},
+  {k:"volume_util_pct", r:"Volume útil", u:"%", g:"Nível e volume", def:"Volume útil armazenado em % do volume útil. No Cantareira, do volume útil operacional do quadro da Resolução Conjunta ANA/DAEE nº 925/2017."},
+  {k:"afluente_m3s", r:"Vazão afluente", u:"m³/s", g:"Vazões", def:"Vazão que chega ao reservatório. Na base horária, calculada por balanço hídrico: oscila, com negativos e picos que não são vazão real."},
+  {k:"defluente_m3s", r:"Vazão defluente", u:"m³/s", g:"Vazões", def:"Vazão liberada pelo reservatório."},
+  {k:"turbinada_m3s", r:"Vazão turbinada", u:"m³/s", g:"Vazões", def:"Vazão que passa pelas turbinas."},
+  {k:"vertida_m3s", r:"Vazão vertida", u:"m³/s", g:"Vazões", def:"Vazão que passa pelo vertedouro."},
+  {k:"vazao_natural_m3s", r:"Vazão natural", u:"m³/s", g:"Vazões", def:"Vazão natural afluente."},
+  {k:"descarga_jusante_m3s", r:"Descarga para jusante", u:"m³/s", g:"Vazões", def:"Vazão liberada para o rio a jusante (Cantareira)."},
+  {k:"retirada_santa_ines_m3s", r:"Retirada em Santa Inês", u:"m³/s", g:"Sistema Cantareira", def:"Vazão bombeada na Estação Elevatória Santa Inês para a Região Metropolitana de São Paulo."},
+  {k:"tunel_7_m3s", r:"Túnel 7", u:"m³/s", g:"Sistema Cantareira", def:"Vazão do Jaguari-Jacareí para o Cachoeira."},
+  {k:"tunel_6_m3s", r:"Túnel 6", u:"m³/s", g:"Sistema Cantareira", def:"Vazão do Cachoeira para o Atibainha."},
+  {k:"tunel_5_m3s", r:"Túnel 5", u:"m³/s", g:"Sistema Cantareira", def:"Vazão do Atibainha para o Paiva Castro."},
+  {k:"transferencia_paraiba_do_sul_m3s", r:"Transferência do Paraíba do Sul", u:"m³/s", g:"Sistema Cantareira", def:"Vazão transferida do reservatório Jaguari (bacia do Paraíba do Sul) para o Atibainha."},
+  {k:"chuva_mm", r:"Chuva", u:"mm", g:"Sistema Cantareira", def:"Chuva diária sobre o sistema, informada pela SABESP."}];
+const VAR_HORA = new Set(["cota_m","afluente_m3s","defluente_m3s","turbinada_m3s","vertida_m3s","volume_util_pct"]);
+const ROT_MOD = {SIN:"SIN", NE:"Nordeste e Semiárido", OUTROS:"Outros Sistemas"};
+// UF e município dos reservatórios de Outros Sistemas: SNIRH/ANA, serviço de mapas IG/SAR (camadas 2 a 4), consulta de 17/09/2026
+const MUN_OS = {40001:["DF","Brasília"], 40002:["DF","Brasília"], 40003:["DF","Brasília"], 29001:["SP","Vargem"], 29002:["SP","Piracaia"],
+  29003:["SP","Nazaré Paulista"], 29004:["SP","Franco da Rocha"], 50001:["MG","Brumadinho"], 50002:["MG","Betim"], 50003:["MG","Juatuba"]};
+const MAPA_SIN = {cota:"cota_m", nivel:"cota_m", afl:"afluente_m3s", defl:"defluente_m3s", turb:"turbinada_m3s", vert:"vertida_m3s", nat:"vazao_natural_m3s", vu:"volume_util_pct"};
+const semAc = s => String(s || "").normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+let ENT_D = null;
+function entidadesDados(){
+  if (ENT_D) return ENT_D;
+  const L = [], SINV = ["cota_m","afluente_m3s","defluente_m3s","turbinada_m3s","vertida_m3s","vazao_natural_m3s"];
+  RES.forEach(r => L.push({id:"SIN:" + r.codigo, codigo:r.codigo, nome:caso(r.nome), mod:"SIN", uf:r.uf || "", municipio:r.municipio || "", bacia:NOME[r.bacia] || caso(r.bacia || ""),
+    tipo: r.tipo==="fio" ? "usina a fio d'água" : "usina com reservatório", vars: r.tipo==="fio" ? SINV : [...SINV, "volume_util_pct"], hora:true, src:"sin", r}));
+  NEd.reservatorios.forEach((r, i) => { const ret = OCULTOS.has(i); if (FORA_VOLUME.has(i) && !ret) return;
+    L.push({id:"NE:" + i, codigo:r.codigo, nome:caso(r.nome), mod:"NE", uf:r.uf, municipio:r.municipio || "", bacia:caso(r.bacia || ""),
+      tipo: ret ? "com volume" : "com volume", retirado:ret, vars:["cota_m","volume_hm3","volume_pct"], src:"ne", r}); });
+  ESTACOES_NV.forEach((st, k) => L.push({id:"NV:" + k, codigo:st.codigo || "", nome:caso(st.nome), mod:"NE", uf:st.uf, municipio:st.municipio || "", bacia:"",
+    tipo:"só nível", vars:["nivel_regua_m"], src:"nv", st}));
+  Object.entries(FOS).forEach(([cod, F]) => { const can = F.sis==="cantareira", niv = soNivelF(F), m = MUN_OS[cod] || ["",""];
+    L.push({id:"OS:" + cod, codigo:cod, nome:nomeRes(F), mod:"OUTROS", sis:F.sis, uf:m[0], municipio:m[1], bacia:NOME_SIS[F.sis],
+      tipo: niv ? "só nível (sem capacidade cadastrada)" : "com volume",
+      vars: niv ? ["cota_m"] : can ? ["cota_m","volume_hm3","volume_util_pct","vazao_natural_m3s","descarga_jusante_m3s"] : ["cota_m","volume_hm3","volume_pct"], src:"os", F}); });
+  if (CAN) L.push({id:"CAN", codigo:"", nome:"Sistema Cantareira (os quatro reservatórios)", mod:"OUTROS", sis:"cantareira", uf:"SP", municipio:"", bacia:NOME_SIS.cantareira, tipo:"sistema",
+    vars:["volume_util_pct","volume_hm3","vazao_natural_m3s","descarga_jusante_m3s","retirada_santa_ines_m3s","tunel_7_m3s","tunel_6_m3s","tunel_5_m3s","transferencia_paraiba_do_sul_m3s","chuva_mm"], src:"can"});
+  L.forEach(e => e.busca = semAc(`${e.nome} ${e.codigo} ${e.municipio}`));
+  return ENT_D = L;
+}
+// série embutida no protótipo de uma entidade: [{t (aaaa-mm-dd ou aaaa-mm-ddThh), v:{variável: valor}}]
+function serieDados(e, base, de, ate){
+  const out = [], dentro = iso => (!de || iso.slice(0,10) >= de) && iso.slice(0,10) <= ate;
+  const push = (t, v) => { if (dentro(t)) out.push({t, v}); };
+  if (e.src==="sin"){
+    if (base==="hora"){ if (String(D.ficha.codigo)===String(e.codigo)){ const C = D.ficha.horario_colunas;
+      D.ficha.horario.forEach(l => { const v = {}; C.forEach((c, j) => { if (MAPA_SIN[c]) v[MAPA_SIN[c]] = l[j]; }); push(l[0], v); }); } return out; }
+    if (String(D.ficha.codigo)===String(e.codigo)){ const C = D.ficha.diario_colunas;
+      D.ficha.diario.forEach(l => { const v = {}; C.forEach((c, j) => { if (MAPA_SIN[c]) v[MAPA_SIN[c]] = l[j]; }); push(l[0], v); }); return out; }
+    const g = D.grande.res.find(x => String(x.codigo)===String(e.codigo));
+    if (g && g.serie){ g.serie.forEach(o => { const v = {}; Object.entries(o).forEach(([c, x]) => { if (MAPA_SIN[c]) v[MAPA_SIN[c]] = x; }); push(o.data, v); }); return out; }
+    const r = e.r, v = {}; ["cota","afl","defl","turb","vert","vu"].forEach(c => { if (r[c]!=null) v[MAPA_SIN[c]] = r[c]; }); push(D.data, v); return out;
+  }
+  if (base==="hora") return out;
+  if (e.src==="ne"){
+    const fi = NEd.fichas && NEd.fichas[e.codigo];
+    if (fi && fi.serie) fi.serie.forEach(l => push(l[0], {cota_m:l[1], volume_hm3:l[2], volume_pct:l[3]}));
+    else (e.r.s || []).forEach(l => push(isoDia(l[0]), {volume_pct:l[1], volume_hm3:l[2], cota_m:l[3] ?? null}));
+    return out;
+  }
+  if (e.src==="nv"){ (e.st.s || []).forEach(l => push(isoDia(l[0]), {nivel_regua_m: l[1]==null ? null : l[1]/100})); return out; }
+  if (e.src==="os"){
+    const F = e.F, can = F.sis==="cantareira", RC = can ? CAN.res.find(x => String(x.codigo)===String(e.codigo)) : null;
+    const i0 = de ? Math.max(0, diaEntre(de, F.de)) : 0, i1 = Math.min(F.cota.length - 1, diaEntre(ate, F.de));
+    for (let i = i0; i <= i1; i++){ const iso = isoMais(F.de, i), p = F.pct ? F.pct[i] : null, v = {cota_m:F.cota[i]};
+      if (F.pct){ v[can ? "volume_util_pct" : "volume_pct"] = p; v.volume_hm3 = p==null ? null : Math.round(p*F.cap*10)/1000; }
+      if (RC){ v.vazao_natural_m3s = detCan(RC.qnat, iso); v.descarga_jusante_m3s = detCan(RC.qjus, iso); }
+      out.push({t:iso, v}); }
+    return out;
+  }
+  if (e.src==="can"){
+    const i0 = de ? Math.max(0, diaEntre(de, CAN.de)) : 0, i1 = Math.min(CAN.pct.length - 1, diaEntre(ate, CAN.de));
+    const VZ = {ESI:"retirada_santa_ines_m3s", T7:"tunel_7_m3s", T6:"tunel_6_m3s", T5:"tunel_5_m3s", TransfParaibaDoSul:"transferencia_paraiba_do_sul_m3s", chuva:"chuva_mm", qnat:"vazao_natural_m3s", jus:"descarga_jusante_m3s"};
+    for (let i = i0; i <= i1; i++){ const iso = isoMais(CAN.de, i), v = {volume_util_pct:CAN.pct[i]};
+      if (iso >= CAN.det_de){ const vs = CAN.res.map(r => detCan(r.vol, iso)); v.volume_hm3 = vs.some(x => x==null) ? null : Math.round(vs.reduce((a, b) => a + b, 0)*1000)/1000;
+        Object.entries(VZ).forEach(([k, c]) => v[c] = detCan(CAN.vaz[k], iso)); }
+      out.push({t:iso, v}); }
+    return out;
+  }
+  return out;
+}
+const INICIO_PROTO = "No protótipo o arquivo traz só o que está embutido na página: SIN, o dia mais recente (30 dias na bacia do Grande; série diária desde 2000 e horária desde 01/07/2026 em Furnas); " +
+  "Nordeste e Semiárido, 12 meses (série desde 2006 nas três fichas de exemplo); Outros Sistemas, a série completa. No sistema, cada reservatório vem com a série inteira.";
+
+function paginaDados(){
+  const ENT = entidadesDados(), porId = Object.fromEntries(ENT.map(e => [e.id, e]));
+  const datas = [D.data, NEd.serie_ate, CAN ? CAN.ate : D.data, ...Object.values(FOS).map(fimF)].filter(Boolean).sort();
+  const ULT = datas[datas.length - 1];
+  const st = {sel:new Set(), txt:"", mod:"", uf:"", mun:"", bacia:"", soSel:false, mostrar:12, base:"dia",
+              vars:new Set(["cota_m","nivel_regua_m","volume_hm3","volume_pct","volume_util_pct"]), de:isoMais(ULT, -365), ate:ULT, preset:"12m", formato:"csv"};
+  const UF_NOME = {}; RES.forEach(r => { if (r.uf) UF_NOME[r.uf] = r.estado; }); NEd.estados.forEach(e => UF_NOME[e.uf] = e.estado); UF_NOME.DF = "Distrito Federal"; UF_NOME.SP = UF_NOME.SP || "São Paulo";
+  const nMod = m => ENT.filter(e => e.mod===m).length;
+  $("#titulo-pag").innerHTML = `
+    <p class="trilha"><a href="#inicio">Início</a><span class="sep">›</span>Área de dados</p>
+    <h1>Área de dados</h1>
+    <p class="lead">Escolha os reservatórios, as variáveis e o período e baixe a série no formato do SAR, com o dicionário das variáveis e as fontes. Reservatórios de módulos diferentes podem ir no mesmo arquivo.</p>
+    <div class="carimbo"><span><b>${fint(ENT.length)}</b> reservatórios e estações</span><span><b>${fint(nMod("SIN"))}</b> SIN · <b>${fint(nMod("NE"))}</b> Nordeste e Semiárido · <b>${fint(nMod("OUTROS"))}</b> Outros Sistemas</span><span>Base diária; horária no SIN</span></div>`;
+  const opt = (v, r, s) => `<option value="${esc(v)}"${s ? " selected" : ""}>${esc(r)}</option>`;
+  const ufs = [...new Set(ENT.map(e => e.uf).filter(Boolean))].sort((a, b) => (UF_NOME[a] || a).localeCompare(UF_NOME[b] || b, "pt-BR"));
+  $("#conteudo").innerHTML = `
+    <nav class="indice" aria-label="Seções da página"><a href="#dados" data-alvo="d-res">Reservatórios</a><a href="#dados" data-alvo="d-var">Variáveis e período</a><a href="#dados" data-alvo="d-prev">Prévia e arquivo</a></nav>
+    <div class="dados-grade">
+      <div class="fluxo">
+        <section class="cartao secao" id="d-res" aria-labelledby="t-d-res">
+          <h2 id="t-d-res"><small>1</small>Reservatórios</h2>
+          <p class="sub">Busque pelo nome, pelo código ou pelo município, ou filtre por módulo, estado, município e bacia. A seleção se mantém quando você muda a busca ou os filtros.<span class="dica">Clique numa linha para marcar ou desmarcar.</span></p>
+          <div class="busca-dados"><input type="search" id="d-busca" placeholder="Ex.: Sobradinho, 12112, Quixadá" aria-label="Buscar reservatório por nome, código ou município" autocomplete="off"></div>
+          <div class="filtros-dados">
+            <span class="seg" role="group" aria-label="Módulo">${[["","Todos"],["SIN","SIN"],["NE","Nordeste e Semiárido"],["OUTROS","Outros Sistemas"]].map(([v, r]) => `<button type="button" data-mod="${v}" aria-pressed="${v==="" ? "true" : "false"}">${r}</button>`).join("")}</span>
+            <label>Estado <select id="d-uf"><option value="">Todos</option>${ufs.map(u => opt(u, UF_NOME[u] || u)).join("")}</select></label>
+            <label>Município <select id="d-mun"></select></label>
+            <label>Bacia <select id="d-bacia"></select></label>
+          </div>
+          <div class="barra-res"><span id="d-nres"></span><span class="acoes"><button type="button" class="acao sec" id="d-todos"></button><button type="button" class="acao sec" id="d-sosel" aria-pressed="false">Ver só os selecionados</button></span></div>
+          <div class="tab-box lista-res"><table>
+            <thead><tr><th class="ck"><span class="sr-only">Selecionar</span></th><th>Reservatório</th><th>Módulo</th><th>UF</th><th>Município</th><th>Bacia ou sistema</th></tr></thead>
+            <tbody id="d-corpo"></tbody></table></div>
+          <p class="mais-res" id="d-mais"></p>
+        </section>
+        <section class="cartao secao" id="d-var" aria-labelledby="t-d-var">
+          <h2 id="t-d-var"><small>2</small>Variáveis e período</h2>
+          <p class="sub">Cada variável tem um nome e uma definição únicos em todos os módulos; a barra mostra quantos dos reservatórios selecionados a têm. Volume útil e volume em % da capacidade são grandezas diferentes e vêm em colunas separadas.</p>
+          <div class="linha-base"><b>Base</b><span class="seg" role="group" aria-label="Base de tempo"><button type="button" data-base="dia" aria-pressed="true">Diária</button><button type="button" data-base="hora" aria-pressed="false">Horária</button></span><span id="d-base-nota"></span></div>
+          <div class="vars-grade" id="d-vars"></div>
+          <div class="periodo"><b>Período</b><span class="presets">${[["1m","Último mês"],["12m","12 meses"],["5a","5 anos"],["tudo","Série completa"]].map(([k, r]) => `<button type="button" class="preset" data-p="${k}">${r}</button>`).join("")}</span>
+            <span class="datas"><label>de <input type="date" id="d-de"></label><label>até <input type="date" id="d-ate" max="${ULT}"></label></span></div>
+          <div id="d-aviso"></div>
+        </section>
+        <section class="cartao secao" id="d-prev" aria-labelledby="t-d-prev">
+          <h2 id="t-d-prev"><small>3</small>Prévia e arquivo</h2>
+          <p class="sub" id="d-prev-sub">Uma linha por reservatório e data, uma coluna por variável. Célula vazia: a variável não existe para aquele reservatório ou não há leitura naquela data.</p>
+          <div class="previa-box tab-box" id="d-previa"></div>
+          <div class="pacote">
+            <div><h3>O que vem no arquivo</h3><ul id="d-arquivos"></ul></div>
+            <div><h3>Consulta equivalente na API pública</h3><div class="api-box"><code id="d-api"></code><button type="button" id="d-api-copiar">Copiar</button></div>
+              <p class="nota" style="margin:6px 0 0">Endereço ilustrativo: a API pública ainda será criada (solicitação à STI). A mesma consulta devolverá os mesmos dados, com a data da versão.</p></div>
+          </div>
+          <p class="nota" style="margin:14px 0 0">${INICIO_PROTO}</p>
+        </section>
+      </div>
+      <aside class="pedido" aria-labelledby="t-pedido">
+        <h2 id="t-pedido">Seu pedido</h2>
+        <dl>
+          <div><dt>Reservatórios</dt><dd><span class="n" id="p-n">0</span>selecionados<div class="mods" id="p-mods"></div><button type="button" class="limpar" id="p-limpar" hidden>Limpar seleção</button></dd></div>
+          <div><dt>Variáveis</dt><dd id="p-vars">–</dd></div>
+          <div><dt>Período</dt><dd id="p-per">–</dd></div>
+          <div><dt>Arquivo</dt><dd id="p-linhas">–</dd></div>
+        </dl>
+        <div class="formato"><span class="seg" role="group" aria-label="Formato"><button type="button" data-fmt="csv" aria-pressed="true">CSV</button><button type="button" data-fmt="xlsx" aria-pressed="false">Excel (XLSX)</button></span></div>
+        <button type="button" class="acao" id="p-baixar" disabled>Baixar dados</button>
+        <p class="motivo" id="p-motivo"></p>
+      </aside>
+    </div>`;
+  $$(".indice a").forEach(a => a.onclick = ev => { ev.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
+
+  // ---------- 1. seleção
+  const filtrados = () => { const q = semAc(st.txt).trim();
+    return ENT.filter(e => (!st.soSel || st.sel.has(e.id)) && (!st.mod || e.mod===st.mod) && (!st.uf || e.uf===st.uf) && (!st.mun || e.municipio===st.mun) && (!st.bacia || e.bacia===st.bacia) && (!q || e.busca.includes(q))); };
+  const opcoes = () => {
+    const base = ENT.filter(e => (!st.mod || e.mod===st.mod) && (!st.uf || e.uf===st.uf));
+    const muns = [...new Set(base.map(e => e.municipio).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+    const bacs = [...new Set(base.map(e => e.bacia).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+    if (!muns.includes(st.mun)) st.mun = ""; if (!bacs.includes(st.bacia)) st.bacia = "";
+    $("#d-mun").innerHTML = opt("", `Todos (${muns.length})`) + muns.map(m => opt(m, m, m===st.mun)).join("");
+    $("#d-bacia").innerHTML = opt("", `Todas (${bacs.length})`) + bacs.map(b => opt(b, b, b===st.bacia)).join("");
+  };
+  const desenharLista = () => {
+    const F = filtrados(), vis = F.slice(0, st.mostrar), nSelF = F.filter(e => st.sel.has(e.id)).length;
+    $("#d-nres").innerHTML = `<b>${fint(F.length)}</b> ${F.length===1 ? "resultado" : "resultados"}${nSelF ? ` · ${fint(nSelF)} selecionados` : ""}`;
+    const todos = F.length && nSelF===F.length;
+    $("#d-todos").textContent = todos ? `Tirar os ${fint(F.length)} da seleção` : `Selecionar os ${fint(F.length)} resultados`; $("#d-todos").disabled = !F.length;
+    $("#d-corpo").innerHTML = vis.map(e => `<tr data-id="${e.id}"${st.sel.has(e.id) ? ' class="sel"' : ""}>
+      <td class="ck"><input type="checkbox" ${st.sel.has(e.id) ? "checked" : ""} aria-label="Selecionar ${esc(e.nome)}" tabindex="-1"></td>
+      <td><span class="nm">${esc(e.nome)}</span>${e.retirado ? '<span class="ret">retirado do acompanhamento</span>' : ""}<span class="rio">${e.codigo ? `código ${esc(e.codigo)} · ` : ""}${esc(e.tipo)}</span></td>
+      <td><span class="tag" style="background:${COR_MOD[e.mod]}" title="${ROT_MOD[e.mod]}">${e.mod==="NE" ? "Nordeste" : e.mod==="OUTROS" ? "Outros" : "SIN"}</span></td><td>${esc(e.uf)}</td><td>${esc(e.municipio || "–")}</td><td>${esc(e.bacia || "–")}</td></tr>`).join("")
+      || `<tr><td colspan="6" class="nota" style="padding:18px 8px">${st.soSel ? "Nenhum reservatório selecionado ainda." : "Nada encontrado. Tente outro nome ou limpe os filtros."}</td></tr>`;
+    $$("#d-corpo tr[data-id]").forEach(tr => { tr.tabIndex = 0;
+      const alterna = () => { const id = tr.dataset.id; st.sel.has(id) ? st.sel.delete(id) : st.sel.add(id); tr.classList.toggle("sel"); tr.querySelector("input").checked = st.sel.has(id); atualizar(false); };
+      tr.onclick = alterna; tr.onkeydown = ev => { if (ev.key===" " || ev.key==="Enter"){ ev.preventDefault(); alterna(); } }; });
+    $("#d-mais").innerHTML = F.length > vis.length ? `<button type="button" class="acao sec" id="d-mais-b">Mostrar mais ${fint(Math.min(30, F.length - vis.length))} (faltam ${fint(F.length - vis.length)})</button>` : "";
+    if ($("#d-mais-b")) $("#d-mais-b").onclick = () => { st.mostrar += 30; desenharLista(); };
+  };
+  let tBusca; $("#d-busca").oninput = ev => { clearTimeout(tBusca); tBusca = setTimeout(() => { st.txt = ev.target.value; st.mostrar = 12; desenharLista(); }, 120); };
+  $$("[data-mod]").forEach(b => b.onclick = () => { st.mod = b.dataset.mod; $$("[data-mod]").forEach(x => x.setAttribute("aria-pressed", x===b)); st.mostrar = 12; opcoes(); desenharLista(); });
+  $("#d-uf").onchange = ev => { st.uf = ev.target.value; st.mostrar = 12; opcoes(); desenharLista(); };
+  $("#d-mun").onchange = ev => { st.mun = ev.target.value; st.mostrar = 12; desenharLista(); };
+  $("#d-bacia").onchange = ev => { st.bacia = ev.target.value; st.mostrar = 12; desenharLista(); };
+  $("#d-todos").onclick = () => { const F = filtrados(), todos = F.every(e => st.sel.has(e.id)); F.forEach(e => todos ? st.sel.delete(e.id) : st.sel.add(e.id)); desenharLista(); atualizar(false); };
+  $("#d-sosel").onclick = ev => { st.soSel = !st.soSel; ev.target.setAttribute("aria-pressed", st.soSel); ev.target.textContent = st.soSel ? "Ver todos" : "Ver só os selecionados"; st.mostrar = 12; desenharLista(); };
+  $("#p-limpar").onclick = () => { st.sel.clear(); desenharLista(); atualizar(false); };
+
+  // ---------- 2. variáveis, base e período
+  const selEnt = () => [...st.sel].map(id => porId[id]).filter(Boolean);
+  const temVar = (e, k) => e.vars.includes(k) && (st.base==="dia" || (e.hora && VAR_HORA.has(k)));
+  const desenharVars = () => {
+    const S = selEnt(), grupos = [...new Set(CAT_VARS.map(v => v.g))];
+    $("#d-vars").innerHTML = grupos.map(g => { const VG = CAT_VARS.filter(v => v.g===g);
+      if (S.length && !VG.some(v => S.some(e => temVar(e, v.k))))   // grupo que nenhum selecionado tem: uma linha só
+        return `<div class="var-grupo vazio"><h3>${g}</h3><p class="nota" style="margin:0 0 6px">${VG.length} variáveis (${VG.map(v => v.r.toLowerCase()).join(", ")}): nenhum dos selecionados tem${st.base==="hora" ? " na base horária" : ""}.</p></div>`;
+      return `<div class="var-grupo"><h3>${g}</h3>${VG.map(v => {
+      const n = S.filter(e => temVar(e, v.k)).length, ind = S.length && !n, pct = S.length ? n/S.length*100 : 0;
+      return `<label class="var-item${ind ? " indisp" : ""}" title="${esc(v.def)}"><input type="checkbox" data-var="${v.k}" ${st.vars.has(v.k) && !ind ? "checked" : ""}${ind ? " disabled" : ""}>
+        <span class="nm">${v.r}<small>${v.u}</small></span>
+        <span class="disp">${S.length ? `<i><b style="width:${pct}%"></b></i>${n ? `${fint(n)} de ${fint(S.length)}` : st.base==="hora" && v.k!=="nivel_regua_m" && !VAR_HORA.has(v.k) ? "sem base horária" : "nenhum selecionado tem"}` : "selecione reservatórios para ver quem tem"}</span></label>`; }).join("")}</div>`; }).join("");
+    $$("#d-vars input[data-var]").forEach(c => c.onchange = () => { c.checked ? st.vars.add(c.dataset.var) : st.vars.delete(c.dataset.var); atualizar(false); });
+    const temSIN = S.some(e => e.mod==="SIN"), bh = $('[data-base="hora"]');
+    bh.disabled = !temSIN && st.base!=="hora"; bh.title = temSIN ? "Base horária: só reservatórios do SIN, até 1 ano por pedido" : "A base horária existe só para o SIN: selecione ao menos uma usina do SIN";
+    $("#d-base-nota").textContent = st.base==="hora" ? "Só os reservatórios do SIN entram; até 1 ano por pedido; desde 01/01/2010." : temSIN ? "Horária: só SIN, até 1 ano por pedido." : "";
+  };
+  $$("[data-base]").forEach(b => b.onclick = () => { if (b.disabled) return; st.base = b.dataset.base; $$("[data-base]").forEach(x => x.setAttribute("aria-pressed", x===b));
+    if (st.base==="hora" && (!st.de || diaEntre(st.ate, st.de) > 366)){ st.de = isoMais(st.ate, -30); st.preset = "1m"; } atualizar(); });
+  const aplicarPreset = k => { st.preset = k; st.ate = ULT; st.de = k==="1m" ? isoMais(ULT, -30) : k==="12m" ? isoMais(ULT, -365) : k==="5a" ? isoMais(ULT, -5*365 - 1) : null; atualizar(); };
+  $$("[data-p]").forEach(b => b.onclick = () => aplicarPreset(b.dataset.p));
+  $("#d-de").onchange = ev => { st.de = ev.target.value || null; st.preset = ""; atualizar(); };
+  $("#d-ate").onchange = ev => { st.ate = ev.target.value || ULT; st.preset = ""; atualizar(); };
+
+  // ---------- 3. prévia, arquivo e pedido
+  const varsEf = () => { const S = selEnt(); return CAT_VARS.filter(v => st.vars.has(v.k) && S.some(e => temVar(e, v.k))); };
+  const linhasDados = (limite) => {
+    const V = varsEf(), L = [];
+    for (const e of selEnt()){ if (st.base==="hora" && e.mod!=="SIN") continue;
+      const Ve = V.filter(v => temVar(e, v.k)); if (!Ve.length) continue;
+      for (const p of serieDados(e, st.base, st.de, st.ate)){
+        if (!Ve.some(v => p.v[v.k]!=null)) continue;
+        const dt = st.base==="hora" ? `${dBR(p.t.slice(0,10))} ${p.t.slice(11,13)}:00` : dBR(p.t);
+        L.push([e.codigo, e.nome, e.mod==="OUTROS" ? `Outros Sistemas · ${NOME_SIS[e.sis]}` : ROT_MOD[e.mod], e.uf, e.municipio, e.bacia, dt, ...V.map(v => Ve.includes(v) ? (p.v[v.k] ?? null) : null)]);
+        if (limite && L.length >= limite) return L; } }
+    return L; };
+  const cab = () => ["codigo","reservatorio","modulo","uf","municipio","bacia", st.base==="hora" ? "data_hora" : "data", ...varsEf().map(v => v.k)];
+  const urlAPI = () => { const S = selEnt(); const ids = S.map(e => e.codigo || (e.src==="can" ? "CANTAREIRA" : "")).filter(Boolean);
+    return `GET /v1/series?reservatorios=${ids.slice(0, 6).join(",")}${ids.length > 6 ? `,…(${ids.length})` : ""}&variaveis=${varsEf().map(v => v.k).join(",")}&inicio=${st.de || "inicio"}&fim=${st.ate}&base=${st.base==="hora" ? "horaria" : "diaria"}&formato=${st.formato}`; };
+  let tPrev;
+  const atualizar = (redesenhaVars = true) => {
+    const S = selEnt(), V = varsEf(), sinH = S.filter(e => e.mod==="SIN").length;
+    if (st.base==="hora" && !sinH){ st.base = "dia"; $$("[data-base]").forEach(x => x.setAttribute("aria-pressed", x.dataset.base==="dia")); }
+    desenharVars();
+    $$("[data-p]").forEach(b => b.classList.toggle("ativo", b.dataset.p===st.preset));
+    $("#d-de").value = st.de || ""; $("#d-ate").value = st.ate;
+    const dias = st.de ? diaEntre(st.ate, st.de) : Infinity, excede = st.base==="hora" && dias > 366;
+    const avisos = [];
+    if (st.base==="hora") avisos.push(`<b>Base horária:</b> dados abertos do ONS, não consistidos pelo ONS: são de responsabilidade dos agentes de geração, podem ter lacunas e ser alterados. A afluência horária é calculada por balanço e oscila.${S.length > sinH ? ` ${fint(S.length - sinH)} reservatórios selecionados fora do SIN não entram no arquivo horário.` : ""}`);
+    if (excede) avisos.push(`<b>O pedido horário vai até 1 ano.</b> Reduza o período (hoje, ${fint(dias)} dias).`);
+    $("#d-aviso").innerHTML = avisos.map(a => `<p class="aviso-dados">${a}</p>`).join("");
+    // painel do pedido
+    const cont = m => S.filter(e => e.mod===m).length;
+    $("#p-n").textContent = fint(S.length);
+    $("#p-mods").innerHTML = ["SIN","NE","OUTROS"].filter(m => cont(m)).map(m => `<span><i style="background:${COR_MOD[m]}"></i>${ROT_MOD[m]} ${fint(cont(m))}</span>`).join("");
+    $("#p-limpar").hidden = !S.length;
+    $("#p-vars").textContent = V.length ? V.map(v => v.r).join(", ") : "–";
+    $("#p-per").textContent = `${st.de ? dBR(st.de) : "início da série"} a ${dBR(st.ate)} · base ${st.base==="hora" ? "horária" : "diária"}`;
+    $("#d-api").textContent = urlAPI();
+    $("#d-arquivos").innerHTML = st.formato==="csv"
+      ? `<li><b>dados.csv</b>: a série, no formato do SAR (ponto e vírgula, vírgula decimal, data dd/mm/aaaa)</li><li><b>dicionario.csv</b>: definição, unidade e módulos de cada coluna</li><li><b>leia-me.txt</b>: seleção, período, fontes, regras de crítica e a consulta na API</li>`
+      : `<li><b>Um arquivo .xlsx com três abas</b>: dados, dicionário e leia-me, com o mesmo conteúdo do CSV</li>`;
+    const motivo = !S.length ? "Selecione ao menos um reservatório." : !V.length ? "Escolha ao menos uma variável que os selecionados tenham." : excede ? "Reduza o período: o pedido horário vai até 1 ano." : "";
+    $("#p-baixar").disabled = !!motivo; $("#p-motivo").textContent = motivo;
+    clearTimeout(tPrev); tPrev = setTimeout(() => {
+      if (motivo && !S.length){ $("#d-previa").innerHTML = `<p class="nota" style="padding:14px 0">A prévia aparece quando houver reservatórios e variáveis escolhidos.</p>`; $("#p-linhas").textContent = "–"; return; }
+      const todas = linhasDados(), C = cab();
+      $("#p-linhas").innerHTML = `<b>${fint(todas.length)}</b> linhas × ${C.length} colunas${st.formato==="csv" ? " · ZIP com CSV, dicionário e leia-me" : " · XLSX com três abas"}<br><span class="nota">no protótipo, com os dados embutidos</span>`;
+      $("#d-previa").innerHTML = todas.length ? `<table><thead><tr>${C.map(c => `<th${/_(m|m3s|pct|hm3|mm)$/.test(c) ? ' class="r"' : ""}>${c.replace(/_/g, "_<wbr>")}</th>`).join("")}</tr></thead><tbody>${todas.slice(0, 10).map(l => `<tr>${l.map((v, j) => `<td${j >= 7 ? ' class="r num"' : j===6 ? ' class="dt"' : ""}>${v==null ? "" : j >= 7 ? esc(nCSV(v)) : esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table>
+        <p class="nota" style="margin:8px 0 0">Prévia das 10 primeiras de ${fint(todas.length)} linhas.</p>`
+        : `<p class="nota" style="padding:14px 0">Nenhuma leitura no período para os reservatórios e variáveis escolhidos (no protótipo, veja o período coberto abaixo).</p>`;
+    }, 150);
+  };
+  $$("[data-fmt]").forEach(b => b.onclick = () => { st.formato = b.dataset.fmt; $$("[data-fmt]").forEach(x => x.setAttribute("aria-pressed", x===b)); atualizar(false); });
+  $("#d-api-copiar").onclick = () => { navigator.clipboard && navigator.clipboard.writeText($("#d-api").textContent).then(() => toast("Consulta copiada."), () => toast("Não foi possível copiar neste navegador.")); };
+
+  // ---------- download
+  const dicionario = () => [["coluna","descricao","unidade","modulos"],
+    ["codigo","Código do reservatório no SAR","",""], ["reservatorio","Nome do reservatório","",""], ["modulo","Módulo do SAR (SIN; Nordeste e Semiárido; Outros Sistemas)","",""],
+    ["uf","Unidade da Federação","",""], ["municipio","Município","",""], ["bacia","Bacia (SIN, na divisão do ONS; NE, a do cadastro) ou sistema (Outros)","",""],
+    [st.base==="hora" ? "data_hora" : "data", st.base==="hora" ? "Data e hora da leitura (dd/mm/aaaa hh:mm)" : "Data da leitura (dd/mm/aaaa). No NE, a data real da leitura, sem preenchimento", "", ""],
+    ...varsEf().map(v => [v.k, v.def, v.u, [...new Set(ENT.filter(e => e.vars.includes(v.k)).map(e => ROT_MOD[e.mod]))].join("; ")])];
+  const leiaMe = () => { const S = selEnt(), cont = m => S.filter(e => e.mod===m).length;
+    return [`SAR · Sistema de Acompanhamento de Reservatórios · Área de dados`, `Gerado em ${hojeBR()}.`, ``,
+      `Seleção: ${S.length} reservatórios (SIN ${cont("SIN")}; Nordeste e Semiárido ${cont("NE")}; Outros Sistemas ${cont("OUTROS")}).`,
+      `Variáveis: ${varsEf().map(v => `${v.k} (${v.u})`).join(", ")}.`, `Período: ${st.de ? dBR(st.de) : "início da série"} a ${dBR(st.ate)}, base ${st.base==="hora" ? "horária" : "diária"}.`, ``,
+      `Série: só as leituras aceitas pela crítica. Regras de cota: erro grosseiro, pico de um dia e degrau que volta (descritas nas páginas de estado do Nordeste); o volume do mesmo dia sai junto com a cota descartada.`,
+      `Nordeste e Semiárido: data da leitura real, sem preenchimento nem interpolação. Nível na régua é leitura de observador em reservatório sem curva cota-volume validada.`,
+      ...(st.base==="hora" ? [`Base horária: dados abertos do ONS (Dados Hidráulicos por Reservatório – Base horária), não consistidos pelo ONS: são de responsabilidade dos agentes de geração, podem ter lacunas e ser alterados. A afluência horária é calculada por balanço e oscila, com negativos e picos que não são vazão real.`] : []),
+      ``, `Fontes: ${D.fontes.medicoes}; ${NEd.fontes.medicoes}; ${NEd.nivel ? NEd.nivel.fonte : ""}; ${OS ? OS.fontes.sabesp + "; " + OS.fontes.coletor : ""}.`,
+      ``, `Consulta equivalente na API pública (endereço ilustrativo; API a ser criada): ${urlAPI()}`, ``, INICIO_PROTO].join("\r\n"); };
+  $("#p-baixar").onclick = async () => {
+    const C = cab(), L = linhasDados(), nome = `sar_dados_${st.base==="hora" ? "horaria_" : ""}${(st.de || "inicio")}_${st.ate}`;
+    if (st.formato==="csv"){
+      const csv = [C.join(";")].concat(L.map(r => r.map(nCSV).join(";"))).join("\r\n");
+      const dic = dicionario().map(r => r.map(nCSV).join(";")).join("\r\n");
+      const zip = new JSZip(); zip.file("dados.csv", "﻿" + csv); zip.file("dicionario.csv", "﻿" + dic); zip.file("leia-me.txt", "﻿" + leiaMe());
+      baixarArquivo(await zip.generateAsync({type:"blob", compression:"DEFLATE"}), nome + ".zip");
+      toast(`ZIP com ${fint(L.length)} linhas gerado. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)`);
+    } else {
+      try { await carregarScript("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"); }
+      catch (err){ toast("Não foi possível carregar a biblioteca de Excel (rede bloqueada neste ambiente)."); return; }
+      const XL = window.XLSX, wb = XL.utils.book_new();
+      const conv = r => r.map((v, j) => j >= 7 ? v : v);
+      XL.utils.book_append_sheet(wb, XL.utils.aoa_to_sheet([C, ...L.map(conv)]), "dados");
+      XL.utils.book_append_sheet(wb, XL.utils.aoa_to_sheet(dicionario()), "dicionario");
+      XL.utils.book_append_sheet(wb, XL.utils.aoa_to_sheet(leiaMe().split("\r\n").map(l => [l])), "leia-me");
+      baixarArquivo(new Blob([XL.write(wb, {type:"array", bookType:"xlsx"})], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}), nome + ".xlsx");
+      toast(`Planilha com ${fint(L.length)} linhas gerada. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)`);
+    }
+  };
+  opcoes(); desenharLista(); atualizar();
+}
+
 /* ============================================================ rotas */
 const DESKTOP = () => window.matchMedia("(min-width:1024px)").matches;
 
@@ -4274,8 +4666,8 @@ function rota(){
   if (h === "bacia/GRANDE") paginaGrande(); else if (h === "ficha/FURNAS") paginaFicha();
   else if (h === "ne") paginaNE(); else if (h.startsWith("ne/ficha/")) paginaFichaNE(h.slice(9)); else if (h.startsWith("ne/")) paginaEstadoNE(h.slice(3));
   else if (h === "sin") paginaSIN(); else if (h === "outros") paginaOutros(); else if (h === "outros/cantareira") paginaCantareira(); else if (h === "outros/df" || h === "outros/rmbh") paginaSistemaOS(h.slice(7));
-  else if (h.startsWith("outros/ficha/")) paginaFichaOS(h.slice(13)); else paginaInicio();
-  const mod = h === "" || h === "inicio" ? "inicio" : h.startsWith("ne") ? "ne" : h.startsWith("outros") ? "outros" : "sin";
+  else if (h.startsWith("outros/ficha/")) paginaFichaOS(h.slice(13)); else if (h === "dados") paginaDados(); else paginaInicio();
+  const mod = h === "" || h === "inicio" ? "inicio" : h === "dados" ? "dados" : h.startsWith("ne") ? "ne" : h.startsWith("outros") ? "outros" : "sin";
   $$(".modulos button").forEach(b => { if (b.dataset.rota === mod) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
   document.body.classList.toggle("na-inicio", mod === "inicio");
   window.scrollTo(0,0);
