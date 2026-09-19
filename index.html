@@ -194,6 +194,31 @@ main{padding-block:26px 60px}
 .periodo .presets{display:inline-flex;flex-wrap:wrap;gap:8px}
 .periodo input[type=date]{font:13.5px var(--sans);color:var(--ana);border:1px solid var(--linha-forte);border-radius:8px;padding:5px 8px;background:#fff}
 .aviso-dados{margin:12px 0 0;padding:10px 14px;border-radius:8px;background:#FFF4DC;color:#6A4A00;font-size:13px;line-height:1.45}
+.mf{position:relative}
+.mf-botao{all:unset;display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:1px solid var(--linha-forte);border-radius:8px;padding:7px 10px;background:#fff;font-size:13.5px;color:var(--tinta-2)}
+.mf-botao .mf-val{color:var(--ana);font-weight:500;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mf-botao svg{flex:none;color:var(--apagado);transition:transform .15s}
+.mf.aberto .mf-botao svg{transform:rotate(180deg)}
+.mf.ativo .mf-botao{border-color:var(--ana);background:var(--ana-gelo)}
+.mf-botao:focus-visible{outline:2px solid var(--ana-medio);outline-offset:2px}
+.mf-pop{position:absolute;z-index:30;top:calc(100% + 6px);left:0;width:300px;background:#fff;border:1px solid var(--linha-forte);border-radius:10px;box-shadow:0 12px 32px rgba(19,40,107,.16);padding:10px}
+.mf-busca{width:100%;box-sizing:border-box;font:14px var(--sans);color:var(--tinta);padding:8px 10px;border:1px solid var(--linha-forte);border-radius:8px;margin:0 0 8px}
+.mf-lista{max-height:280px;overflow:auto;display:grid;gap:1px}
+.mf-op{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px;border-radius:6px;cursor:pointer;font-size:13.5px;color:var(--tinta)}
+.mf-op:hover{background:var(--ana-gelo)}
+.mf-op input{width:15px;height:15px;margin:0;accent-color:var(--ana)}
+.mf-op small{color:var(--apagado);font-variant-numeric:tabular-nums}
+.mf-pe{display:flex;justify-content:space-between;align-items:center;margin:8px 0 0;padding:8px 2px 0;border-top:1px solid var(--linha);font-size:12.5px;color:var(--apagado)}
+.mf-limpar{all:unset;cursor:pointer;color:var(--ana-medio)}
+.chips-filtro{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 12px}
+.chip-f{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:12px;background:var(--ana-bruma);color:var(--ana);font-size:12.5px}
+.chip-f:hover{background:#D5E3F2}
+.chip-f:focus-visible{outline:2px solid var(--ana-medio)}
+.chip-f .x{font-size:15px;line-height:1}
+#d-limpar-f{margin-left:auto}
+#d-limpar-f:disabled{opacity:.45;cursor:default;background:#fff}
+#tab-dic td{white-space:normal;vertical-align:top}
+#tab-dic td code{font:12.5px ui-monospace,Consolas,monospace;color:var(--tinta)}
 .previa-box{overflow-x:auto}
 .previa-box table{font-size:12.5px}
 .previa-box td,.previa-box th{white-space:normal;padding:6px 6px;min-width:0}
@@ -4392,11 +4417,21 @@ function paginaDados(){
   const ENT = entidadesDados(), porId = Object.fromEntries(ENT.map(e => [e.id, e]));
   const datas = [D.data, NEd.serie_ate, CAN ? CAN.ate : D.data, ...Object.values(FOS).map(fimF)].filter(Boolean).sort();
   const ULT = datas[datas.length - 1];
-  const st = {sel:new Set(), txt:"", mod:"", uf:"", mun:"", bacia:"", soSel:false, mostrar:12, base:"dia",
+  const FILT = {uf:{r:"Estado", todos:"Todos"}, mun:{r:"Município", todos:"Todos"}, bacia:{r:"Bacia ou sistema", todos:"Todas"}};
+  const st = {sel:new Set(), txt:"", mod:new Set(), uf:new Set(), mun:new Set(), bacia:new Set(), soSel:false, mostrar:12, base:"dia",
               vars:new Set(CAT_VARS.map(v => v.k)),   // todas marcadas: valem as que os selecionados têm; quem quiser menos desmarca
               de:isoMais(ULT, -365), ate:ULT, preset:"12m", formato:"csv"};
   const UF_NOME = {}; RES.forEach(r => { if (r.uf) UF_NOME[r.uf] = r.estado; }); NEd.estados.forEach(e => UF_NOME[e.uf] = e.estado); UF_NOME.DF = "Distrito Federal"; UF_NOME.SP = UF_NOME.SP || "São Paulo";
   const nMod = m => ENT.filter(e => e.mod===m).length;
+  // linhas do dicionário: colunas fixas e o catálogo, com os módulos que têm cada variável e a base horária
+  const DIC_LINHAS = () => [
+    ["codigo","Código","","Código do reservatório no SAR.","",""], ["reservatorio","Reservatório","","Nome do reservatório.","",""],
+    ["modulo","Módulo","","Módulo do SAR: SIN, Nordeste e Semiárido ou Outros Sistemas (com o sistema).","",""],
+    ["uf","UF","","Unidade da Federação.","",""], ["municipio","Município","","Município do reservatório.","",""],
+    ["bacia","Bacia ou sistema","","SIN: bacia na divisão do ONS; Nordeste e Semiárido: bacia do cadastro; Outros Sistemas: o sistema.","",""],
+    ["data","Data","","Data da leitura (dd/mm/aaaa). No Nordeste e Semiárido, a data real da leitura, sem preenchimento nem interpolação.","","não"],
+    ["data_hora","Data e hora","","Data e hora da leitura (dd/mm/aaaa hh:mm), só na base horária.","SIN","sim"],
+    ...CAT_VARS.map(v => [v.k, v.r, v.u, v.def, [...new Set(ENT.filter(e => e.vars.includes(v.k)).map(e => ROT_MOD[e.mod]))].join(", "), VAR_HORA.has(v.k) ? "sim (SIN)" : "não"])];
   $("#titulo-pag").innerHTML = `
     <p class="trilha"><a href="#inicio">Início</a><span class="sep">›</span>Área de dados</p>
     <h1>Área de dados</h1>
@@ -4405,7 +4440,7 @@ function paginaDados(){
   const opt = (v, r, s) => `<option value="${esc(v)}"${s ? " selected" : ""}>${esc(r)}</option>`;
   const ufs = [...new Set(ENT.map(e => e.uf).filter(Boolean))].sort((a, b) => (UF_NOME[a] || a).localeCompare(UF_NOME[b] || b, "pt-BR"));
   $("#conteudo").innerHTML = `
-    <nav class="indice" aria-label="Seções da página"><a href="#dados" data-alvo="d-res">Reservatórios</a><a href="#dados" data-alvo="d-var">Variáveis e período</a><a href="#dados" data-alvo="d-prev">Prévia e arquivo</a></nav>
+    <nav class="indice" aria-label="Seções da página"><a href="#dados" data-alvo="d-res">Reservatórios</a><a href="#dados" data-alvo="d-var">Variáveis e período</a><a href="#dados" data-alvo="d-prev">Prévia e arquivo</a><a href="#dados" data-alvo="d-dic">Dicionário de dados</a></nav>
     <div class="dados-grade">
       <div class="fluxo">
         <section class="cartao secao" id="d-res" aria-labelledby="t-d-res">
@@ -4413,11 +4448,12 @@ function paginaDados(){
           <p class="sub">Busque pelo nome, pelo código ou pelo município, ou filtre por módulo, estado, município e bacia. A seleção se mantém quando você muda a busca ou os filtros.<span class="dica">Clique numa linha para marcar ou desmarcar.</span></p>
           <div class="busca-dados"><input type="search" id="d-busca" placeholder="Ex.: Sobradinho, 12112, Quixadá" aria-label="Buscar reservatório por nome, código ou município" autocomplete="off"></div>
           <div class="filtros-dados">
-            <span class="seg" role="group" aria-label="Módulo">${[["","Todos"],["SIN","SIN"],["NE","Nordeste e Semiárido"],["OUTROS","Outros Sistemas"]].map(([v, r]) => `<button type="button" data-mod="${v}" aria-pressed="${v==="" ? "true" : "false"}">${r}</button>`).join("")}</span>
-            <label>Estado <select id="d-uf"><option value="">Todos</option>${ufs.map(u => opt(u, UF_NOME[u] || u)).join("")}</select></label>
-            <label>Município <select id="d-mun"></select></label>
-            <label>Bacia <select id="d-bacia"></select></label>
+            <span class="seg" role="group" aria-label="Módulo (escolha um ou mais)">${[["","Todos"],["SIN","SIN"],["NE","Nordeste e Semiárido"],["OUTROS","Outros Sistemas"]].map(([v, r]) => `<button type="button" data-mod="${v}" aria-pressed="${v==="" ? "true" : "false"}">${r}</button>`).join("")}</span>
+            ${["uf","mun","bacia"].map(k => `<div class="mf" id="mf-${k}"><button type="button" class="mf-botao" aria-haspopup="true" aria-expanded="false"><span class="mf-rot">${FILT[k].r}</span><span class="mf-val"></span><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <div class="mf-pop" hidden><input type="search" class="mf-busca" placeholder="Buscar ${FILT[k].r.toLowerCase()}" aria-label="Buscar ${FILT[k].r.toLowerCase()}" autocomplete="off"><div class="mf-lista" role="group" aria-label="${FILT[k].r}"></div><div class="mf-pe"><span class="mf-cont"></span><button type="button" class="mf-limpar">Limpar</button></div></div></div>`).join("")}
+            <button type="button" class="acao sec" id="d-limpar-f" disabled>Limpar filtros</button>
           </div>
+          <div class="chips-filtro" id="d-chips"></div>
           <div class="barra-res"><span id="d-nres"></span><span class="acoes"><button type="button" class="acao sec" id="d-todos"></button><button type="button" class="acao sec" id="d-sosel" aria-pressed="false">Ver só os selecionados</button></span></div>
           <div class="tab-box lista-res"><table>
             <thead><tr><th class="ck"><span class="sr-only">Selecionar</span></th><th>Reservatório</th><th>Módulo</th><th>UF</th><th>Município</th><th>Bacia ou sistema</th></tr></thead>
@@ -4426,7 +4462,7 @@ function paginaDados(){
         </section>
         <section class="cartao secao" id="d-var" aria-labelledby="t-d-var">
           <h2 id="t-d-var"><small>2</small>Variáveis e período</h2>
-          <p class="sub">Cada variável tem um nome e uma definição únicos em todos os módulos; a barra mostra quantos dos reservatórios selecionados a têm. Volume útil e volume em % da capacidade são grandezas diferentes e vêm em colunas separadas.</p>
+          <p class="sub">Cada variável tem um nome e uma definição únicos em todos os módulos; a barra mostra quantos dos reservatórios selecionados a têm. Volume útil e volume em % da capacidade são grandezas diferentes e vêm em colunas separadas.<span class="dica">Passe o mouse numa variável para ler a definição; o <a href="#dados" data-alvo="d-dic">dicionário de dados</a> tem todas.</span></p>
           <div class="linha-base"><b>Base</b><span class="seg" role="group" aria-label="Base de tempo"><button type="button" data-base="dia" aria-pressed="true">Diária</button><button type="button" data-base="hora" aria-pressed="false">Horária</button></span><span id="d-base-nota"></span></div>
           <div class="vars-grade" id="d-vars"></div>
           <div class="periodo"><b>Período</b><span class="presets">${[["1m","Último mês"],["12m","12 meses"],["5a","5 anos"],["tudo","Série completa"]].map(([k, r]) => `<button type="button" class="preset" data-p="${k}">${r}</button>`).join("")}</span>
@@ -4443,6 +4479,14 @@ function paginaDados(){
               <p class="nota" style="margin:6px 0 0">Endereço ilustrativo: a API pública ainda será criada (solicitação à STI). A mesma consulta devolverá os mesmos dados, com a data da versão.</p></div>
           </div>
           <p class="nota" style="margin:14px 0 0">${INICIO_PROTO}</p>
+        </section>
+        <section class="cartao secao tabela-bacia" id="d-dic" aria-labelledby="t-d-dic">
+          ${barraBaixar([["baixar-dic-csv", "CSV", "Baixar o dicionário de dados em CSV"], ["baixar-dic-pdf", "PDF", "Baixar o dicionário de dados em PDF"]])}
+          <h2 id="t-d-dic"><small>4</small>Dicionário de dados</h2>
+          <p class="sub">Todas as colunas que o arquivo pode ter, com o nome, a unidade, a definição, os módulos em que existem e se há base horária. Cada download traz a parte do dicionário das colunas pedidas.</p>
+          <div class="tab-box"><table id="tab-dic">
+            <thead><tr><th>Coluna</th><th>Nome</th><th>Unidade</th><th>Definição</th><th>Módulos</th><th>Base horária</th></tr></thead>
+            <tbody>${DIC_LINHAS().map(l => `<tr><td><code>${esc(l[0])}</code></td><td><span class="nm">${esc(l[1])}</span></td><td>${esc(l[2] || "–")}</td><td>${esc(l[3])}</td><td>${esc(l[4] || "todos")}</td><td>${esc(l[5])}</td></tr>`).join("")}</tbody></table></div>
         </section>
       </div>
       <aside class="pedido" aria-labelledby="t-pedido">
@@ -4462,20 +4506,46 @@ function paginaDados(){
 
   // ---------- 1. seleção
   const filtrados = () => { const q = semAc(st.txt).trim();
-    return ENT.filter(e => (!st.soSel || st.sel.has(e.id)) && (!st.mod || e.mod===st.mod) && (!st.uf || e.uf===st.uf) && (!st.mun || e.municipio===st.mun) && (!st.bacia || e.bacia===st.bacia) && (!q || e.busca.includes(q))); };
+    return ENT.filter(e => (!st.soSel || st.sel.has(e.id)) && (!st.mod.size || st.mod.has(e.mod)) && (!st.uf.size || st.uf.has(e.uf)) && (!st.mun.size || st.mun.has(e.municipio)) && (!st.bacia.size || st.bacia.has(e.bacia)) && (!q || e.busca.includes(q))); };
+  // filtros com busca e escolha múltipla: estado depende do módulo; município e bacia, do módulo e do estado
+  const rotOpc = (k, v) => k==="uf" ? (UF_NOME[v] || v) : v;
+  const campoDe = {uf:"uf", mun:"municipio", bacia:"bacia"};
+  const opcoesDe = k => { const L = ENT.filter(e => (!st.mod.size || st.mod.has(e.mod)) && (k==="uf" || !st.uf.size || st.uf.has(e.uf))), n = {};
+    L.forEach(e => { const v = e[campoDe[k]]; if (v) n[v] = (n[v] || 0) + 1; });
+    return Object.entries(n).map(([v, c]) => ({v, n:c})).sort((x, y) => rotOpc(k, x.v).localeCompare(rotOpc(k, y.v), "pt-BR")); };
+  const listaFiltro = k => { const host = $(`#mf-${k}`), q = semAc(host.querySelector(".mf-busca").value).trim();
+    const O = opcoesDe(k).filter(o => !q || semAc(rotOpc(k, o.v)).includes(q));
+    host.querySelector(".mf-lista").innerHTML = O.length ? O.map(o => `<label class="mf-op"><input type="checkbox" value="${esc(o.v)}"${st[k].has(o.v) ? " checked" : ""}><span>${esc(rotOpc(k, o.v))}</span><small>${fint(o.n)}</small></label>`).join("")
+      : `<p class="nota" style="margin:6px">Nada encontrado.</p>`;
+    host.querySelectorAll(".mf-op input").forEach(c => c.onchange = () => { c.checked ? st[k].add(c.value) : st[k].delete(c.value); aplicarFiltros(); });
+    host.querySelector(".mf-cont").textContent = st[k].size ? `${st[k].size} ${st[k].size===1 ? "escolhido" : "escolhidos"}` : "nenhum escolhido"; };
   const opcoes = () => {
-    const base = ENT.filter(e => (!st.mod || e.mod===st.mod) && (!st.uf || e.uf===st.uf));
-    const muns = [...new Set(base.map(e => e.municipio).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
-    const bacs = [...new Set(base.map(e => e.bacia).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
-    if (!muns.includes(st.mun)) st.mun = ""; if (!bacs.includes(st.bacia)) st.bacia = "";
-    $("#d-mun").innerHTML = opt("", `Todos (${muns.length})`) + muns.map(m => opt(m, m, m===st.mun)).join("");
-    $("#d-bacia").innerHTML = opt("", `Todas (${bacs.length})`) + bacs.map(b => opt(b, b, b===st.bacia)).join("");
+    ["mun","bacia"].forEach(k => { const ok = new Set(opcoesDe(k).map(o => o.v)); [...st[k]].forEach(v => { if (!ok.has(v)) st[k].delete(v); }); });
+    ["uf","mun","bacia"].forEach(k => { const host = $(`#mf-${k}`), S = st[k];
+      host.querySelector(".mf-val").textContent = !S.size ? FILT[k].todos : S.size===1 ? rotOpc(k, [...S][0]) : `${S.size} escolhidos`;
+      host.classList.toggle("ativo", S.size > 0); if (host.classList.contains("aberto")) listaFiltro(k); });
+    $$("[data-mod]").forEach(x => x.setAttribute("aria-pressed", x.dataset.mod ? st.mod.has(x.dataset.mod) : !st.mod.size));
+    const ch = [...[...st.mod].map(v => ["mod", v, ROT_MOD[v]]), ...["uf","mun","bacia"].flatMap(k => [...st[k]].map(v => [k, v, rotOpc(k, v)]))];
+    $("#d-chips").innerHTML = ch.map(([k, v, r]) => `<button type="button" class="chip-f" data-k="${k}" data-v="${esc(v)}" aria-label="Tirar o filtro ${esc(r)}">${esc(r)}<span class="x" aria-hidden="true">×</span></button>`).join("")
+;
+    $$("#d-chips .chip-f").forEach(c => c.onclick = () => { st[c.dataset.k].delete(c.dataset.v); aplicarFiltros(); });
+    $("#d-limpar-f").disabled = !ch.length && !st.txt.trim();
   };
+  const aplicarFiltros = () => { st.mostrar = 12; opcoes(); desenharLista(); };
+  $("#d-limpar-f").onclick = () => { ["mod","uf","mun","bacia"].forEach(k => st[k].clear()); st.txt = ""; $("#d-busca").value = ""; aplicarFiltros(); };
+  const fechaFiltros = exceto => $$(".mf.aberto").forEach(m => { if (m!==exceto){ m.classList.remove("aberto"); m.querySelector(".mf-pop").hidden = true; m.querySelector(".mf-botao").setAttribute("aria-expanded", "false"); } });
+  ["uf","mun","bacia"].forEach(k => { const host = $(`#mf-${k}`), bt = host.querySelector(".mf-botao"), pop = host.querySelector(".mf-pop"), busca = host.querySelector(".mf-busca");
+    bt.onclick = () => { const abre = pop.hidden; fechaFiltros(host); pop.hidden = !abre; host.classList.toggle("aberto", abre); bt.setAttribute("aria-expanded", abre);
+      if (abre){ busca.value = ""; listaFiltro(k); busca.focus(); } };
+    busca.oninput = () => listaFiltro(k);
+    host.querySelector(".mf-limpar").onclick = () => { st[k].clear(); aplicarFiltros(); };
+    host.addEventListener("keydown", ev => { if (ev.key==="Escape"){ fechaFiltros(); bt.focus(); } }); });
+  document.addEventListener("click", ev => { if (!ev.target.closest(".mf")) fechaFiltros(); });
   const desenharLista = () => {
     const F = filtrados(), vis = F.slice(0, st.mostrar), nSelF = F.filter(e => st.sel.has(e.id)).length;
     $("#d-nres").innerHTML = `<b>${fint(F.length)}</b> ${F.length===1 ? "resultado" : "resultados"}${nSelF ? ` · ${fint(nSelF)} selecionados` : ""}`;
     const todos = F.length && nSelF===F.length;
-    $("#d-todos").textContent = todos ? `Tirar os ${fint(F.length)} da seleção` : `Selecionar os ${fint(F.length)} resultados`; $("#d-todos").disabled = !F.length;
+    $("#d-todos").textContent = F.length===1 ? (todos ? "Tirar da seleção" : "Selecionar o resultado") : todos ? `Tirar os ${fint(F.length)} da seleção` : `Selecionar os ${fint(F.length)} resultados`; $("#d-todos").disabled = !F.length;
     $("#d-corpo").innerHTML = vis.map(e => `<tr data-id="${e.id}"${st.sel.has(e.id) ? ' class="sel"' : ""}>
       <td class="ck"><input type="checkbox" ${st.sel.has(e.id) ? "checked" : ""} aria-label="Selecionar ${esc(e.nome)}" tabindex="-1"></td>
       <td><span class="nm">${esc(e.nome)}</span>${e.retirado ? '<span class="ret">retirado do acompanhamento</span>' : ""}<span class="rio">${e.codigo ? `código ${esc(e.codigo)} · ` : ""}${esc(e.tipo)}</span></td>
@@ -4487,11 +4557,8 @@ function paginaDados(){
     $("#d-mais").innerHTML = F.length > vis.length ? `<button type="button" class="acao sec" id="d-mais-b">Mostrar mais ${fint(Math.min(30, F.length - vis.length))} (faltam ${fint(F.length - vis.length)})</button>` : "";
     if ($("#d-mais-b")) $("#d-mais-b").onclick = () => { st.mostrar += 30; desenharLista(); };
   };
-  let tBusca; $("#d-busca").oninput = ev => { clearTimeout(tBusca); tBusca = setTimeout(() => { st.txt = ev.target.value; st.mostrar = 12; desenharLista(); }, 120); };
-  $$("[data-mod]").forEach(b => b.onclick = () => { st.mod = b.dataset.mod; $$("[data-mod]").forEach(x => x.setAttribute("aria-pressed", x===b)); st.mostrar = 12; opcoes(); desenharLista(); });
-  $("#d-uf").onchange = ev => { st.uf = ev.target.value; st.mostrar = 12; opcoes(); desenharLista(); };
-  $("#d-mun").onchange = ev => { st.mun = ev.target.value; st.mostrar = 12; desenharLista(); };
-  $("#d-bacia").onchange = ev => { st.bacia = ev.target.value; st.mostrar = 12; desenharLista(); };
+  let tBusca; $("#d-busca").oninput = ev => { clearTimeout(tBusca); tBusca = setTimeout(() => { st.txt = ev.target.value; st.mostrar = 12; desenharLista(); $("#d-limpar-f").disabled = !st.txt.trim() && !$("#d-chips").children.length; }, 120); };
+  $$("[data-mod]").forEach(b => b.onclick = () => { const m = b.dataset.mod; if (!m) st.mod.clear(); else st.mod.has(m) ? st.mod.delete(m) : st.mod.add(m); aplicarFiltros(); });
   $("#d-todos").onclick = () => { const F = filtrados(), todos = F.every(e => st.sel.has(e.id)); F.forEach(e => todos ? st.sel.delete(e.id) : st.sel.add(e.id)); desenharLista(); atualizar(false); };
   $("#d-sosel").onclick = ev => { st.soSel = !st.soSel; ev.target.setAttribute("aria-pressed", st.soSel); ev.target.textContent = st.soSel ? "Ver todos" : "Ver só os selecionados"; st.mostrar = 12; desenharLista(); };
   $("#p-limpar").onclick = () => { st.sel.clear(); desenharLista(); atualizar(false); };
@@ -4571,6 +4638,9 @@ function paginaDados(){
     }, 150);
   };
   $$("[data-fmt]").forEach(b => b.onclick = () => { st.formato = b.dataset.fmt; $$("[data-fmt]").forEach(x => x.setAttribute("aria-pressed", x===b)); atualizar(false); });
+  $("#baixar-dic-csv").onclick = () => salvarCSV(["coluna","nome","unidade","definicao","modulos","base_horaria"], DIC_LINHAS(), "sar_dicionario_de_dados.csv");
+  $("#baixar-dic-pdf").onclick = () => pdfSecao([$("#tab-dic")], "sar_dicionario_de_dados.pdf");
+  $$('#conteudo a[data-alvo="d-dic"]').forEach(a => a.onclick = ev => { ev.preventDefault(); $("#d-dic").scrollIntoView({behavior:"smooth", block:"start"}); });
   $("#d-api-copiar").onclick = () => { navigator.clipboard && navigator.clipboard.writeText($("#d-api").textContent).then(() => toast("Consulta copiada."), () => toast("Não foi possível copiar neste navegador.")); };
 
   // ---------- download
