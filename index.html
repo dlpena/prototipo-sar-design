@@ -734,7 +734,9 @@ body.na-inicio main{padding-top:26px}
 .acesso-adm{margin:-8px 0 10px;text-align:right;font-size:12.5px}
 .acesso-adm a{display:inline-flex;align-items:center;gap:6px;color:var(--apagado);text-decoration:none;padding:4px 8px;border-radius:6px}
 .acesso-adm a:hover{color:var(--ana);background:var(--ana-gelo)}
-.abas-adm{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 4px}
+.abas-adm{display:flex;flex-wrap:wrap;gap:10px 22px;margin:14px 0 4px;align-items:flex-end}
+.abas-grupo{display:flex;flex-wrap:wrap;gap:6px}
+.abas-grupo .rot{flex-basis:100%;font:500 10.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--apagado);margin-bottom:-1px}
 .abas-adm a{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid var(--linha-forte);background:#fff;color:var(--ana);font-size:13.5px;text-decoration:none}
 .abas-adm a:hover{border-color:var(--ana)}
 .abas-adm a[aria-current=page]{background:var(--ana);border-color:var(--ana);color:#fff;font-weight:600}
@@ -791,7 +793,7 @@ body.na-inicio main{padding-top:26px}
 .adm-cel:hover:not(:disabled){border-color:var(--linha-forte);background:#fff}
 .adm-serie td.manual{position:relative}
 .adm-serie td.manual::before{content:"";position:absolute;left:4px;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:#B7793A}
-.adm-serie td.mudou .adm-cel{background:#FFF4DC;border-color:#E2B866}
+.adm-tab td.mudou .adm-cel,.adm-serie td.mudou .adm-cel{background:#FFF4DC;border-color:#E2B866}
 .adm-pend{position:sticky;top:12px;z-index:4;display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0;padding:10px 14px;border-radius:10px;background:#FFF4DC;color:#6A4A00;font-size:13.5px;box-shadow:var(--sombra)}
 .adm-pend input{flex:1 1 240px}
 .adm-pend[hidden]{display:none}
@@ -817,6 +819,47 @@ body.na-inicio main{padding-top:26px}
 @media (min-width:1024px){.modulos button.nav-admin{margin-top:10px;position:relative}
   .modulos button.nav-admin::before{content:"";position:absolute;left:12px;right:12px;top:-6px;border-top:1px solid var(--linha)}}
 @media (max-width:640px){.adm-form label.largo{grid-column:auto}.adm-sel-res .res{grid-template-columns:1fr}.adm-pedido header .adm-sit{margin-left:0}}
+.adm-sit.cinza{background:var(--fundo);color:var(--apagado);border:1px solid var(--linha)}
+.adm-tab td.viz{font-size:12.5px;color:var(--apagado);white-space:nowrap}
+.adm-acoes,.adm-dec{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.adm-acoes .acao,.adm-dec .acao{padding:5px 10px;font-size:12.5px}
+.adm-dec input{flex:1 1 200px;font:13px var(--sans);border:1px solid var(--linha-forte);border-radius:8px;padding:6px 8px;min-width:0}
+.adm-dec b{flex-basis:100%;font-size:12.5px;color:var(--ana)}
+.adm-tab tr.fora td{background:var(--fundo);color:var(--apagado)}
+.adm-tab tr.fora .nm{color:var(--apagado);text-decoration:line-through}
+.adm-tab tr.mudou td{background:#FFF4DC}
+.adm-comp td.ck,.adm-comp th.ck{width:48px;text-align:center}
+.adm-comp input[type=checkbox]{width:16px;height:16px;accent-color:var(--ana)}
+.adm-comp select{font:13px var(--sans);border:1px solid var(--linha-forte);border-radius:8px;padding:4px 6px;background:#fff;max-width:100%}
+.adm-agr{display:grid;gap:14px}
+.adm-agr-g b{display:block;font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--apagado);margin-bottom:6px}
+.adm-agr-g div{display:flex;flex-wrap:wrap;gap:6px}
+.adm-agr-g .preset span{opacity:.7;margin-left:4px;font-variant-numeric:tabular-nums}
+.adm-mapa{height:340px;border-radius:10px;overflow:hidden;border:1px solid var(--linha);margin-top:12px}
+.adm-checks{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:6px}
+.adm-checks li{padding:8px 12px;border-radius:8px;font-size:13.5px;line-height:1.45}
+.adm-checks li.erro{background:#FBE5DF;color:#7C2614}
+.adm-checks li.aviso{background:#FFF4DC;color:#6A4A00}
+.adm-checks li.ok{background:#E3F2EC;color:#17603F}
+.adm-form textarea,.adm-tx textarea{font:14px/1.5 var(--sans);letter-spacing:0;text-transform:none;color:var(--tinta);border:1px solid var(--linha-forte);border-radius:8px;padding:8px 10px;width:100%;box-sizing:border-box;resize:vertical}
+.adm-form label.largo:has(textarea){flex-basis:100%}
+.adm-form a.acao{text-decoration:none}
+.adm-tx{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin:8px 0}
+.adm-tx label,.adm-tx .rot{display:flex;flex-direction:column;gap:4px;font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--apagado)}
+.adm-tx-prev{margin-top:4px;padding:12px 14px;border:1px dashed var(--linha-forte);border-radius:8px;font-size:15px;line-height:1.55;color:var(--tinta-2);background:#fff}
+.avisos-pub{display:grid;gap:8px;margin:0 0 18px}
+.aviso-pub{padding:11px 16px;border-radius:10px;font-size:14px;line-height:1.5;color:var(--tinta-2);background:var(--ana-gelo);border:1px solid var(--ana-bruma)}
+.aviso-pub b{color:var(--ana)}
+.aviso-pub.atencao{background:#FFF4DC;border-color:#F0D9A6;color:#5A4200}
+.aviso-pub.atencao b{color:#6A4A00}
+.adm-tab .aviso-pub{padding:6px 10px;font-size:13px}
+.rev-lista{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:0}
+.rev-lista li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--linha);font-size:14px;color:var(--tinta-2);line-height:1.5}
+.rev-lista .q{font:600 13px var(--sans);color:var(--ana);font-variant-numeric:tabular-nums}
+.rev-lista .m{display:block;font-size:13px;color:var(--apagado)}
+@media (max-width:640px){.adm-tx{grid-template-columns:1fr}.rev-lista li{grid-template-columns:1fr;gap:2px}}
+#conteudo.admin td,#conteudo.admin th{white-space:normal}
+#conteudo.admin td.dt,#conteudo.admin td.num,#conteudo.admin .adm-sit{white-space:nowrap}
 </style>
 
 </head>
@@ -4760,6 +4803,7 @@ function paginaDados(){
       `Série: só as leituras aceitas pela crítica. Regras de cota: erro grosseiro, pico de um dia e degrau que volta (descritas nas páginas de estado do Nordeste); o volume do mesmo dia sai junto com a cota descartada.`,
       `Nordeste e Semiárido: data da leitura real, sem preenchimento nem interpolação. Reservatório sem curva cota-volume validada vem com a cota e sem volume.`,
       ...(st.base==="hora" ? [`Base horária: dados abertos do ONS (Dados Hidráulicos por Reservatório – Base horária), não consistidos pelo ONS: são de responsabilidade dos agentes de geração, podem ter lacunas e ser alterados. A afluência horária é calculada por balanço e oscila, com negativos e picos que não são vazão real.`] : []),
+      ...revisoesLeiaMe(S),
       ``, `Fontes: ${D.fontes.medicoes}; ${NEd.fontes.medicoes}; ${NEd.nivel ? NEd.nivel.fonte : ""}; ${OS ? OS.fontes.sabesp + "; " + OS.fontes.coletor : ""}.`,
       ``, `Consulta equivalente na API pública (endereço ilustrativo; API a ser criada): ${urlAPI()}`, ``, INICIO_PROTO].join("\r\n"); };
   $("#p-baixar").onclick = async () => {
@@ -4789,9 +4833,16 @@ function paginaDados(){
 /* ============================================================ área administrativa (#admin)
    conceito em estrutura/area_administrativa.md. Área interna, com login; tudo o que se faz aqui fica na memória da
    página (pedidos, trilha, correções) para o protótipo mostrar o fluxo entre as telas. */
-const ADM = {perfil:"editor", pedidos:[], trilha:[], manual:{}, novos:{}, apagados:{}, modo:{}, exec:[], seq:1, ent:null, semeado:false};
+const ADM = {perfil:"editor", pedidos:[], trilha:[], manual:{}, novos:{}, apagados:{}, modo:{}, exec:[], seq:1, ent:null, semeado:false,
+  revisoes:[], avisos:[], textos:{}, params:{}, susp:{}, excecoes:[], codigos:[], agrup:{}, bacias:{}, inclusoes:[]};
 const ADM_USU = {leitura:"Usuário de leitura", editor:"Editor A", aprovador:"Aprovador B"};
-const ADM_TELAS = [["", "Integrações"], ["serie", "Correção de série"], ["cadastro", "Cadastro e CAV"], ["aprovacoes", "Aprovações"], ["trilha", "Trilha de auditoria"]];
+const ADM_GRUPOS = [["Acompanhamento", [["", "Integrações"], ["cobertura", "Cobertura"], ["suspeitos", "Valores suspeitos"]]],
+  ["Dados e cadastro", [["serie", "Correção de série"], ["cadastro", "Cadastro e CAV"], ["inclusao", "Inclusão"], ["codigos", "Códigos das fontes"], ["agrupamentos", "Agrupamentos"]]],
+  ["Publicação", [["publicacao", "Avisos e textos"], ["parametros", "Parâmetros"]]],
+  ["Controle", [["aprovacoes", "Aprovações"], ["trilha", "Trilha de auditoria"]]]];
+const ADM_TELAS = ADM_GRUPOS.flatMap(g => g[1]);
+// revisão da série publicada: aparece na ficha pública do reservatório e no leia-me da área de dados
+function revisaoAdm(e, texto, motivo){ if (e && e.id) ADM.revisoes.unshift({id:e.id, nome:e.nome, cod:e.codigo, quando:hojeBR(), texto, motivo}); }
 const agoraAdm = () => { const d = new Date(); return `${hojeBR()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
 const numBR = s => { const x = String(s).trim().replace(/\./g, "").replace(",", "."); return x==="" || isNaN(x) ? null : Number(x); };
 const decVar = k => k==="cota_m" || k==="volume_hm3" || k==="volume_pct" || k==="volume_util_pct" ? 2 : k==="chuva_mm" ? 1 : 2;
@@ -4824,7 +4875,8 @@ function semearAdm(){
 function abasAdm(){
   const el = $("#abas-adm"); if (!el) return;
   const h = decodeURIComponent(location.hash.slice(1)), sub = h === "admin" ? "" : h.slice(6), nAg = ADM.pedidos.filter(p => p.situacao==="aguardando").length;
-  el.innerHTML = ADM_TELAS.map(([k, r]) => `<a href="#admin${k ? "/" + k : ""}"${k===sub ? ' aria-current="page"' : ""}>${r}${k==="aprovacoes" && nAg ? `<i>${nAg}</i>` : ""}</a>`).join("");
+  const nSus = typeof suspeitosAdm === "function" ? suspeitosAdm().filter(s => !ADM.susp[s.id]).length : 0;
+  el.innerHTML = ADM_GRUPOS.map(([g, L]) => `<div class="abas-grupo"><span class="rot">${g}</span>${L.map(([k, r]) => `<a href="#admin${k ? "/" + k : ""}"${k===sub ? ' aria-current="page"' : ""}>${r}${k==="aprovacoes" && nAg ? `<i>${nAg}</i>` : k==="suspeitos" && nSus ? `<i>${nSus}</i>` : ""}</a>`).join("")}</div>`).join("");
 }
 function tituloAdm(titulo, lead, chips){
   $("#titulo-pag").innerHTML = `
@@ -4872,7 +4924,8 @@ function linhaAdm(host, series, marcas, rotX){
 }
 function paginaAdmin(sub){
   semearAdm();
-  ({"":admIntegracoes, serie:admSerie, cadastro:admCadastro, aprovacoes:admAprovacoes, trilha:admTrilha}[sub] || admIntegracoes)();
+  ({"":admIntegracoes, cobertura:admCobertura, suspeitos:admSuspeitos, serie:admSerie, cadastro:admCadastro, inclusao:admInclusao, codigos:admCodigos,
+    agrupamentos:admAgrupamentos, publicacao:admPublicacao, parametros:admParametros, aprovacoes:admAprovacoes, trilha:admTrilha}[sub] || admIntegracoes)();
 }
 
 /* ---------------- 1. integrações e carga forçada */
@@ -4932,7 +4985,7 @@ function admIntegracoes(){
       <div class="adm-form">
         <label>Fonte<select id="c-fonte">${ADM_INT.filter(I => I.k !== "mapas").map(I => `<option value="${I.k}">${esc(I.r)}</option>`).join("")}</select></label>
         <label>De<input type="date" id="c-de" value="${isoMais(D.data, -6)}"></label><label>Até<input type="date" id="c-ate" value="${D.data}"></label>
-        <label>Reservatórios<select id="c-res"><option value="">Todos os da fonte</option><option value="um">Só o reservatório escolhido na correção de série</option></select></label>
+        <label>Reservatórios<select id="c-res"><option value="">Todos os da fonte</option><option value="um">Só ${ADM.ent ? esc(ADM.ent.nome) : "o reservatório escolhido"}</option></select></label>
         <button type="button" class="acao" id="c-ir"${podeEditar() ? "" : " disabled"}>Colocar na fila</button>
       </div>
       <p class="nota" id="c-previa"></p>
@@ -4965,6 +5018,8 @@ function admIntegracoes(){
     setTimeout(() => { x.sit = "exec"; if ($("#c-lista")) lista(); }, 900);
     setTimeout(() => { x.sit = "ok"; if ($("#c-lista") && location.hash === "#admin") admIntegracoes(); }, 2600); };
   previa(); lista();
+  if (ADM.forcarUm && ADM.ent){ ADM.forcarUm = false; const k = intAdm(ADM.ent); if (k) $("#c-fonte").value = k; $("#c-res").value = "um"; previa();
+    setTimeout(() => $("#a-carga").scrollIntoView({block:"start"}), 60); }
 }
 
 /* ---------------- 2. correção de série */
@@ -5033,6 +5088,7 @@ function admSerie(){
     $("#s-gravar").onclick = () => { const mot = $("#s-motivo").value.trim(); if (!mot){ toast("Informe o motivo da alteração."); $("#s-motivo").focus(); return; }
       const alvo = e, itens = [...st.pend.entries()]; ADM.manual[alvo.id] = ADM.manual[alvo.id] || {};
       itens.forEach(([ch, o]) => { const ja = ADM.manual[alvo.id][ch]; ADM.manual[alvo.id][ch] = {antes: ja ? ja.antes : o.antes, depois:o.depois}; });
+      revisaoAdm(alvo, "Valor corrigido: " + itens.map(([ch]) => { const [t, kk] = ch.split("|"); return `${nomeVar(CAT_VARS.find(v => v.k === kk))} de ${dBR(t)}`; }).join("; "), mot);
       trilhaAdm("Edição de valor", alvo, itens.map(([ch, o]) => { const [t, kk] = ch.split("|"); return `${dBR(t)} ${kk}: ${fmt(o.antes, decVar(kk))} → ${fmt(o.depois, decVar(kk))}`; }).join("; "), mot, "gravado, com marca de alteração manual",
         () => itens.forEach(([ch]) => delete ADM.manual[alvo.id][ch]));
       st.pend.clear(); toast(`${itens.length} ${itens.length===1 ? "valor gravado" : "valores gravados"} com marca de alteração manual.`); carregar(true); };
@@ -5046,7 +5102,8 @@ function admSerie(){
   $("#ap-de").onchange = $("#ap-ate").onchange = previaApagar;
   $("#ap-ir").onclick = () => { const p = previaApagar(), mot = $("#ap-motivo").value.trim(), alvo = e; if (!mot){ toast("Informe o motivo."); $("#ap-motivo").focus(); return; }
     pedidoAdm("Apagar período", alvo, `<b>${fint(p.n)}</b> valores em ${fint(p.datas)} datas, de ${dBR(p.de)} a ${dBR(p.ate)} (${p.vs.join(", ")}), saem da série publicada e ficam guardados.`, mot,
-      () => { (ADM.apagados[alvo.id] = ADM.apagados[alvo.id] || []).push({de:p.de, ate:p.ate, vars:p.vs}); }); $("#ap-motivo").value = ""; };
+      () => { (ADM.apagados[alvo.id] = ADM.apagados[alvo.id] || []).push({de:p.de, ate:p.ate, vars:p.vs});
+        revisaoAdm(alvo, `Leituras de ${dBR(p.de)} a ${dBR(p.ate)} retiradas da série publicada (${p.vs.map(k => nomeVar(CAT_VARS.find(v => v.k === k))).join(", ")})`, mot); }); $("#ap-motivo").value = ""; };
   // planilha: CSV do SAR (;, vírgula decimal, dd/mm/aaaa), colunas data e as variáveis do reservatório
   function lerPlanilha(txt){
     const linhas = txt.replace(/^﻿/, "").split(/\r?\n/).filter(x => x.trim()), cab = (linhas.shift() || "").split(";").map(x => x.trim()), rej = [], ent = [], mud = []; let iguais = 0;
@@ -5080,7 +5137,8 @@ function admSerie(){
     if ($("#pl-ir")) $("#pl-ir").onclick = () => { const mot = $("#pl-motivo").value.trim(); if (!mot){ toast("Informe o motivo."); $("#pl-motivo").focus(); return; }
       const datas = tudo.map(x => x[0]).sort();
       pedidoAdm("Gravar período por planilha", alvo, `<b>${fint(p.ent.length)}</b> valores entram e <b>${fint(p.mud.length)}</b> substituem o publicado, de ${dBR(datas[0])} a ${dBR(datas[datas.length-1])}; ${fint(p.rej.length)} rejeitados ficam de fora.`, mot,
-        () => { (ADM.novos[alvo.id] = ADM.novos[alvo.id] || []).push(...p.novos); }); $("#pl-previa").innerHTML = ""; };
+        () => { (ADM.novos[alvo.id] = ADM.novos[alvo.id] || []).push(...p.novos);
+          revisaoAdm(alvo, `${fint(p.ent.length + p.mud.length)} valores gravados ou substituídos por planilha, de ${dBR(datas[0])} a ${dBR(datas[datas.length-1])}`, mot); }); $("#pl-previa").innerHTML = ""; };
   }
   const paraCSV = (L) => [["data", ...V.map(v => v.k)].join(";")].concat(L.map(l => [dBR(l.t), ...V.map(v => nCSV(l.v[v.k]))].join(";"))).join("\r\n");
   $("#pl-modelo").onclick = () => salvarCSV(["data", ...V.map(v => v.k)], noPeriodo().map(l => [dBR(l.t), ...V.map(v => l.v[v.k])]), `sar_planilha_${semAc(e.nome).replace(/[^a-z0-9]+/g, "_")}.csv`);
@@ -5128,7 +5186,8 @@ function admCadastro(){
       $("#k-ir").textContent = mudaCap ? "Enviar para aprovação" : "Gravar"; $("#k-ir").disabled = !h.length || !podeEditar(); return {h, mudaCap}; };
     $$("#k-form input").forEach(i => i.oninput = efeito); efeito();
     $("#k-ir").onclick = () => { const x = efeito(), mot = $("#k-motivo").value.trim(); if (!mot){ toast("Informe o motivo."); $("#k-motivo").focus(); return; }
-      if (x.mudaCap) pedidoAdm("Dados cadastrais", e, x.h.join(" · ") + `. Vigência: ${dBR($("#k-vig").value || hoje)}.`, mot, () => {});
+      const capN = numBR($("#k-cap").value), vigK = $("#k-vig").value || hoje;
+      if (x.mudaCap) pedidoAdm("Dados cadastrais", e, x.h.join(" · ") + `. Vigência: ${dBR(vigK)}.`, mot, () => revisaoAdm(e, `Capacidade alterada de ${fmt(cap, 2)} para ${fmt(capN, 2)} hm³, vigente desde ${dBR(vigK)}: o Volume (%) é recalculado dessa data em diante`, mot));
       else { trilhaAdm("Dados cadastrais", e, x.h.join("; ").replace(/<[^>]+>/g, ""), mot); toast("Cadastro gravado. No protótipo as páginas públicas não mudam."); } tudo(); };
     // modo de exibição
     const ret = ADM.modo[e.id] ? ADM.modo[e.id]==="retirado" : !!e.retirado;
@@ -5163,7 +5222,7 @@ function admCadastro(){
         st.nova = T; st.nome = f.name; cav(); }; rd.readAsText(f, "utf-8"); };
       if ($("#v-vig")) $("#v-vig").onchange = cav;
       if ($("#v-ir")) $("#v-ir").onclick = () => { const mot = $("#v-motivo").value.trim(); if (!mot){ toast("Informe o motivo."); $("#v-motivo").focus(); return; }
-        pedidoAdm("Atualizar CAV", e, `Curva nova (${esc(st.nome)}, ${fint(N.length)} pontos), vigência ${dBR(vg)}: ${fint(desde.length)} leituras recalculadas${u ? `; em ${dBR(u.t)}, ${fmt(u.v.volume_hm3, 2)} → <b>${fmt(interp(N, u.v.cota_m), 2)} hm³</b>` : ""}. Histórico anterior mantido.`, mot, () => {}); st.nova = null; cav(); };
+        pedidoAdm("Atualizar CAV", e, `Curva nova (${esc(st.nome)}, ${fint(N.length)} pontos), vigência ${dBR(vg)}: ${fint(desde.length)} leituras recalculadas${u ? `; em ${dBR(u.t)}, ${fmt(u.v.volume_hm3, 2)} → <b>${fmt(interp(N, u.v.cota_m), 2)} hm³</b>` : ""}. Histórico anterior mantido.`, mot, () => revisaoAdm(e, `Curva cota-área-volume atualizada, vigente desde ${dBR(vg)}: o volume é recalculado dessa data em diante`, mot)); st.nova = null; cav(); };
     }
     cav();
   }
@@ -5188,7 +5247,7 @@ function admAprovacoes(){
     <section class="cartao secao" id="p-fe" aria-labelledby="t-p-fe"><h2 id="t-p-fe"><small>2</small>Decididos</h2><p class="sub">Pedidos aprovados ou devolvidos nesta sessão.</p>${fech.length ? fech.map(cartao).join("") : '<p class="nota">Nenhum pedido decidido nesta sessão.</p>'}</section>`;
   $$(".adm-pedido").forEach(el => { const p = ADM.pedidos.find(x => x.n === Number(el.dataset.n)), decide = sit => { const c = $(".coment", el).value.trim();
       if (sit==="devolvido" && !c){ toast("Escreva o comentário para devolver."); $(".coment", el).focus(); return; }
-      const quem = ADM_USU[ADM.perfil]; p.situacao = sit; p.decisao = `${sit} por ${quem} em ${agoraAdm()}${c ? ": " + c : ""}`; if (sit==="aprovado" && p.aplicar) p.aplicar();
+      const quem = ADM_USU[ADM.perfil]; p.situacao = sit; p.decisao = `${sit} por ${quem} em ${agoraAdm()}${c ? ": " + c : ""}`; if (sit==="aprovado" && p.aplicar) p.aplicar(); if (sit==="devolvido" && p.devolver) p.devolver();
       trilhaAdm(p.tipo, p.e, `Pedido nº ${p.n} ${sit}${c ? " (" + c + ")" : ""}`, p.motivo, sit); admAprovacoes(); montarFaixa(true); };
     if ($(".ap", el)) $(".ap", el).onclick = () => decide("aprovado"); if ($(".dv", el)) $(".dv", el).onclick = () => decide("devolvido"); });
 }
@@ -5216,6 +5275,576 @@ function admTrilha(){
   $("#t-csv").onclick = () => salvarCSV(["numero","quando","quem","operacao","reservatorio","codigo","detalhe","motivo","situacao"], filtrada().map(x => [x.n, x.quando, x.quem, x.op, x.res, x.cod, x.detalhe, x.motivo, x.situacao]), "sar_trilha_auditoria.csv");
   lista();
 }
+
+/* ---------------- área administrativa, segunda rodada (Diego, 19/09/2026): cobertura, valores suspeitos, inclusão,
+   códigos das fontes, agrupamentos, avisos e textos, parâmetros, e o histórico de revisões na ficha pública */
+// correspondência de códigos das fontes do NE: Verificação NE SAR (CORSH, ago/2026), extraída em 12/09/2026
+const DEPARA_NE = {"_meta": {"origem": "notebook_funceme_aesa_apac_unificado.ipynb (Verificação NE SAR, ago/2026)", "extraido_em": "2026-09-12", "res_id": "código do reservatório em syndb_coletorReservatorio.dbo.reservatorio (faixa 12xxx = sistema NE)", "validacao": "AESA: cota interpolada na cotavolume reproduz o volume (razão 1,00); APAC: capacidade implícita, razões 0,82-1,06 ('NILO COELHO (TERRA NOVA)' refutado e removido)"}, "funceme_id_para_res_id": {"2661": 12540, "2462": 12001, "2350": 12002, "78": 12003, "1": 12004, "2197": 12005, "32": 12006, "2481": 12008, "2047": 12009, "2473": 12010, "2286": 12011, "2399": 12012, "2428": 12013, "2295": 12014, "2471": 12015, "2347": 12016, "2390": 12017, "2414": 12018, "45": 12019, "2027": 12020, "2391": 12021, "2043": 12022, "112": 12023, "2034": 12024, "2203": 12025, "2041": 12026, "234": 12027, "2003": 12028, "2467": 12029, "31": 12030, "2345": 12031, "2317": 12032, "240": 12033, "83": 12034, "2270": 12035, "47": 12036, "49": 12037, "2209": 12038, "2": 12039, "2033": 12040, "2322": 12041, "2324": 12042, "163": 12043, "2411": 12044, "2353": 12045, "2226": 12046, "2292": 12047, "173": 12048, "2427": 12049, "2367": 12050, "2396": 12051, "177": 12052, "2264": 12053, "2493": 12054, "2372": 12055, "2337": 12056, "2340": 12057, "2406": 12058, "2310": 12059, "2233": 12060, "2332": 12061, "2403": 12062, "64": 12063, "2460": 12064, "2424": 12065, "2435": 12066, "2237": 12067, "2387": 12068, "2299": 12069, "2449": 12070, "2363": 12071, "2364": 12072, "125": 12073, "2335": 12074, "2210": 12075, "2349": 12076, "170": 12077, "2311": 12078, "2240": 12079, "2200": 12080, "2479": 12081, "2323": 12082, "2327": 12083, "2344": 12084, "2242": 12085, "2312": 12086, "2362": 12087, "2413": 12088, "2393": 12089, "2436": 12090, "2206": 12091, "2001": 12092, "2420": 12093, "2395": 12094, "2253": 12095, "74": 12096, "2266": 12097, "127": 12098, "33": 12099, "2211": 12100, "2205": 12101, "2400": 12102, "2276": 12103, "2022": 12104, "65": 12105, "2477": 12106, "236": 12107, "2445": 12108, "53": 12109, "2214": 12110, "2381": 12111, "194": 12112, "97": 12113, "2241": 12114, "223": 12115, "158": 12116, "3": 12117, "4": 12118, "2052": 12119, "2283": 12120, "2026": 12121, "2351": 12122, "2333": 12123, "2275": 12124, "2302": 12125, "84": 12126, "2035": 12127, "2265": 12128, "2049": 12129, "2476": 12130, "2004": 12131, "133": 12132, "2213": 12133, "2202": 12134, "2466": 12135, "2054": 12136, "2301": 12137, "2014": 12138, "2267": 12139, "2440": 12140, "2474": 12141, "34": 12142, "2490": 12143, "2257": 12145, "2451": 12146, "2438": 12147, "197": 12148, "2380": 12149, "2008": 12150, "178": 12151, "60": 12152, "134": 12153, "2009": 12154, "2439": 12155, "2309": 12156, "2369": 12157, "2375": 12158, "5": 12159, "30": 12160, "2282": 12161, "2307": 12162, "2461": 12163, "2468": 12164, "2212": 12165, "2196": 12166, "2346": 12167, "2320": 12168, "2384": 12169, "2368": 12170, "2341": 12171, "2195": 12172, "2228": 12173, "2433": 12174, "2407": 12175, "2053": 12176, "239": 12177, "59": 12178, "2219": 12179, "2405": 12180, "6": 12181, "2281": 12182, "2459": 12183, "172": 12184, "2492": 12185, "119": 12186, "51": 12187, "72": 12188, "2031": 12189, "77": 12190, "2271": 12191, "2023": 12192, "2305": 12193, "169": 12194, "95": 12195, "2288": 12196, "7": 12197, "1123": 12198, "2289": 12199, "2478": 12200, "2379": 12201, "36": 12202, "2204": 12203, "2013": 12204, "2389": 12205, "2269": 12206, "2365": 12207, "2315": 12208, "2410": 12209, "2419": 12210, "2360": 12211, "2316": 12212, "2036": 12213, "2037": 12214, "2470": 12215, "2431": 12216, "244": 12217, "180": 12218, "69": 12219, "52": 12220, "2007": 12221, "2306": 12222, "2415": 12223, "2002": 12224, "135": 12225, "2227": 12226, "2254": 12227, "2329": 12228, "2285": 12229, "171": 12230, "2201": 12231, "1120": 12232, "2397": 12233, "2263": 12234, "121": 12235, "2443": 12236, "2394": 12237, "2038": 12238, "2039": 12239, "28": 12240, "2223": 12241, "2326": 12242, "2383": 12243, "189": 12244, "2422": 12245, "2199": 12246, "2354": 12247, "2417": 12248, "2421": 12249, "2293": 12250, "2252": 12251, "2472": 12252, "2331": 12253, "63": 12254, "2277": 12255, "2348": 12256, "2442": 12257, "2030": 12258, "199": 12259, "164": 12260, "2491": 12261, "2338": 12262, "2017": 12263, "235": 12264, "2455": 12265, "2402": 12266, "201": 12267, "8": 12268, "2012": 12269, "2465": 12270, "2434": 12271, "2278": 12272, "2321": 12273, "126": 12274, "2303": 12275, "2376": 12276, "2426": 12277, "2298": 12278, "2051": 12279, "1119": 12280, "161": 12281, "2448": 12282, "2319": 12283, "2025": 12284, "2221": 12285, "2318": 12286, "61": 12287, "2432": 12288, "168": 12289, "2279": 12290, "2357": 12291, "2401": 12292, "26": 12293, "2300": 12294, "2385": 12295, "2297": 12296, "155": 12297, "2258": 12298, "9": 12299, "2287": 12300, "80": 12301, "88": 12302, "2011": 12303, "2021": 12304, "2382": 12305, "2370": 12306, "2260": 12307, "89": 12308, "2010": 12309, "2452": 12310, "2430": 12311, "2425": 12312, "56": 12313, "10": 12314, "2342": 12315, "2464": 12316, "2358": 12317, "148": 12318, "2392": 12319, "2024": 12320, "2409": 12321, "2044": 12322, "11": 12323, "179": 12324, "12": 12325, "192": 12326, "2398": 12327, "2412": 12328, "2458": 12329, "2235": 12330, "2314": 12331, "2048": 12332, "2050": 12333, "167": 12334, "2220": 12335, "2374": 12336, "2262": 12337, "2480": 12338, "2251": 12339, "2423": 12340, "27": 12341, "2019": 12342, "67": 12343, "2386": 12345, "2352": 12346, "2245": 12347, "90": 12348, "2215": 12349, "2408": 12350, "2248": 12351, "13": 12352, "2020": 12353, "2045": 12354, "82": 12355, "2361": 12356, "2291": 12357, "14": 12358, "62": 12359, "79": 12360, "2230": 12361, "2046": 12362, "68": 12363, "15": 12364, "16": 12365, "2355": 12366, "54": 12367, "2006": 12368, "117": 12369, "2457": 12370, "186": 12371, "2255": 12372, "2018": 12373, "17": 12375, "2225": 12376, "2250": 12377, "2475": 12378, "2429": 12379, "174": 12380, "2456": 12381, "2042": 12382, "2330": 12383, "181": 12384, "2284": 12385, "2441": 12386, "2198": 12387, "2356": 12388, "18": 12389, "2339": 12390, "2404": 12391, "2454": 12392, "2418": 12393, "2040": 12394, "2218": 12395, "2238": 12396, "166": 12397, "55": 12398, "2274": 12399, "2222": 12400, "233": 12401, "2446": 12402, "50": 12403, "19": 12404, "141": 12405, "2249": 12406, "190": 12407, "2261": 12408, "2208": 12409, "2005": 12410, "2032": 12411, "39": 12412, "2290": 12414, "85": 12415, "2334": 12416, "2296": 12417, "185": 12418, "2304": 12419, "2229": 12420, "20": 12421, "2247": 12422, "21": 12423, "2236": 12424, "2308": 12425, "81": 12426, "99": 12427, "2280": 12428, "2234": 12429, "2239": 12430, "2325": 12431, "2336": 12432, "2328": 12433, "2259": 12435, "2016": 12436, "2373": 12437, "2273": 12438, "2388": 12439, "159": 12440, "22": 12441, "2216": 12443, "2453": 12444, "160": 12445, "66": 12446, "2207": 12447, "2313": 12448, "2378": 12449, "2217": 12450, "2232": 12451, "2366": 12452, "254": 12453, "75": 12454, "2246": 12455, "2244": 12456, "92": 12457, "2463": 12458, "23": 12459, "111": 12460, "132": 12461, "2231": 12462, "2447": 12463, "2416": 12464, "96": 12465, "129": 12466, "2015": 12467, "2028": 12468, "2469": 12469, "24": 12470, "122": 12471, "2029": 12472, "58": 12473, "162": 12474, "191": 12475, "2444": 12476, "2450": 12477, "2371": 12478, "2268": 12479, "110": 12480, "2294": 12481, "70": 12482, "25": 12483, "2377": 12484, "2224": 12485, "2343": 12486, "2243": 12487, "2256": 12488, "130": 12489, "2359": 12490, "2437": 12492, "211": 12497, "202": 12523, "217": 12524, "220": 12525, "215": 12526, "44": 12527, "208": 12528, "212": 12529, "210": 12530, "205": 12531, "216": 12532, "213": 12533, "147": 12534, "1124": 12535, "206": 12536}, "aesa_nome_para_res_id": {"Cachoeira dos Cegos": 12080, "Jenipapeiro (Buiú)": 12231, "Capoeira": 12101, "Baião": 12038, "Carneiro": 12110, "Soledade": 12443, "Tapera": 12450, "Mucutu": 12285, "Santo Antônio": 12400, "Escondido": 12173, "Bom Jesus II": 12060, "Serra Branca II": 12429, "Catolé I": 12114, "Cacimba de Várzea": 12085, "Vazante": 12487, "Tavares II": 12456, "Poleiros": 12351, "Curimataú": 12145, "Olivedos": 12298, "Jatobá II": 12227, "Serrote": 12435, "Paraíso (Luiz Oliveira)": 12307, "São Francisco II": 12408, "Pirpirituba": 12337, "Bichinho": 12053, "Cochos": 12128, "Frutuoso II": 12191, "Santa Rosa": 12399, "Caraibeiras": 12103, "Livramento (Russos)": 12255, "Serra Branca I": 12428, "Felismina Queiroz": 12182, "Chã dos Pereiras": 12120, "Jenipapeiro": 12229, "Sabonete": 12385, "Albino": 12011, "Ouro Velho": 12300, "Gavião": 12196, "Glória": 12199, "Prata II": 12357, "São José II": 12414, "Bastiana": 12047, "Riacho Verde": 12493, "Lagoa do Matias": 12250, "Algodão": 12014, "São José III": 12417, "Brejinho": 12069, "Covão": 12137, "Manguape": 12539, "Chupadouro II": 12125, "Massaranduba": 12275, "Jangada": 12222, "Emídio": 12162, "São Sebastião": 12425, "Duas Estradas": 12156, "Cafundó": 12086, "Suspiro": 12448, "Pimenta": 12331}, "apac_nome_para_res_id": {"SERRO AZUL": 12538, "SACO II": 12388, "SACO I": 12537, "PAO DE ACUCAR": 12306, "BOTAFOGO": 12068, "VARZEA DO UNA": 12484, "UTINGA": 12478, "PALMEIRINHA/PEDRAFINA": 12305, "IPANEMINHA": 12212, "JUA": 12242, "SICUPEMA": 12437, "BITA": 12055, "DUAS SERRAS": 12157}};
+// textos editáveis: o padrão vem do próprio código das páginas ({janela_ne} = parâmetro da janela do NE)
+const TEXTOS_PAD = {"inicio": "Acompanhe, dia a dia, a operação dos principais reservatórios do Brasil.", "sin": "O Sistema Interligado Nacional (SIN) reúne as usinas hidrelétricas operadas sob coordenação do Operador Nacional do Sistema Elétrico (ONS). Parte delas tem reservatório de regularização, cujo volume útil permite armazenar água no período úmido para uso no período seco; as demais operam a fio d'água, sem capacidade de regularização significativa, e dependem das afluências naturais e da operação dos reservatórios a montante. A operação desses reservatórios considera a geração de energia, o controle de cheias e os usos múltiplos da água.", "ne_lead": "Açudes dos nove estados do Nordeste e do semiárido de Minas Gerais: volume acumulado de cada estado e do conjunto, situação de cada reservatório e, onde ainda não há volume calculado, o nível.", "ne_intro": "Os reservatórios do semiárido não são medidos todos os dias. Para a <b>data de referência</b>, cada um entra com a medição mais próxima, até {janela_ne} dias antes ou depois.", "outros": "Três sistemas de abastecimento público, com dados diários: o Sistema Cantareira, que abastece grande parte da Região Metropolitana de São Paulo; os reservatórios do Distrito Federal (Descoberto, Santa Maria e Lago Paranoá); e o Sistema Paraopeba (Rio Manso, Vargem das Flores e Serra Azul), que contribui para o abastecimento da Região Metropolitana de Belo Horizonte.", "cantareira": "Jaguari-Jacareí, Cachoeira, Atibainha e Paiva Castro, ligados por túneis, abastecem a Região Metropolitana de São Paulo pela Estação Elevatória Santa Inês e liberam água para as bacias dos rios Piracicaba, Capivari e Jundiaí (PCJ). A operação segue a Resolução Conjunta ANA/DAEE nº 925/2017.", "dados": "Escolha os reservatórios, as variáveis e o período e baixe a série no formato do SAR, com o dicionário das variáveis e as fontes. Reservatórios de módulos diferentes podem ir no mesmo arquivo."};
+const TEXTOS_ED = [
+  {k:"inicio", r:"Página inicial · frase de apresentação", rota:h => h==="" || h==="inicio", sel:".lead-hero", ir:"inicio"},
+  {k:"sin", r:"Sistema Interligado Nacional · apresentação", rota:h => h==="sin", sel:"#conteudo .intro > p:first-child", ir:"sin"},
+  {k:"ne_lead", r:"Nordeste e Semiárido · subtítulo", rota:h => h==="ne", sel:"#titulo-pag .lead", ir:"ne"},
+  {k:"ne_intro", r:"Nordeste e Semiárido · apresentação", rota:h => h==="ne", sel:"#conteudo .intro > p:first-child", ir:"ne"},
+  {k:"outros", r:"Outros Sistemas Hídricos · apresentação", rota:h => h==="outros", sel:"#conteudo .intro > p:first-child", ir:"outros"},
+  {k:"cantareira", r:"Sistema Cantareira · subtítulo", rota:h => h==="outros/cantareira", sel:"#titulo-pag .lead", ir:"outros/cantareira"},
+  {k:"dados", r:"Área de dados · subtítulo", rota:h => h==="dados", sel:"#titulo-pag .lead", ir:"dados"}];
+const FCRIT = (NEd.nivel && NEd.nivel.filtro) || {grosso_cm:2000, pico_cm:50, degrau_cm:150, volta_dias:20, suspeito_cm:300};
+const PARAM_ADM = [
+  {k:"janela_ne", g:"Nordeste e Semiárido", r:"Janela da medição mais próxima da data de referência", v:NEd.limiar_dias, u:"dias", dec:0, apr:true,
+    onde:"Volume acumulado, faixas, mapa e tabelas do Nordeste e Semiárido", fonte:"SAR, Entendendo o Mapa, a Tabela e o Gráfico"},
+  {k:"crit_grosso", g:"Crítica de cota", r:"Erro grosseiro: distância da mediana do ano da estação", v:FCRIT.grosso_cm/100, u:"m", dec:1, apr:true, onde:"Série aceita (todas as páginas, área de dados e API)", fonte:"Regras de crítica do protótipo"},
+  {k:"crit_pico", g:"Crítica de cota", r:"Pico de um dia: diferença para as duas leituras vizinhas, no mesmo sentido", v:FCRIT.pico_cm, u:"cm", dec:0, apr:true, onde:"Série aceita", fonte:"Regras de crítica do protótipo"},
+  {k:"crit_degrau", g:"Crítica de cota", r:"Degrau que volta: salto mínimo", v:FCRIT.degrau_cm/100, u:"m", dec:1, apr:true, onde:"Série aceita", fonte:"Regras de crítica do protótipo"},
+  {k:"crit_volta", g:"Crítica de cota", r:"Degrau que volta: prazo para o salto ser desfeito", v:FCRIT.volta_dias, u:"dias", dec:0, apr:true, onde:"Série aceita", fonte:"Regras de crítica do protótipo"},
+  {k:"crit_suspeito", g:"Crítica de cota", r:"Salto a verificar: salto entre leituras que as regras acima não explicam", v:FCRIT.suspeito_cm/100, u:"m", dec:1, apr:true, onde:"Estações só com nível (saem das contagens até a conferência)", fonte:"Regras de crítica do protótipo"},
+  {k:"hora_limite", g:"Área de dados", r:"Período máximo por pedido na base horária", v:1, u:"ano", dec:0, apr:false, onde:"Área de dados (base horária do SIN)", fonte:"Proposta; valor a definir (estrutura/area_dados.md)"},
+  {k:"cob_sin", g:"Cobertura", r:"Prazo de alerta sem dado: SIN", v:1, u:"dias", dec:0, apr:false, onde:"Painel de cobertura", fonte:"Valor inicial ilustrativo; a CORSH define"},
+  {k:"cob_ne", g:"Cobertura", r:"Prazo de alerta sem dado: Nordeste e Semiárido", v:NEd.limiar_dias, u:"dias", dec:0, apr:false, onde:"Painel de cobertura", fonte:"Valor inicial ilustrativo (igual à janela); a CORSH define"},
+  {k:"cob_os", g:"Cobertura", r:"Prazo de alerta sem dado: Outros Sistemas", v:3, u:"dias", dec:0, apr:false, onde:"Painel de cobertura", fonte:"Valor inicial ilustrativo; a CORSH define"}];
+const parAdm = k => { const p = PARAM_ADM.find(x => x.k === k); return ADM.params[k] ?? p.v; };
+const textoHTML = s => s.replace(/\{janela_ne\}/g, fint(NEd.limiar_dias));   // a janela em vigor nas páginas
+const txtParaEd = h => h.replace(/<b>(.*?)<\/b>/g, "**$1**").replace(/<[^>]+>/g, "").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+const edParaTxt = s => esc(s.trim()).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+
+// escolha de reservatório independente da seleção da correção de série
+function escolherRes(host, filtro, atual, aoEscolher, ph){
+  const E = entidadesDados().filter(e => !filtro || filtro(e));
+  host.innerHTML = `<div class="adm-sel"><div class="busca-dados"><input type="search" placeholder="${ph || "Buscar reservatório por nome, código, município ou estado"}" aria-label="Buscar reservatório" autocomplete="off"></div><div class="adm-sel-res" hidden></div>
+    ${atual ? `<p class="adm-atual"><span class="tag" style="background:${COR_MOD[atual.mod]}">${ROT_MOD[atual.mod]}</span><b>${esc(atual.nome)}</b><span>${atual.codigo ? "código " + esc(atual.codigo) + " · " : ""}${esc([atual.municipio, atual.uf].filter(Boolean).join(", "))}</span></p>` : ""}</div>`;
+  const q = $("input", host), box = $(".adm-sel-res", host);
+  q.oninput = () => { const termos = semAc(q.value).split(/\s+/).filter(Boolean); if (!termos.length){ box.hidden = true; return; }
+    const R = E.filter(x => termos.every(tm => x.busca.includes(tm))).map(x => ({x, s:termos.reduce((a, tm) => a + (x.nomeB.startsWith(tm) ? 3 : x.nomeB.includes(tm) ? 2 : 1), 0)}))
+      .sort((a, b) => b.s - a.s || a.x.nome.localeCompare(b.x.nome, "pt-BR")).slice(0, 8).map(o => o.x);
+    box.hidden = false;
+    box.innerHTML = R.length ? R.map(x => `<button type="button" class="res" data-id="${esc(x.id)}"><span class="n">${esc(x.nome)}</span><span class="d">${esc([x.municipio, x.uf].filter(Boolean).join(", "))}${x.codigo ? " · código " + esc(x.codigo) : ""}</span><span class="m">${ROT_MOD[x.mod]}</span></button>`).join("") : '<p class="nota" style="padding:8px 12px;margin:0">Nenhum reservatório encontrado.</p>';
+    $$("button", box).forEach(b => b.onclick = () => aoEscolher(E.find(x => x.id === b.dataset.id))); };
+}
+const coordEnt = e => e.src==="sin" || e.src==="ne" ? (e.r.lat!=null ? [e.r.lat, e.r.lon] : null) : e.src==="nv" ? (e.st.lat!=null ? [e.st.lat, e.st.lon] : null)
+  : e.src==="os" ? (COORD_OS[e.codigo] || null) : e.src==="novo" ? e.coord : null;
+const distKm = (a, b) => { const R = 6371, r = x => x*Math.PI/180, dLa = r(b[0]-a[0]), dLo = r(b[1]-a[1]);
+  return 2*R*Math.asin(Math.sqrt(Math.sin(dLa/2)**2 + Math.cos(r(a[0]))*Math.cos(r(b[0]))*Math.sin(dLo/2)**2)); };
+const retiradoAdm = e => ADM.modo[e.id] ? ADM.modo[e.id]==="retirado" : !!e.retirado;
+function intAdm(e){ if (e.src==="sin") return "ons-dia"; if (e.src==="nv") return "hidro"; if (e.src==="os" || e.src==="can") return e.sis==="cantareira" ? "sabesp" : "gdh";
+  return {CE:"ce", PB:"pb", PE:"pe"}[e.uf] || ""; }
+
+/* ---------------- cobertura por reservatório */
+function ultimaLeitura(e){
+  if (e.src==="sin"){ const r = e.r; return ["cota","afl","defl","vu"].some(c => r[c]!=null) ? D.data : null; }
+  if (e.src==="ne"){ const fi = NEd.fichas && NEd.fichas[e.codigo];
+    if (fi && fi.serie){ for (let i = fi.serie.length - 1; i >= 0; i--) if (fi.serie[i][1]!=null || fi.serie[i][2]!=null) return fi.serie[i][0]; return null; }
+    const s = e.r.s || []; for (let i = s.length - 1; i >= 0; i--) if (s[i][1]!=null || s[i][2]!=null || s[i][3]!=null) return isoDia(s[i][0]); return null; }
+  if (e.src==="nv"){ const s = e.st.s || []; for (let i = s.length - 1; i >= 0; i--) if (s[i][1]!=null) return isoDia(s[i][0]); return null; }
+  if (e.src==="os"){ const c = e.F.cota; for (let i = c.length - 1; i >= 0; i--) if (c[i]!=null) return isoMais(e.F.de, i); return null; }
+  if (e.src==="can") return CAN.ate;
+  return null;
+}
+let COB = null;
+function coberturaAdm(){
+  if (!COB){ const E = entidadesDados(); COB = E.map(e => ({e, ult:ultimaLeitura(e)}));
+    COB.ref = {}; ["SIN","NE","OUTROS"].forEach(m => { const ds = COB.filter(c => c.e.mod===m && c.ult).map(c => c.ult).sort(); COB.ref[m] = ds[ds.length - 1]; }); }
+  const prazo = {SIN:parAdm("cob_sin"), NE:parAdm("cob_ne"), OUTROS:parAdm("cob_os")};
+  COB.forEach(c => { c.dias = c.ult ? diaEntre(COB.ref[c.e.mod], c.ult) : null;
+    c.sit = retiradoAdm(c.e) ? "ret" : c.e.src==="novo" ? "novo" : c.ult==null ? "sem" : c.dias > prazo[c.e.mod] ? "atr" : "ok"; });
+  COB.prazo = prazo; return COB;
+}
+const SIT_COB = {ok:["em dia","ok"], atr:["atrasado","erro"], sem:["sem leitura em 12 meses","erro"], ret:["retirado do acompanhamento","cinza"], novo:["aguardando a primeira carga","fila"]};
+function admCobertura(){
+  const C = coberturaAdm(), mods = [["SIN","SIN"],["NE","Nordeste e Semiárido"],["OUTROS","Outros Sistemas"]];
+  const nAlerta = C.filter(c => c.sit==="atr" || c.sit==="sem").length;
+  tituloAdm("Cobertura", "Reservatório por reservatório: quando chegou a última leitura e quem está sem dado além do prazo do módulo.", `<span><b>${fint(nAlerta)}</b> reservatórios em alerta</span>`);
+  const st = {mod:"", sit:"alerta", uf:"", txt:"", mostrar:25};
+  const ufs = [...new Set(C.map(c => c.e.uf).filter(Boolean))].sort();
+  $("#conteudo").innerHTML = `
+    <nav class="indice" aria-label="Seções da página"><a href="#admin/cobertura" data-alvo="cb-res">Por módulo</a><a href="#admin/cobertura" data-alvo="cb-lista">Por reservatório</a></nav>
+    <section class="cartao secao" id="cb-res" aria-labelledby="t-cb-res"><h2 id="t-cb-res"><small>1</small>Por módulo</h2>
+      <p class="sub">Dias sem dado contados até o dado mais recente de cada módulo no protótipo. O prazo de alerta de cada módulo fica em <a href="#admin/parametros">Parâmetros</a>. Os retirados do acompanhamento não entram no alerta.</p>
+      <div class="tab-box"><table><thead><tr><th>Módulo</th><th class="r">Acompanhados</th><th class="r">Em dia</th><th class="r">Atrasados</th><th class="r">Sem leitura em 12 meses</th><th class="r">Retirados</th><th>Dado mais recente</th><th class="r">Prazo de alerta</th></tr></thead>
+      <tbody>${mods.map(([m, r]) => { const X = C.filter(c => c.e.mod===m), n = s => X.filter(c => c.sit===s).length;
+        return `<tr><td><span class="nm">${r}</span></td><td class="r num">${fint(X.length - n("ret"))}</td><td class="r num">${fint(n("ok"))}</td><td class="r num">${n("atr") ? `<span class="adm-sit erro">${fint(n("atr"))}</span>` : "0"}</td><td class="r num">${n("sem") ? `<span class="adm-sit erro">${fint(n("sem"))}</span>` : "0"}</td><td class="r num">${fint(n("ret"))}</td><td>${C.ref[m] ? dBR(C.ref[m]) : "–"}</td><td class="r num">${fint(C.prazo[m])} ${C.prazo[m]===1 ? "dia" : "dias"}</td></tr>`; }).join("")}</tbody></table></div>
+      <p class="nota">Protótipo: o SIN traz só o dia mais recente de cada usina; o Nordeste, 12 meses (série longa nas três fichas de exemplo); Outros Sistemas, a série completa. No sistema, a última leitura vem do banco, com a série inteira.</p>
+    </section>
+    <section class="cartao secao" id="cb-lista" aria-labelledby="t-cb-lista"><h2 id="t-cb-lista"><small>2</small>Por reservatório</h2>
+      <div class="baixar"><button type="button" id="cb-csv"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8m0 0L5 7m3 3 3-3M3 13h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>CSV</button></div>
+      <p class="sub">Do maior atraso para o menor. Da linha sai a carga forçada da fonte do reservatório.</p>
+      <div class="adm-form"><span class="seg" role="group" aria-label="Módulo">${[["","Todos"], ...mods].map(([v, r]) => `<button type="button" data-m="${v}" aria-pressed="${v===""}">${r}</button>`).join("")}</span>
+        <label>Situação<select id="cb-sit"><option value="alerta">Atrasados e sem leitura</option><option value="">Todas</option><option value="ok">Em dia</option><option value="ret">Retirados do acompanhamento</option><option value="novo">Aguardando a primeira carga</option></select></label>
+        <label>UF<select id="cb-uf"><option value="">Todas</option>${ufs.map(u => `<option>${u}</option>`).join("")}</select></label>
+        <label class="largo">Busca<input type="text" id="cb-busca" placeholder="Nome, código ou município"></label></div>
+      <p class="nota" id="cb-n"></p>
+      <div class="tab-box adm-tab"><table><thead><tr><th>Reservatório</th><th>Módulo</th><th>UF</th><th>Última leitura</th><th class="r">Dias sem dado</th><th>Situação</th><th></th></tr></thead><tbody id="cb-corpo"></tbody></table></div>
+      <p class="mais-res" id="cb-mais"></p></section>`;
+  const filtrada = () => { const tm = semAc(st.txt).split(/\s+/).filter(Boolean);
+    return C.filter(c => (!st.mod || c.e.mod===st.mod) && (!st.uf || c.e.uf===st.uf) && (!st.sit || (st.sit==="alerta" ? c.sit==="atr" || c.sit==="sem" : c.sit===st.sit)) && tm.every(t => c.e.busca.includes(t)))
+      .sort((a, b) => (b.dias ?? 1e9) - (a.dias ?? 1e9) || a.e.nome.localeCompare(b.e.nome, "pt-BR")); };
+  function lista(){ const L = filtrada(), vis = L.slice(0, st.mostrar);
+    $("#cb-n").textContent = `${fint(L.length)} ${L.length===1 ? "reservatório" : "reservatórios"}.`;
+    $("#cb-corpo").innerHTML = vis.map(c => `<tr><td><span class="nm">${esc(c.e.nome)}</span>${c.e.codigo ? `<span class="rio">código ${esc(c.e.codigo)}</span>` : ""}</td><td>${ROT_MOD[c.e.mod]}</td><td>${esc(c.e.uf || "–")}</td>
+      <td>${c.ult ? dBR(c.ult) : "–"}</td><td class="r num">${c.dias==null ? "–" : fint(c.dias)}</td><td><span class="adm-sit ${SIT_COB[c.sit][1]}">${SIT_COB[c.sit][0]}</span></td>
+      <td class="r">${intAdm(c.e) && c.sit !== "ret" ? `<button type="button" class="acao sec adm-forcar" data-id="${esc(c.e.id)}"${podeEditar() ? "" : " disabled"}>Forçar carga</button>` : ""}</td></tr>`).join("") || `<tr><td colspan="7" class="nota">Nenhum reservatório com esse filtro.</td></tr>`;
+    $("#cb-mais").innerHTML = L.length > vis.length ? `<button type="button" class="acao sec">Mostrar mais (${fint(L.length - vis.length)} restantes)</button>` : "";
+    if ($("#cb-mais button")) $("#cb-mais button").onclick = () => { st.mostrar += 50; lista(); };
+    $$("#cb-corpo .adm-forcar").forEach(b => b.onclick = () => { ADM.ent = C.find(c => c.e.id === b.dataset.id).e; ADM.forcarUm = true; location.hash = "admin"; }); }
+  $$("#cb-lista .seg button").forEach(b => b.onclick = () => { st.mod = b.dataset.m; $$("#cb-lista .seg button").forEach(x => x.setAttribute("aria-pressed", x === b)); st.mostrar = 25; lista(); });
+  $("#cb-sit").onchange = e => { st.sit = e.target.value; st.mostrar = 25; lista(); };
+  $("#cb-uf").onchange = e => { st.uf = e.target.value; st.mostrar = 25; lista(); };
+  $("#cb-busca").oninput = e => { st.txt = e.target.value; st.mostrar = 25; lista(); };
+  $("#cb-csv").onclick = () => salvarCSV(["codigo","reservatorio","modulo","uf","ultima_leitura","dias_sem_dado","situacao"], filtrada().map(c => [c.e.codigo, c.e.nome, ROT_MOD[c.e.mod], c.e.uf, c.ult ? dBR(c.ult) : "", c.dias, SIT_COB[c.sit][0]]), "sar_cobertura.csv");
+  lista();
+}
+
+/* ---------------- fila de valores suspeitos */
+let SUSP = null;
+function suspeitosAdm(){
+  if (SUSP) return SUSP;
+  const L = [], E = entidadesDados();
+  // valores que as regras de crítica barraram nas fichas do Nordeste (séries desde 2006)
+  Object.values(NEd.fichas || {}).forEach(F => { const e = E.find(x => (x.src==="ne" || x.src==="nv") && String(x.codigo)===String(F.codigo)); if (!e) return;
+    Object.entries(F.descartes || {}).forEach(([vv, lista]) => (lista || []).forEach(([t, v, regra]) => { const j = vv==="cota" ? 1 : 3, k = vv==="cota" ? "cota_m" : "volume_pct";
+      let a = null, b = null; for (const l of F.serie){ if (l[j]==null) continue; if (l[0] < t) a = l; else if (l[0] > t){ b = l; break; } }
+      L.push({id:`d|${F.codigo}|${k}|${t}`, tipo:"descarte", e, t, k, v, regra, ant:a && [a[0], a[j]], seg:b && [b[0], b[j]]}); })); });
+  // estações só com nível com salto que as regras não explicam: fora das contagens até a conferência
+  Object.entries(NVE).forEach(([uf, x]) => (x.a_verificar || []).forEach(s => L.push({id:`v|${uf}|${s.nome}`, tipo:"estacao", e:{nome:caso(s.nome), codigo:"", uf, mod:"NE", id:"EST:" + uf + ":" + s.nome}, t:null, k:"cota_m", v:s.maior_salto_cm/100, regra:"salto a verificar", no_sar:s.no_sar})));
+  // SIN: vazão afluente diária negativa (Furnas desde 2000; nas demais usinas, o dia mais recente)
+  const fu = E.find(x => x.src==="sin" && String(x.codigo)===String(D.ficha.codigo)), ia = D.ficha.diario_colunas.indexOf("afl"), Dd = D.ficha.diario;
+  if (fu) Dd.forEach((l, i) => { if (l[ia]!=null && l[ia] < 0) L.push({id:`s|${fu.codigo}|${l[0]}`, tipo:"sin", e:fu, t:l[0], k:"afluente_m3s", v:l[ia], regra:"vazão afluente diária negativa",
+    ant:i ? [Dd[i-1][0], Dd[i-1][ia]] : null, seg:Dd[i+1] ? [Dd[i+1][0], Dd[i+1][ia]] : null}); });
+  E.filter(x => x.src==="sin" && x !== fu && x.r.afl!=null && x.r.afl < 0).forEach(x => L.push({id:`s|${x.codigo}|${D.data}`, tipo:"sin", e:x, t:D.data, k:"afluente_m3s", v:x.r.afl, regra:"vazão afluente diária negativa", ant:null, seg:null}));
+  return SUSP = L;
+}
+const REGRAS_SUSP = () => [
+  ["erro grosseiro", `Cota a mais de ${fmt(parAdm("crit_grosso"), 1)} m da mediana do ano da estação.`, "Cota do Nordeste e Semiárido"],
+  ["pico de um dia", `Leitura a mais de ${fint(parAdm("crit_pico"))} cm das duas vizinhas, no mesmo sentido.`, "Cota e volume do Nordeste e Semiárido"],
+  ["degrau que volta", `Salto de mais de ${fmt(parAdm("crit_degrau"), 1)} m desfeito em até ${fint(parAdm("crit_volta"))} dias.`, "Cota e volume do Nordeste e Semiárido"],
+  ["salto a verificar", `Salto de mais de ${fmt(parAdm("crit_suspeito"), 1)} m entre duas leituras que as regras acima não explicam: a estação sai das contagens até a conferência.`, "Estações só com nível"],
+  ["vazão afluente diária negativa", "Vazão afluente diária abaixo de zero. No SIN a afluência é calculada por balanço hídrico e pode sair negativa.", "SIN, base diária"]];
+const ACOES_SUSP = {descarte:[["confirmar","Confirmar o descarte"],["devolver","Devolver à série"]], estacao:[["manter","Manter fora"],["liberar","Liberar a série"]], sin:[["manter","Manter publicado"],["retirar","Retirar da série"]]};
+function admSuspeitos(){
+  const S = suspeitosAdm(), pend = S.filter(s => !ADM.susp[s.id]);
+  tituloAdm("Valores suspeitos", "Valores que as regras de crítica barraram ou marcaram. Cada um espera uma decisão: fica fora ou volta à série, com o motivo na trilha.", `<span><b>${fint(pend.length)}</b> de ${fint(S.length)} aguardando decisão</span>`);
+  const st = {regra:"", sit:"pend", txt:"", mostrar:20};
+  $("#conteudo").innerHTML = `
+    <nav class="indice" aria-label="Seções da página"><a href="#admin/suspeitos" data-alvo="su-regras">Regras de crítica</a><a href="#admin/suspeitos" data-alvo="su-exc">Exceções por reservatório</a><a href="#admin/suspeitos" data-alvo="su-fila">Fila</a></nav>
+    <section class="cartao secao" id="su-regras" aria-labelledby="t-su-regras"><h2 id="t-su-regras"><small>1</small>Regras de crítica</h2>
+      <p class="sub">Uma regra única, aplicada antes de publicar, vale para as páginas, a área de dados e a API. Os limites ficam em <a href="#admin/parametros">Parâmetros</a> e mudam só com aprovação.</p>
+      <div class="tab-box"><table><thead><tr><th>Regra</th><th>Quando barra</th><th>Onde</th><th class="r">Na fila</th><th class="r">Aguardando</th></tr></thead>
+        <tbody>${REGRAS_SUSP().map(([k, d, o]) => `<tr><td><span class="nm">${k[0].toUpperCase() + k.slice(1)}</span></td><td>${esc(d)}</td><td>${o}</td><td class="r num">${fint(S.filter(s => s.regra===k).length)}</td><td class="r num">${fint(pend.filter(s => s.regra===k).length)}</td></tr>`).join("")}</tbody></table></div>
+      <p class="nota">Protótipo: a fila traz o que as regras barraram nas séries embutidas: os valores descartados das três fichas de exemplo do Nordeste (desde 2006), as estações só com nível com série a verificar e as vazões afluentes diárias negativas do SIN (Furnas desde 2000; nas demais usinas, o dia mais recente). No sistema, o valor barrado espera a decisão antes de ser publicado.</p></section>
+    <section class="cartao secao" id="su-exc" aria-labelledby="t-su-exc"><h2 id="t-su-exc"><small>2</small>Exceções por reservatório</h2>
+      <p class="sub">Limite próprio de uma regra para um reservatório (por exemplo, açude que enche vários metros num dia de cheia). A exceção passa por aprovação, porque muda o que é publicado.</p>
+      <div id="su-sel"></div>
+      <div class="adm-form"><label>Regra<select id="su-regra">${REGRAS_SUSP().slice(0, 4).map(([k]) => `<option>${k}</option>`).join("")}</select></label><label>Limite próprio<input type="text" id="su-lim" inputmode="decimal" placeholder="Ex.: 3,0"></label>
+        <label class="largo">Motivo<input type="text" id="su-mot" placeholder="Ex.: açude de enchimento rápido"></label><button type="button" class="acao" id="su-exc-ir"${podeEditar() ? "" : " disabled"}>Enviar para aprovação</button></div>
+      <div id="su-exc-lista"></div></section>
+    <section class="cartao secao" id="su-fila" aria-labelledby="t-su-fila"><h2 id="t-su-fila"><small>3</small>Fila</h2>
+      <p class="sub">Decisão sobre um valor vale como edição pontual: sem aprovação, com motivo e trilha. Liberar a série inteira de uma estação passa por aprovação, porque ela entra nas contagens.</p>
+      <div class="adm-form"><label>Regra<select id="su-f-regra"><option value="">Todas</option>${REGRAS_SUSP().map(([k]) => `<option>${k}</option>`).join("")}</select></label>
+        <label>Situação<select id="su-f-sit"><option value="pend">Aguardando decisão</option><option value="dec">Decididos</option><option value="">Todos</option></select></label>
+        <label class="largo">Busca<input type="text" id="su-f-busca" placeholder="Reservatório ou estação"></label></div>
+      <p class="nota" id="su-n"></p><div id="su-lista"></div><p class="mais-res" id="su-mais"></p></section>`;
+  let alvo = null;
+  const sel = () => escolherRes($("#su-sel"), e => e.mod==="NE", alvo, e => { alvo = e; sel(); });
+  sel();
+  const excs = () => { $("#su-exc-lista").innerHTML = ADM.excecoes.length ? `<div class="tab-box"><table><thead><tr><th>Reservatório</th><th>Regra</th><th class="r">Limite próprio</th><th>Motivo</th><th>Situação</th></tr></thead><tbody>${ADM.excecoes.map(x => `<tr><td><span class="nm">${esc(x.nome)}</span></td><td>${esc(x.regra)}</td><td class="r num">${esc(x.lim)}</td><td>${esc(x.mot)}</td><td>${esc(x.sit)}</td></tr>`).join("")}</tbody></table></div>` : '<p class="nota">Nenhuma exceção nesta sessão. No protótipo, a fila não é recalculada com as exceções.</p>'; };
+  excs();
+  $("#su-exc-ir").onclick = () => { const lim = numBR($("#su-lim").value), mot = $("#su-mot").value.trim(), regra = $("#su-regra").value;
+    if (!alvo || lim==null || !mot){ toast("Escolha o reservatório e informe o limite e o motivo."); return; }
+    const x = {nome:alvo.nome, regra, lim:fmt(lim, 1), mot, sit:"aguardando aprovação"}; ADM.excecoes.unshift(x);
+    pedidoAdm("Exceção de crítica", alvo, `Regra <b>${esc(regra)}</b> com limite próprio de <b>${fmt(lim, 1)}</b> para este reservatório.`, mot, () => { x.sit = "vigente"; }); excs(); };
+  const nomeK = k => nomeVar(CAT_VARS.find(v => v.k === k));
+  const filtrada = () => { const tm = semAc(st.txt).split(/\s+/).filter(Boolean);
+    return S.filter(s => (!st.regra || s.regra===st.regra) && (!st.sit || (st.sit==="pend" ? !ADM.susp[s.id] : !!ADM.susp[s.id])) && tm.every(t => semAc(s.e.nome + " " + s.e.codigo + " " + s.e.uf).includes(t))); };
+  function lista(){ const L = filtrada(), vis = L.slice(0, st.mostrar);
+    $("#su-n").textContent = `${fint(L.length)} ${L.length===1 ? "valor" : "valores"}.`;
+    $("#su-lista").innerHTML = vis.length ? `<div class="tab-box adm-tab"><table><thead><tr><th>Reservatório</th><th>Data</th><th>Variável</th><th class="r">Valor</th><th>Vizinhos</th><th>Regra</th><th>Decisão</th></tr></thead><tbody>${vis.map(s => { const d = ADM.susp[s.id], dec = (k, v) => k==="afluente_m3s" ? (Number.isInteger(v) ? 0 : 1) : 2;
+      return `<tr><td><span class="nm">${esc(s.e.nome)}</span><span class="rio">${esc([s.e.codigo ? "código " + s.e.codigo : "", s.e.uf, s.tipo==="estacao" && !s.no_sar ? "fora do cadastro do SAR" : ""].filter(Boolean).join(" · "))}</span></td>
+        <td>${s.t ? dBR(s.t) : "série"}</td><td>${s.tipo==="estacao" ? "Maior salto (m)" : esc(nomeK(s.k))}</td><td class="r num">${fmt(s.v, dec(s.k, s.v))}</td>
+        <td class="viz">${s.ant ? `${fmt(s.ant[1], dec(s.k, s.ant[1]))} em ${dBR(s.ant[0])}` : "–"}<br>${s.seg ? `${fmt(s.seg[1], dec(s.k, s.seg[1]))} em ${dBR(s.seg[0])}` : "–"}</td><td>${esc(s.regra)}</td>
+        <td>${d ? `<span class="adm-sit ${d.acao==="devolver" || d.acao==="liberar" || d.acao==="retirar" ? "fila" : "ok"}">${esc(d.rot)}</span><span class="rio">${esc(d.quem)}, ${esc(d.quando)}</span>`
+          : st.dec && st.dec.id===s.id ? `<span class="adm-dec"><b>${esc(st.dec.rot)}</b><input type="text" class="su-mot" value="${esc(st.dec.pad)}" aria-label="Motivo"><button type="button" class="acao su-ok">Confirmar</button><button type="button" class="acao sec su-canc">Cancelar</button></span>`
+          : podeEditar() ? `<span class="adm-acoes">${ACOES_SUSP[s.tipo].map(([a, r]) => `<button type="button" class="acao sec" data-id="${esc(s.id)}" data-a="${a}">${r}</button>`).join("")}</span>` : '<span class="nota">só editor ou aprovador</span>'}</td></tr>`; }).join("")}</tbody></table></div>` : '<p class="nota">Nenhum valor com esse filtro.</p>';
+    $("#su-mais").innerHTML = L.length > vis.length ? `<button type="button" class="acao sec">Mostrar mais (${fint(L.length - vis.length)} restantes)</button>` : "";
+    if ($("#su-mais button")) $("#su-mais button").onclick = () => { st.mostrar += 40; lista(); };
+    $$("#su-lista [data-a]").forEach(b => b.onclick = () => { const s = S.find(x => x.id === b.dataset.id), a = b.dataset.a;
+      st.dec = {id:s.id, a, rot:b.textContent, pad: a==="confirmar" ? "Conferido: não é leitura real" : a==="manter" ? (s.tipo==="sin" ? "Conferido: resíduo do balanço hídrico, mantido como informado pelo ONS" : "Conferido: série ainda inconsistente") : ""};
+      lista(); const i = $("#su-lista .su-mot"); if (i){ i.focus(); i.select(); } });
+    if ($("#su-lista .su-canc")) $("#su-lista .su-canc").onclick = () => { st.dec = null; lista(); };
+    if ($("#su-lista .su-ok")) $("#su-lista .su-ok").onclick = () => { const mot = $("#su-lista .su-mot").value, d = st.dec; if (!mot.trim()){ toast("Informe o motivo."); return; }
+      st.dec = null; decidir(S.find(x => x.id === d.id), d.a, d.rot, mot); }; }
+  function decidir(s, a, rot, mot){
+    const reg = {acao:a, rot, quem:ADM_USU[ADM.perfil], quando:agoraAdm(), mot};
+    const txt = `${s.t ? dBR(s.t) + " · " : ""}${s.tipo==="estacao" ? "maior salto " + fmt(s.v, 2) + " m" : nomeK(s.k) + " " + fmt(s.v, 2)} (${s.regra})`;
+    if (a==="liberar"){ reg.rot = "liberação aguardando aprovação"; ADM.susp[s.id] = reg;
+      pedidoAdm("Liberar série de estação", s.e, `A estação volta às contagens do Nordeste e Semiárido. Maior salto da série: <b>${fmt(s.v, 2)} m</b> (${esc(s.regra)}).`, mot, () => { reg.rot = "série liberada"; });
+      admSuspeitos(); return; }
+    ADM.susp[s.id] = reg;
+    if (a==="devolver"){ (ADM.novos[s.e.id] = ADM.novos[s.e.id] || []).push({t:s.t, v:{[s.k]:s.v}}); revisaoAdm(s.e, `Valor de ${dBR(s.t)} (${nomeK(s.k)}) devolvido à série depois de conferido`, mot.trim()); }
+    if (a==="retirar"){ (ADM.apagados[s.e.id] = ADM.apagados[s.e.id] || []).push({de:s.t, ate:s.t, vars:[s.k]}); revisaoAdm(s.e, `Valor de ${dBR(s.t)} (${nomeK(s.k)}) retirado da série publicada`, mot.trim()); }
+    trilhaAdm("Valor suspeito: " + rot.toLowerCase(), s.e.id ? s.e : {nome:s.e.nome, codigo:""}, txt, mot.trim(), "gravado");
+    toast(`${rot}: registrado na trilha.`); lista(); abasAdm(); }
+  $("#su-f-regra").onchange = e => { st.regra = e.target.value; st.mostrar = 20; lista(); };
+  $("#su-f-sit").onchange = e => { st.sit = e.target.value; st.mostrar = 20; lista(); };
+  $("#su-f-busca").oninput = e => { st.txt = e.target.value; st.mostrar = 20; lista(); };
+  lista();
+}
+
+/* ---------------- inclusão de reservatório: rascunho → revisão → publicação */
+const FONTES_INC = ["ONS", "FUNCEME", "AESA", "APAC", "COGERH", "HidroInfoAna (observador)", "SABESP", "GDH/Coletor", "Operador do reservatório", "Outra"];
+const UF_TODAS = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
+function admInclusao(){
+  tituloAdm("Inclusão de reservatório", "Nos três módulos, em três passos: rascunho, revisão por outra pessoa e publicação. O sistema confere nome, posição e código na fonte contra o cadastro antes de enviar.",
+    `<span><b>${ADM.inclusoes.filter(x => x.sit==="em revisão").length}</b> em revisão</span>`);
+  $("#conteudo").innerHTML = `
+    <nav class="indice" aria-label="Seções da página"><a href="#admin/inclusao" data-alvo="in-form">Dados do reservatório</a><a href="#admin/inclusao" data-alvo="in-conf">Conferência</a><a href="#admin/inclusao" data-alvo="in-lista">Inclusões</a></nav>
+    <section class="cartao secao" id="in-form" aria-labelledby="t-in-form"><h2 id="t-in-form"><small>1</small>Dados do reservatório</h2>
+      <p class="sub">O código do SAR é atribuído na publicação. Clique no mapa para marcar a posição, ou digite as coordenadas.<span class="dica">Os pontos cinza são os reservatórios já cadastrados.</span></p>
+      <div class="adm-form grade" id="in-campos"></div>
+      <div class="adm-vars" id="in-vars"></div>
+      <div class="adm-mapa" id="in-mapa"></div>
+    </section>
+    <section class="cartao secao" id="in-conf" aria-labelledby="t-in-conf"><h2 id="t-in-conf"><small>2</small>Conferência</h2>
+      <p class="sub">Campos obrigatórios, nome parecido no mesmo estado, reservatório a menos de 2 km e código na fonte já usado por outro reservatório.</p>
+      <div id="in-checks"></div>
+      <div class="adm-form"><label class="largo">Motivo da inclusão<input type="text" id="in-mot" placeholder="Ex.: açude novo acompanhado pela FUNCEME"></label>
+        <button type="button" class="acao sec" id="in-rasc"${podeEditar() ? "" : " disabled"}>Salvar rascunho</button><button type="button" class="acao" id="in-env"${podeEditar() ? "" : " disabled"}>Enviar para revisão</button><button type="button" class="acao sec" id="in-ex"${podeEditar() ? "" : " disabled"}>Usar um exemplo</button></div></section>
+    <section class="cartao secao" id="in-lista" aria-labelledby="t-in-lista"><h2 id="t-in-lista"><small>3</small>Inclusões</h2>
+      <p class="sub">Rascunho, em revisão, devolvido ou publicado. O publicado entra na busca da página inicial e na área de dados e aparece na cobertura aguardando a primeira carga.</p><div id="in-itens"></div></section>`;
+  const vazio = () => ({n:null, mod:"NE", sis:"", nome:"", rio:"", municipio:"", uf:"CE", bacia:"", lat:"", lon:"", fonte:"FUNCEME", codfonte:"", tipo:"reservatorio", cap:"", vars:null, sit:"novo"});
+  let f = ADM.incAtual || vazio(); ADM.incAtual = f;
+  const varsMod = m => m==="SIN" ? ["cota_m","afluente_m3s","defluente_m3s","turbinada_m3s","vertida_m3s","vazao_natural_m3s","volume_util_pct"] : m==="NE" ? ["cota_m","volume_hm3","volume_pct"] : ["cota_m","volume_hm3","volume_pct","volume_util_pct"];
+  let mapa = null, marca = null;
+  function campos(){
+    if (!f.vars) f.vars = varsMod(f.mod);
+    $("#in-campos").innerHTML = `
+      <label>Módulo<select data-f="mod">${[["SIN","SIN"],["NE","Nordeste e Semiárido"],["OUTROS","Outros Sistemas"]].map(([v, r]) => `<option value="${v}"${f.mod===v ? " selected" : ""}>${r}</option>`).join("")}</select></label>
+      ${f.mod==="OUTROS" ? `<label>Sistema<select data-f="sis">${Object.entries(NOME_SIS).map(([k, r]) => `<option value="${k}"${f.sis===k ? " selected" : ""}>${r}</option>`).join("")}<option value="novo"${f.sis==="novo" ? " selected" : ""}>Sistema novo</option></select></label>` : ""}
+      ${f.mod==="SIN" ? `<label>Tipo<select data-f="tipo"><option value="reservatorio"${f.tipo==="reservatorio" ? " selected" : ""}>Usina com reservatório</option><option value="fio"${f.tipo==="fio" ? " selected" : ""}>Usina a fio d'água</option></select></label>` : ""}
+      <label>Nome<input type="text" data-f="nome" value="${esc(f.nome)}"></label><label>Rio<input type="text" data-f="rio" value="${esc(f.rio)}"></label>
+      <label>Município<input type="text" data-f="municipio" value="${esc(f.municipio)}"></label><label>UF<select data-f="uf">${UF_TODAS.map(u => `<option${f.uf===u ? " selected" : ""}>${u}</option>`).join("")}</select></label>
+      <label>${f.mod==="SIN" ? "Bacia (divisão do ONS)" : "Bacia"}<input type="text" data-f="bacia" value="${esc(f.bacia)}"${f.mod==="SIN" ? ' list="in-bacias"' : ""}></label>${f.mod==="SIN" ? `<datalist id="in-bacias">${[...new Set(entidadesDados().filter(e => e.mod==="SIN").map(e => e.bacia))].sort().map(b => `<option value="${esc(b)}">`).join("")}</datalist>` : ""}
+      <label>Latitude<input type="text" data-f="lat" inputmode="decimal" value="${esc(f.lat)}" placeholder="-5,48996"></label><label>Longitude<input type="text" data-f="lon" inputmode="decimal" value="${esc(f.lon)}" placeholder="-38,45106"></label>
+      <label>Fonte do dado<select data-f="fonte">${FONTES_INC.map(x => `<option${f.fonte===x ? " selected" : ""}>${x}</option>`).join("")}</select></label><label>Código ou nome na fonte<input type="text" data-f="codfonte" value="${esc(f.codfonte)}"></label>
+      ${f.mod!=="SIN" ? `<label>Capacidade (hm³)<input type="text" data-f="cap" inputmode="decimal" value="${esc(f.cap)}" placeholder="sem curva: só nível"></label>` : ""}`;
+    $("#in-vars").innerHTML = `<b>Variáveis</b>` + CAT_VARS.filter(v => varsMod(f.mod).includes(v.k)).map(v => `<label><input type="checkbox" value="${v.k}"${f.vars.includes(v.k) ? " checked" : ""}> ${esc(nomeVar(v))}</label>`).join("")
+      + (f.mod!=="SIN" ? `<span class="nota">Sem capacidade e sem curva cota-volume, o reservatório entra só com o nível; a curva se envia depois, em Cadastro e CAV.</span>` : "");
+    $$("#in-campos [data-f]").forEach(i => i.oninput = i.onchange = () => { const k = i.dataset.f; f[k] = i.value;
+      if (k==="mod"){ f.vars = varsMod(f.mod); if (f.mod==="OUTROS" && !f.sis) f.sis = "df"; f.fonte = f.mod==="SIN" ? "ONS" : f.mod==="OUTROS" ? "GDH/Coletor" : "FUNCEME"; campos(); }
+      if (k==="lat" || k==="lon") ponto(); conferir(); });
+    $$("#in-vars input").forEach(c => c.onchange = () => { f.vars = $$("#in-vars input:checked").map(x => x.value); conferir(); });
+    conferir();
+  }
+  function ponto(){ const la = numBR(f.lat), lo = numBR(f.lon); if (!mapa) return;
+    if (la==null || lo==null || Math.abs(la) > 90 || Math.abs(lo) > 180){ if (marca){ marca.remove(); marca = null; } return; }
+    if (!marca) marca = window.L.marker([la, lo]).addTo(mapa); else marca.setLatLng([la, lo]); }
+  function iniciarMapa(){
+    if (!window.L){ $("#in-mapa").innerHTML = '<p class="nota">Mapa indisponível (biblioteca de mapas não carregou).</p>'; return; }
+    mapa = window.L.map($("#in-mapa"), {zoomControl:true}).setView([-9.5, -44], 4);
+    window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {attribution:"© OpenStreetMap", maxZoom:18, opacity:.85}).addTo(mapa);
+    entidadesDados().forEach(e => { const c = coordEnt(e); if (c) window.L.circleMarker(c, {radius:3, color:"#5B6B80", weight:1, fillColor:"#9AA8BC", fillOpacity:.8}).bindTooltip(esc(e.nome)).addTo(mapa); });
+    mapa.on("click", ev => { f.lat = String(Math.round(ev.latlng.lat*1e5)/1e5).replace(".", ","); f.lon = String(Math.round(ev.latlng.lng*1e5)/1e5).replace(".", ",");
+      $('[data-f="lat"]').value = f.lat; $('[data-f="lon"]').value = f.lon; ponto(); conferir(); });
+    ponto(); setTimeout(() => mapa.invalidateSize(), 60);
+  }
+  function checks(){
+    const E = entidadesDados(), R = [], nB = semAc(f.nome).trim(), la = numBR(f.lat), lo = numBR(f.lon);
+    const falta = [["nome","Nome"],["municipio","Município"],["uf","UF"],["lat","Latitude"],["lon","Longitude"],["fonte","Fonte"],["codfonte","Código na fonte"]].filter(([k]) => !String(f[k] || "").trim()).map(x => x[1]);
+    if (falta.length) R.push(["erro", `Falta preencher: ${falta.join(", ")}.`]);
+    if ((la!=null && (la < -34 || la > 6)) || (lo!=null && (lo < -74 || lo > -34))) R.push(["erro", "As coordenadas estão fora do Brasil."]);
+    if (!f.vars.length) R.push(["erro", "Escolha ao menos uma variável."]);
+    if (nB.length >= 3){ const par = E.filter(e => e.uf===f.uf && e.src !== "can" && (e.nomeB===nB || (nB.length >= 5 && (e.nomeB.includes(nB) || nB.includes(e.nomeB)))));
+      par.slice(0, 5).forEach(e => R.push(["aviso", `Nome parecido no mesmo estado: ${e.nome}${e.codigo ? " (código " + e.codigo + ")" : ""}, ${ROT_MOD[e.mod]}${e.municipio ? ", " + e.municipio : ""}.`])); }
+    if (la!=null && lo!=null){ const perto = E.map(e => ({e, c:coordEnt(e)})).filter(x => x.c).map(x => ({e:x.e, d:distKm([la, lo], x.c)})).filter(x => x.d < 2).sort((a, b) => a.d - b.d);
+      perto.slice(0, 3).forEach(x => R.push(["aviso", `A ${fmt(x.d, 2)} km de ${x.e.nome}${x.e.codigo ? " (código " + x.e.codigo + ")" : ""}: confira se não é o mesmo reservatório.`])); }
+    const cf = String(f.codfonte || "").trim();
+    if (cf){ const m = f.fonte==="FUNCEME" ? DEPARA_NE.funceme_id_para_res_id : f.fonte==="AESA" ? DEPARA_NE.aesa_nome_para_res_id : f.fonte==="APAC" ? DEPARA_NE.apac_nome_para_res_id : null;
+      const usado = m ? Object.entries(m).find(([k]) => semAc(k)===semAc(cf)) : null, extra = ADM.codigos.find(x => x.fonte===f.fonte && semAc(x.cf)===semAc(cf));
+      const cod = usado ? usado[1] : extra ? extra.sar : null;
+      if (cod != null){ const e = E.find(x => String(x.codigo)===String(cod)); R.push(["erro", `O código ${cf} da ${f.fonte} já corresponde ao código SAR ${cod}${e ? " (" + e.nome + ")" : ""}.`]); } }
+    if (!R.some(r => r[0]==="erro") && !R.length) R.push(["ok", "Nada a apontar: nenhum nome parecido no estado, nenhum reservatório a menos de 2 km e código na fonte livre."]);
+    return R;
+  }
+  function conferir(){ const R = checks();
+    $("#in-checks").innerHTML = `<ul class="adm-checks">${R.map(([t, m]) => `<li class="${t}">${esc(m)}</li>`).join("")}</ul>`;
+    $("#in-env").disabled = !podeEditar() || R.some(r => r[0]==="erro"); return R; }
+  function salvar(sit){ const mot = $("#in-mot").value.trim();
+    if (sit==="em revisão" && !mot){ toast("Informe o motivo da inclusão."); $("#in-mot").focus(); return; }
+    const novo = f.n == null; if (novo){ f.n = ADM.seq++; ADM.inclusoes.unshift(f); }
+    f.sit = sit; f.mot = mot; f.quando = agoraAdm(); f.por = ADM_USU[ADM.perfil];
+    const alvo = {nome:f.nome, codigo:"", id:null};
+    if (sit==="rascunho"){ trilhaAdm("Inclusão: rascunho", alvo, `${ROT_MOD[f.mod]}, ${f.municipio}/${f.uf}`, mot, "rascunho"); toast("Rascunho salvo."); }
+    else { const R = checks().filter(r => r[0]==="aviso"), g = f;
+      pedidoAdm("Incluir reservatório", alvo, `<b>${esc(f.nome)}</b> · ${ROT_MOD[f.mod]}${f.mod==="OUTROS" ? " (" + esc(NOME_SIS[f.sis] || "sistema novo") + ")" : ""} · ${esc(f.municipio)}/${f.uf} · ${esc(f.lat)}, ${esc(f.lon)} · fonte ${esc(f.fonte)} (${esc(f.codfonte)}) · ${f.vars.length} variáveis${f.cap ? " · capacidade " + esc(f.cap) + " hm³" : " · só nível"}.${R.length ? " Avisos da conferência: " + R.map(r => esc(r[1])).join(" ") : ""}`, mot, () => publicar(g));
+      const p = ADM.pedidos[0]; p.devolver = () => { g.sit = "devolvido"; g.coment = p.decisao; }; }
+    ADM.incAtual = vazio(); f = ADM.incAtual; $("#in-mot").value = ""; campos(); ponto(); itens(); }
+  function publicar(g){
+    const nInc = ADM.inclusoes.filter(x => x.sit==="publicado").length + 1;
+    g.sit = "publicado"; g.codigo = "P-" + String(nInc).padStart(3, "0");
+    const la = numBR(g.lat), lo = numBR(g.lon), e = {id:"NOVO:" + g.codigo, codigo:g.codigo, nome:g.nome, mod:g.mod, sis:g.mod==="OUTROS" ? g.sis : undefined, uf:g.uf, municipio:g.municipio,
+      bacia: g.mod==="OUTROS" ? (NOME_SIS[g.sis] || g.bacia) : g.bacia, tipo:"incluído, aguardando a primeira carga", vars:g.vars, hora:g.mod==="SIN", src:"novo", coord:la!=null && lo!=null ? [la, lo] : null, r:{nome:g.nome.toUpperCase(), bacia:""}};
+    e.nomeB = semAc(e.nome); e.busca = semAc(`${e.nome} ${e.codigo} ${e.municipio} ${e.uf} ${e.bacia} ${ROT_MOD[e.mod]}`);
+    entidadesDados().push(e); COB = null;
+    if (g.codfonte) ADM.codigos.unshift({fonte:g.fonte, cf:g.codfonte, sar:g.codigo, nome:g.nome, uf:g.uf, vig:new Date().toISOString().slice(0,10), mot:"inclusão do reservatório", sit:"nova"});
+  }
+  function itens(){ const L = ADM.inclusoes;
+    $("#in-itens").innerHTML = L.length ? `<div class="tab-box"><table><thead><tr><th>Reservatório</th><th>Módulo</th><th>Município</th><th>Fonte</th><th>Situação</th><th>Por</th><th></th></tr></thead><tbody>${L.map(x => `<tr><td><span class="nm">${esc(x.nome || "(sem nome)")}</span>${x.codigo ? `<span class="rio">código ${esc(x.codigo)} (provisório do protótipo)</span>` : ""}</td><td>${ROT_MOD[x.mod]}</td><td>${esc(x.municipio)}/${x.uf}</td><td>${esc(x.fonte)} · ${esc(x.codfonte)}</td>
+      <td><span class="adm-sit ${x.sit==="publicado" ? "ok" : x.sit==="devolvido" ? "erro" : "fila"}">${x.sit}</span>${x.coment ? `<span class="rio">${esc(x.coment)}</span>` : ""}</td><td>${esc(x.por || "")}<span class="rio">${esc(x.quando || "")}</span></td>
+      <td class="r">${x.sit==="rascunho" || x.sit==="devolvido" ? `<button type="button" class="acao sec" data-n="${x.n}"${podeEditar() ? "" : " disabled"}>Abrir</button>` : ""}</td></tr>`).join("")}</tbody></table></div>`
+      : '<p class="nota">Nenhuma inclusão nesta sessão.</p>';
+    $$("#in-itens [data-n]").forEach(b => b.onclick = () => { f = ADM.incAtual = ADM.inclusoes.find(x => x.n === Number(b.dataset.n)); $("#in-mot").value = f.mot || ""; campos(); ponto(); $("#in-form").scrollIntoView({behavior:"smooth", block:"start"}); }); }
+  $("#in-rasc").onclick = () => salvar("rascunho");
+  $("#in-env").onclick = () => salvar("em revisão");
+  $("#in-ex").onclick = () => { Object.assign(f, {mod:"NE", nome:"Açude Exemplo", rio:"Riacho Exemplo", municipio:"Quixadá", uf:"CE", bacia:"Banabuiú", lat:"-4,97", lon:"-39,02", fonte:"FUNCEME", codfonte:"99999", cap:"", vars:["cota_m"]});
+    $("#in-mot").value = "Exemplo do protótipo: nome e posição fictícios"; campos(); ponto(); if (mapa) mapa.setView([-4.97, -39.02], 10); };
+  campos(); iniciarMapa(); itens();
+}
+
+/* ---------------- correspondência de códigos das fontes */
+function admCodigos(){
+  const E = entidadesDados(), porCod = {}; E.forEach(e => { if (e.codigo && !porCod[e.codigo]) porCod[e.codigo] = e; });
+  const base = [];
+  [["FUNCEME","funceme_id_para_res_id","id"],["AESA","aesa_nome_para_res_id","nome"],["APAC","apac_nome_para_res_id","nome"]].forEach(([fo, k, tipo]) =>
+    Object.entries(DEPARA_NE[k] || {}).forEach(([cf, sar]) => base.push({fonte:fo, cf, tipo, sar:String(sar), vig:"", sit:""})));
+  Object.values(FOS).filter(F => F.sis==="cantareira" && F.k).forEach(F => { const c = Object.keys(FOS).find(x => FOS[x] === F); base.push({fonte:"SABESP", cf:F.k, tipo:"chave", sar:String(c), vig:"", sit:""}); });
+  const todas = () => { const L = base.map(x => ({...x})); ADM.codigos.forEach(n => { const i = L.findIndex(x => x.fonte===n.fonte && semAc(x.cf)===semAc(n.cf)); if (i >= 0) L[i] = {...L[i], ...n, sit:"alterada"}; else L.unshift({...n, sit:n.sit || "nova"}); }); return L; };
+  const cadastroNE = E.filter(e => e.src==="ne" && !retiradoAdm(e));
+  tituloAdm("Códigos das fontes", "Qual código ou nome de cada fonte corresponde a cada reservatório do SAR. É por essa tabela que a carga automática sabe onde gravar o dado.",
+    `<span><b>${fint(base.length)}</b> correspondências</span>`);
+  const st = {fonte:"", txt:"", so:"", mostrar:25};
+  $("#conteudo").innerHTML = `
+    <nav class="indice" aria-label="Seções da página"><a href="#admin/codigos" data-alvo="co-res">Situação</a><a href="#admin/codigos" data-alvo="co-lista">Correspondências</a><a href="#admin/codigos" data-alvo="co-nova">Nova ou alterada</a></nav>
+    <section class="cartao secao" id="co-res" aria-labelledby="t-co-res"><h2 id="t-co-res"><small>1</small>Situação</h2>
+      <p class="sub">Conferências feitas na hora: código da fonte ligado a dois reservatórios, código SAR que não existe no cadastro e reservatório do Nordeste sem correspondência em nenhuma fonte.</p>
+      <div class="adm-cards" id="co-cards"></div>
+      <p class="nota">Correspondências do Nordeste: Verificação NE SAR (CORSH, ago/2026), extraídas em ${dBR(DEPARA_NE._meta.extraido_em)}; ${esc(DEPARA_NE._meta.validacao)}. SABESP: chaves da API de dados observados usadas no protótipo. As demais fontes (ONS, GDH, HidroInfoAna) ainda serão levantadas.</p></section>
+    <section class="cartao secao" id="co-lista" aria-labelledby="t-co-lista"><h2 id="t-co-lista"><small>2</small>Correspondências</h2>
+      <div class="baixar"><button type="button" id="co-csv"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8m0 0L5 7m3 3 3-3M3 13h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>CSV</button></div>
+      <div class="adm-form"><span class="seg" role="group" aria-label="Fonte">${["","FUNCEME","AESA","APAC","SABESP"].map(v => `<button type="button" data-fo="${v}" aria-pressed="${v===""}">${v || "Todas"}</button>`).join("")}</span>
+        <label>Mostrar<select id="co-so"><option value="">Todas</option><option value="prob">Só com problema</option><option value="sem">Reservatórios do NE sem correspondência</option><option value="mud">Novas ou alteradas nesta sessão</option></select></label>
+        <label class="largo">Busca<input type="text" id="co-busca" placeholder="Código, nome na fonte ou reservatório"></label></div>
+      <p class="nota" id="co-n"></p><div id="co-tab"></div><p class="mais-res" id="co-mais"></p></section>
+    <section class="cartao secao" id="co-nova" aria-labelledby="t-co-nova"><h2 id="t-co-nova"><small>3</small>Nova ou alterada</h2>
+      <p class="sub">Gravada na hora, com vigência e motivo na trilha. Se o código da fonte já estiver ligado a outro reservatório, a tela avisa e a nova correspondência substitui a anterior a partir da vigência.</p>
+      <div class="adm-form"><label>Fonte<select id="co-f">${["FUNCEME","AESA","APAC","SABESP","ONS","COGERH","HidroInfoAna","GDH"].map(x => `<option>${x}</option>`).join("")}</select></label><label>Código ou nome na fonte<input type="text" id="co-cf"></label><label>Vigência<input type="date" id="co-vig" value="${new Date().toISOString().slice(0,10)}"></label></div>
+      <div id="co-sel"></div><p class="adm-efeito" id="co-prev">Escolha a fonte, o código e o reservatório do SAR.</p>
+      <div class="adm-form"><label class="largo">Motivo<input type="text" id="co-mot" placeholder="Ex.: estação nova da FUNCEME para o açude"></label><button type="button" class="acao" id="co-ir" disabled>Gravar</button></div></section>`;
+  function avaliar(L){ const cont = {}; L.forEach(x => { const k = x.fonte + "|" + semAc(x.cf); cont[k] = (cont[k] || 0) + 1; });
+    L.forEach(x => { x.e = porCod[x.sar]; x.prob = !x.e ? "código SAR fora do cadastro" : cont[x.fonte + "|" + semAc(x.cf)] > 1 ? "código da fonte repetido" : ""; }); return L; }
+  function cards(L){ const ligados = new Set(L.map(x => x.sar)), sem = cadastroNE.filter(e => !ligados.has(String(e.codigo)));
+    $("#co-cards").innerHTML = [["Correspondências", L.length, "entre fontes e códigos do SAR"], ["Com problema", L.filter(x => x.prob).length, "código repetido ou fora do cadastro"],
+      ["NE sem correspondência", sem.length, `de ${fint(cadastroNE.length)} reservatórios do Nordeste acompanhados`], ["Nesta sessão", ADM.codigos.length, "novas ou alteradas"]]
+      .map(([r, v, n], i) => `<div class="card fixo${(i===1 || i===2) && v ? " alerta" : ""}"><div class="r">${r}</div><div class="v">${fint(v)}</div><div class="n">${n}</div></div>`).join(""); return sem; }
+  function lista(){ const L = avaliar(todas()), sem = cards(L), tm = semAc(st.txt).split(/\s+/).filter(Boolean);
+    if (st.so==="sem"){ const X = sem.filter(e => tm.every(t => e.busca.includes(t)));
+      $("#co-n").textContent = `${fint(X.length)} reservatórios do Nordeste sem correspondência em nenhuma fonte levantada.`;
+      $("#co-tab").innerHTML = `<div class="tab-box adm-tab"><table><thead><tr><th>Reservatório</th><th>Código SAR</th><th>UF</th><th>Município</th></tr></thead><tbody>${X.slice(0, st.mostrar).map(e => `<tr><td><span class="nm">${esc(e.nome)}</span></td><td>${esc(e.codigo)}</td><td>${e.uf}</td><td>${esc(e.municipio)}</td></tr>`).join("")}</tbody></table></div>`;
+      $("#co-mais").innerHTML = X.length > st.mostrar ? `<button type="button" class="acao sec">Mostrar mais (${fint(X.length - st.mostrar)} restantes)</button>` : ""; }
+    else { const X = L.filter(x => (!st.fonte || x.fonte===st.fonte) && (!st.so || (st.so==="prob" ? x.prob : x.sit)) && tm.every(t => semAc(`${x.cf} ${x.sar} ${x.e ? x.e.nome + " " + x.e.municipio : ""}`).includes(t)));
+      $("#co-n").textContent = `${fint(X.length)} ${X.length===1 ? "correspondência" : "correspondências"}.`;
+      $("#co-tab").innerHTML = X.length ? `<div class="tab-box adm-tab"><table><thead><tr><th>Fonte</th><th>Código ou nome na fonte</th><th>Código SAR</th><th>Reservatório no SAR</th><th>UF</th><th>Vigente desde</th><th>Situação</th></tr></thead><tbody>${X.slice(0, st.mostrar).map(x => `<tr><td>${x.fonte}</td><td>${esc(x.cf)}</td><td>${esc(x.sar)}</td><td>${x.e ? `<span class="nm">${esc(x.e.nome)}</span>` : "–"}</td><td>${x.e ? x.e.uf : "–"}</td><td>${x.vig ? dBR(x.vig) : "levantamento"}</td>
+        <td>${x.prob ? `<span class="adm-sit erro">${x.prob}</span>` : x.sit ? `<span class="adm-sit fila">${x.sit}</span>` : '<span class="adm-sit ok">ok</span>'}</td></tr>`).join("")}</tbody></table></div>` : '<p class="nota">Nenhuma correspondência com esse filtro.</p>';
+      $("#co-mais").innerHTML = X.length > st.mostrar ? `<button type="button" class="acao sec">Mostrar mais (${fint(X.length - st.mostrar)} restantes)</button>` : ""; }
+    if ($("#co-mais button")) $("#co-mais button").onclick = () => { st.mostrar += 50; lista(); }; }
+  $$("#co-lista .seg button").forEach(b => b.onclick = () => { st.fonte = b.dataset.fo; $$("#co-lista .seg button").forEach(x => x.setAttribute("aria-pressed", x === b)); st.mostrar = 25; lista(); });
+  $("#co-so").onchange = e => { st.so = e.target.value; st.mostrar = 25; lista(); };
+  $("#co-busca").oninput = e => { st.txt = e.target.value; st.mostrar = 25; lista(); };
+  $("#co-csv").onclick = () => salvarCSV(["fonte","codigo_na_fonte","codigo_sar","reservatorio","uf","vigencia","situacao"], avaliar(todas()).map(x => [x.fonte, x.cf, x.sar, x.e ? x.e.nome : "", x.e ? x.e.uf : "", x.vig ? dBR(x.vig) : "", x.prob || x.sit || "ok"]), "sar_codigos_fontes.csv");
+  let alvo = null;
+  const prev = () => { const fo = $("#co-f").value, cf = $("#co-cf").value.trim(), L = avaliar(todas()), ja = L.find(x => x.fonte===fo && semAc(x.cf)===semAc(cf));
+    const ok = cf && alvo && podeEditar(); $("#co-ir").disabled = !ok;
+    $("#co-prev").innerHTML = !cf || !alvo ? "Escolha a fonte, o código e o reservatório do SAR."
+      : ja && ja.sar === String(alvo.codigo) ? `Essa correspondência já existe: ${esc(fo)} ${esc(cf)} → ${esc(alvo.nome)}.`
+      : ja ? `<b>Atenção.</b> ${esc(fo)} ${esc(cf)} hoje corresponde a <b>${esc(ja.e ? ja.e.nome : ja.sar)}</b> (código ${esc(ja.sar)}). A partir de ${dBR($("#co-vig").value)}, passa a corresponder a <b>${esc(alvo.nome)}</b> (código ${esc(alvo.codigo)}).`
+      : `${esc(fo)} <b>${esc(cf)}</b> → <b>${esc(alvo.nome)}</b> (código ${esc(alvo.codigo)}), a partir de ${dBR($("#co-vig").value)}.`; };
+  const sel = () => escolherRes($("#co-sel"), e => !!e.codigo, alvo, e => { alvo = e; sel(); prev(); }, "Reservatório do SAR");
+  sel(); ["co-f","co-cf","co-vig"].forEach(id => $("#" + id).oninput = $("#" + id).onchange = prev);
+  $("#co-ir").onclick = () => { const mot = $("#co-mot").value.trim(); if (!mot){ toast("Informe o motivo."); $("#co-mot").focus(); return; }
+    const fo = $("#co-f").value, cf = $("#co-cf").value.trim(); ADM.codigos.unshift({fonte:fo, cf, sar:String(alvo.codigo), vig:$("#co-vig").value, mot});
+    trilhaAdm("Código da fonte", alvo, `${fo} ${cf} → código SAR ${alvo.codigo}, vigência ${dBR($("#co-vig").value)}`, mot, "gravado");
+    toast("Correspondência gravada."); $("#co-cf").value = ""; $("#co-mot").value = ""; alvo = null; sel(); prev(); st.so = "mud"; $("#co-so").value = "mud"; lista(); };
+  lista();
+}
+
+/* ---------------- composição dos agrupamentos */
+function admAgrupamentos(){
+  const E = entidadesDados(), dt = NEd.data;
+  const G = [...NEd.estados.map(x => ({k:"NE:" + x.uf, tipo:"ne", r:`Nordeste e Semiárido · ${x.estado}`, uf:x.uf, est:x})),
+    ...[...new Set(E.filter(e => e.src==="sin").map(e => e.bacia))].sort((a, b) => a.localeCompare(b, "pt-BR")).map(b => ({k:"SIN:" + b, tipo:"sin", r:`SIN · bacia ${b}`, bacia:b})),
+    ...Object.entries(NOME_SIS).map(([s, r]) => ({k:"OS:" + s, tipo:"os", r:`Outros Sistemas · ${r}`, sis:s}))];
+  const baciaDe = e => ADM.bacias[e.id] || e.bacia;
+  const membros = g => g.tipo==="ne" ? E.filter(e => e.src==="ne" && e.uf===g.uf) : g.tipo==="sin" ? E.filter(e => e.src==="sin" && baciaDe(e)===g.bacia) : E.filter(e => e.src==="os" && e.sis===g.sis);
+  const fora = g => ADM.agrup[g.k] || new Set();
+  tituloAdm("Agrupamentos", "Quais reservatórios entram em cada agregado: o volume acumulado de cada estado do Nordeste, as bacias do SIN e os sistemas de Outros. Mudança de composição tem vigência, mostra o efeito e passa por aprovação.");
+  let g = G.find(x => x.k==="NE:CE"), tent = new Set(fora(g)), mov = {}, todos = false;
+  $("#conteudo").innerHTML = `
+    <nav class="indice" aria-label="Seções da página"><a href="#admin/agrupamentos" data-alvo="ag-lista">Agregados</a><a href="#admin/agrupamentos" data-alvo="ag-comp">Composição</a></nav>
+    <section class="cartao secao" id="ag-lista" aria-labelledby="t-ag-lista"><h2 id="t-ag-lista"><small>1</small>Agregados</h2>
+      <p class="sub">Escolha um agregado para ver e mudar a composição.</p><div class="adm-agr" id="ag-cards"></div></section>
+    <section class="cartao secao" id="ag-comp" aria-labelledby="t-ag-comp"><h2 id="t-ag-comp"><small>2</small>Composição</h2><div id="ag-corpo"></div></section>`;
+  const totNE = () => { let V = 0, C = 0; NEd.estados.forEach(x => { V += x.volume_hm3 || 0; C += x.capacidade_com_dado_hm3 || 0; }); return {V, C}; };
+  const soma = (L, excl) => { let V = 0, C = 0; L.forEach(e => { if (excl.has(e.id) || e.r.volume_hm3==null) return; V += e.r.volume_hm3; C += e.r.capacidade_hm3; }); return {V, C}; };
+  function cardsG(){ const grupo = t => G.filter(x => x.tipo===t);
+    $("#ag-cards").innerHTML = [["ne","Nordeste e Semiárido (volume acumulado por estado)"],["sin","SIN (bacias, divisão do ONS)"],["os","Outros Sistemas"]].map(([t, r]) => `<div class="adm-agr-g"><b>${r}</b><div>${grupo(t).map(x => { const n = membros(x).length - fora(x).size;
+      return `<button type="button" class="preset${x.k===g.k ? " ativo" : ""}" data-k="${esc(x.k)}">${esc(x.r.split(" · ")[1].replace(/^bacia /, ""))} <span>${fint(n)}</span></button>`; }).join("")}</div></div>`).join("");
+    $$("#ag-cards [data-k]").forEach(b => b.onclick = () => { g = G.find(x => x.k === b.dataset.k); tent = new Set(fora(g)); mov = {}; todos = false; cardsG(); comp(); }); }
+  function comp(){
+    const Mt = membros(g).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")), dis = podeEditar() ? "" : " disabled", hoje = new Date().toISOString().slice(0,10);
+    let efeito = "", tabela = "";
+    // a tabela abre com 25 linhas (os que saem ou mudam de bacia primeiro); o efeito conta todos
+    const M = todos ? Mt : Mt.filter(e => tent.has(e.id) || mov[e.id]).concat(Mt.filter(e => !tent.has(e.id) && !mov[e.id])).slice(0, 25);
+    if (g.tipo==="ne"){ const a = soma(Mt, fora(g)), b = soma(Mt, tent), T = totNE(), Tb = {V:T.V - (a.V - b.V), C:T.C - (a.C - b.C)};
+      const pc = x => x.C ? fmt(x.V/x.C*100, 2) + "%" : "–";
+      efeito = `Em ${dBR(dt)}: volume acumulado ${esc(g.est.estado)} ${pc(a)} → <b>${pc(b)}</b> (${fmt(b.V, 2)} de ${fmt(b.C, 2)} hm³) · conjunto do Nordeste e Semiárido ${pc(T)} → <b>${pc(Tb)}</b>.`;
+      tabela = `<thead><tr><th class="ck">Entra</th><th>Reservatório</th><th>Município</th><th class="r">Capacidade (hm³)</th><th class="r">Volume em ${dBR(dt).slice(0,5)} (hm³)</th><th class="r">Volume (%)</th></tr></thead><tbody>${M.map(e => `<tr${tent.has(e.id) ? ' class="fora"' : ""}><td class="ck"><input type="checkbox" data-id="${esc(e.id)}"${tent.has(e.id) ? "" : " checked"}${dis}></td><td><span class="nm">${esc(e.nome)}</span>${retiradoAdm(e) ? '<span class="ret">retirado do acompanhamento</span>' : ""}<span class="rio">código ${esc(e.codigo)}</span></td><td>${esc(e.municipio)}</td>
+        <td class="r num">${fmt(e.r.capacidade_hm3, 2)}</td><td class="r num">${e.r.volume_hm3==null ? "sem medição" : fmt(e.r.volume_hm3, 2)}</td><td class="r num">${e.r.volume_pct==null ? "–" : fmt(e.r.volume_pct, 2)}</td></tr>`).join("")}</tbody>`; }
+    else if (g.tipo==="sin"){ const bacias = [...new Set(E.filter(e => e.src==="sin").map(e => e.bacia))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+      const nM = Object.keys(mov).length, destinos = {}; Object.values(mov).forEach(b => destinos[b] = (destinos[b] || 0) + 1);
+      efeito = nM ? `Bacia ${esc(g.bacia)}: ${fint(Mt.length)} → <b>${fint(Mt.length - nM)}</b> usinas · ${Object.entries(destinos).map(([b, n]) => `bacia ${esc(b)}: ${fint(E.filter(e => e.src==="sin" && baciaDe(e)===b).length)} → <b>${fint(E.filter(e => e.src==="sin" && baciaDe(e)===b).length + n)}</b>`).join(" · ")}. Mudam a página da bacia, a tabela de bacias do SIN e o filtro da área de dados.` : "Nenhuma mudança.";
+      tabela = `<thead><tr><th>Usina</th><th>Tipo</th><th>UF</th><th>Bacia</th></tr></thead><tbody>${M.map(e => `<tr${mov[e.id] ? ' class="mudou"' : ""}><td><span class="nm">${esc(e.nome)}</span><span class="rio">código ${esc(e.codigo)}</span></td><td>${esc(e.tipo)}</td><td>${e.uf}</td>
+        <td><select data-mv="${esc(e.id)}"${dis}>${bacias.map(b => `<option${(mov[e.id] || g.bacia)===b ? " selected" : ""}>${esc(b)}</option>`).join("")}</select></td></tr>`).join("")}</tbody>`; }
+    else { efeito = `Composição: ${fint(Mt.length - tent.size)} de ${fint(Mt.length)} reservatórios. O efeito no agregado do sistema é calculado pelo sistema na aprovação.`;
+      tabela = `<thead><tr><th class="ck">Entra</th><th>Reservatório</th><th>Município</th></tr></thead><tbody>${M.map(e => `<tr${tent.has(e.id) ? ' class="fora"' : ""}><td class="ck"><input type="checkbox" data-id="${esc(e.id)}"${tent.has(e.id) ? "" : " checked"}${dis}></td><td><span class="nm">${esc(e.nome)}</span><span class="rio">código ${esc(e.codigo)}</span></td><td>${esc(e.municipio)}</td></tr>`).join("")}</tbody>`; }
+    const mudou = g.tipo==="sin" ? Object.keys(mov).length : [...tent].filter(x => !fora(g).has(x)).length + [...fora(g)].filter(x => !tent.has(x)).length;
+    $("#ag-corpo").innerHTML = `<p class="sub"><b>${esc(g.r)}</b> · ${fint(Mt.length)} ${g.tipo==="sin" ? "usinas" : "reservatórios"}${g.tipo==="ne" ? `, ${fint(Mt.filter(e => e.r.volume_hm3!=null).length)} com volume em ${dBR(dt)}` : ""}.${g.tipo==="ne" ? " Só entra no volume acumulado quem tem medição na janela; quem sai da composição deixa de entrar mesmo com medição." : ""}</p>
+      <p class="adm-efeito"><b>Efeito.</b> ${efeito}</p>
+      <div class="adm-form"><label>Vigência<input type="date" id="ag-vig" value="${hoje}"${dis}></label><label class="largo">Motivo<input type="text" id="ag-mot" placeholder="${g.tipo==="sin" ? "Ex.: bacia da calha do Paraná separada, como no ONS" : "Ex.: reservatório de outro sistema de abastecimento"}"${dis}></label>
+        <button type="button" class="acao" id="ag-ir"${mudou && podeEditar() ? "" : " disabled"}>Enviar para aprovação</button><button type="button" class="acao sec" id="ag-desf"${mudou ? "" : " disabled"}>Desfazer as mudanças</button></div>
+      <div class="tab-box adm-tab adm-comp"><table>${tabela}</table></div>
+      ${Mt.length > M.length ? `<p class="mais-res"><button type="button" class="acao sec" id="ag-todos">Mostrar todos (${fint(Mt.length - M.length)} restantes)</button></p>` : ""}
+      ${g.tipo==="ne" ? `<p class="nota">Volumes e capacidades de ${dBR(dt)} embutidos no protótipo; a soma dos reservatórios reproduz o volume acumulado publicado de cada estado e do conjunto.</p>` : ""}`;
+    $$("#ag-corpo [data-id]").forEach(c => c.onchange = () => { if (c.checked) tent.delete(c.dataset.id); else tent.add(c.dataset.id); comp(); });
+    $$("#ag-corpo [data-mv]").forEach(s => s.onchange = () => { if (s.value===g.bacia) delete mov[s.dataset.mv]; else mov[s.dataset.mv] = s.value; comp(); });
+    $("#ag-desf").onclick = () => { tent = new Set(fora(g)); mov = {}; comp(); };
+    if ($("#ag-todos")) $("#ag-todos").onclick = () => { todos = true; comp(); };
+    $("#ag-ir").onclick = () => { const mot = $("#ag-mot").value.trim(); if (!mot){ toast("Informe o motivo."); $("#ag-mot").focus(); return; }
+      const gg = g, novo = new Set(tent), mv = {...mov}, vig = $("#ag-vig").value || hoje, ent = {nome:gg.r, codigo:"", id:null};
+      const det = gg.tipo==="sin" ? Object.entries(mv).map(([id, b]) => `${E.find(e => e.id===id).nome} → bacia ${esc(b)}`).join("; ") : [...novo].filter(x => !fora(gg).has(x)).map(id => "sai " + E.find(e => e.id===id).nome).concat([...fora(gg)].filter(x => !novo.has(x)).map(id => "volta " + E.find(e => e.id===id).nome)).join("; ");
+      pedidoAdm("Composição de agregado", ent, `${esc(det)}. ${efeito} Vigência: ${dBR(vig)}.`, mot, () => { if (gg.tipo==="sin") Object.assign(ADM.bacias, mv); else ADM.agrup[gg.k] = novo; });
+      mov = {}; comp(); };
+  }
+  cardsG(); comp();
+}
+
+/* ---------------- avisos e textos */
+function admPublicacao(){
+  const hoje = new Date().toISOString().slice(0,10);
+  const sitAv = a => a.fim && a.fim < hoje ? "encerrado" : a.ini > hoje ? "programado" : "no ar";
+  tituloAdm("Avisos e textos", "Avisos com início e fim, gerais, por módulo ou por reservatório, e os textos de apresentação das páginas, sem nova versão do sistema.",
+    `<span><b>${ADM.avisos.filter(a => !a.removido && sitAv(a)==="no ar").length}</b> avisos no ar</span>`);
+  const ONDE = [["geral","Todas as páginas públicas"],["SIN","Módulo SIN"],["NE","Módulo Nordeste e Semiárido"],["OUTROS","Módulo Outros Sistemas"],["dados","Área de dados"],["res","Um reservatório (ficha)"]];
+  $("#conteudo").innerHTML = `
+    <nav class="indice" aria-label="Seções da página"><a href="#admin/publicacao" data-alvo="pu-av">Novo aviso</a><a href="#admin/publicacao" data-alvo="pu-lista">Avisos</a><a href="#admin/publicacao" data-alvo="pu-tx">Textos das páginas</a></nav>
+    <section class="cartao secao" id="pu-av" aria-labelledby="t-pu-av"><h2 id="t-pu-av"><small>1</small>Novo aviso</h2>
+      <p class="sub">O aviso aparece no alto das páginas escolhidas enquanto estiver no período. Publicado na hora, com registro na trilha.</p>
+      <div class="adm-form"><label>Onde<select id="av-onde">${ONDE.map(([v, r]) => `<option value="${v}">${r}</option>`).join("")}</select></label>
+        <label>Tipo<select id="av-tipo"><option value="info">Informativo</option><option value="atencao">Atenção</option></select></label>
+        <label>Início<input type="date" id="av-ini" value="${hoje}"></label><label>Fim<input type="date" id="av-fim"></label></div>
+      <div id="av-res" hidden></div>
+      <div class="adm-form"><label class="largo">Texto<textarea id="av-txt" rows="3" placeholder="Ex.: Os dados do SIN de hoje ainda não foram carregados."></textarea></label></div>
+      <p class="nota">Prévia:</p><div id="av-prev"></div>
+      <div class="adm-form"><button type="button" class="acao" id="av-ir"${podeEditar() ? "" : " disabled"}>Publicar aviso</button><button type="button" class="acao sec" id="av-ex"${podeEditar() ? "" : " disabled"}>Usar um exemplo</button></div></section>
+    <section class="cartao secao" id="pu-lista" aria-labelledby="t-pu-lista"><h2 id="t-pu-lista"><small>2</small>Avisos</h2><div id="av-lista"></div></section>
+    <section class="cartao secao" id="pu-tx" aria-labelledby="t-pu-tx"><h2 id="t-pu-tx"><small>3</small>Textos das páginas</h2>
+      <p class="sub">Escolha o texto, edite e veja a prévia. Negrito com dois asteriscos (**assim**). {janela_ne} é trocado pela janela do Nordeste em vigor nas páginas.</p>
+      <div class="adm-form"><label class="largo">Texto<select id="tx-sel">${TEXTOS_ED.map(T => `<option value="${T.k}">${T.r}${ADM.textos[T.k]!=null ? " (alterado)" : ""}</option>`).join("")}</select></label><a class="acao sec" id="tx-ver" href="#inicio">Abrir a página</a></div>
+      <div class="adm-tx"><label>Texto<textarea id="tx-ed" rows="7"${podeEditar() ? "" : " disabled"}></textarea></label><div><span class="rot">Prévia</span><div class="adm-tx-prev" id="tx-prev"></div></div></div>
+      <div class="adm-form"><label class="largo">Motivo<input type="text" id="tx-mot" placeholder="Ex.: texto revisado pela comunicação"${podeEditar() ? "" : " disabled"}></label><button type="button" class="acao" id="tx-ir" disabled>Publicar texto</button><button type="button" class="acao sec" id="tx-orig"${podeEditar() ? "" : " disabled"}>Voltar ao texto original</button></div></section>`;
+  let alvo = null;
+  const avHTML = a => `<div class="aviso-pub ${a.tipo}" role="note"><b>${a.tipo==="atencao" ? "Atenção." : "Aviso."}</b> ${esc(a.txt)}</div>`;
+  const prevAv = () => { const txt = $("#av-txt").value.trim(); $("#av-prev").innerHTML = txt ? avHTML({tipo:$("#av-tipo").value, txt}) : '<p class="nota">Escreva o texto do aviso.</p>';
+    $("#av-res").hidden = $("#av-onde").value !== "res"; };
+  const sel = () => escolherRes($("#av-res"), e => fichaDe(e) != null, alvo, e => { alvo = e; sel(); }, "Reservatório com ficha");
+  sel(); ["av-onde","av-tipo","av-txt"].forEach(id => $("#" + id).oninput = $("#" + id).onchange = prevAv); prevAv();
+  $("#av-ex").onclick = () => { $("#av-onde").value = "SIN"; $("#av-tipo").value = "atencao"; $("#av-txt").value = "Exemplo do protótipo: os dados do SIN de hoje ainda não foram carregados; a página mostra o dia anterior."; $("#av-fim").value = isoMais(hoje, 1); prevAv(); };
+  function lista(){ const L = ADM.avisos.filter(a => !a.removido);
+    $("#av-lista").innerHTML = L.length ? `<div class="tab-box adm-tab"><table><thead><tr><th>Aviso</th><th>Onde</th><th>Período</th><th>Situação</th><th></th></tr></thead><tbody>${L.map(a => `<tr><td>${avHTML(a)}</td><td>${esc(a.ondeR)}</td><td>${dBR(a.ini)}${a.fim ? " a " + dBR(a.fim) : ", sem fim"}</td>
+      <td><span class="adm-sit ${sitAv(a)==="no ar" ? "ok" : sitAv(a)==="programado" ? "fila" : "cinza"}">${sitAv(a)}</span></td><td class="r">${sitAv(a)!=="encerrado" && podeEditar() ? `<button type="button" class="acao sec" data-n="${a.n}">Encerrar agora</button>` : ""}${a.ir ? `<a class="acao sec" href="#${a.ir}">Ver na página</a>` : ""}</td></tr>`).join("")}</tbody></table></div>` : '<p class="nota">Nenhum aviso nesta sessão.</p>';
+    $$("#av-lista [data-n]").forEach(b => b.onclick = () => { const a = ADM.avisos.find(x => x.n === Number(b.dataset.n)); a.fim = isoMais(hoje, -1); trilhaAdm("Aviso encerrado", null, a.txt, "", "gravado"); admPublicacao(); }); }
+  $("#av-ir").onclick = () => { const txt = $("#av-txt").value.trim(), onde = $("#av-onde").value, ini = $("#av-ini").value || hoje, fim = $("#av-fim").value;
+    if (!txt){ toast("Escreva o texto do aviso."); return; } if (onde==="res" && !alvo){ toast("Escolha o reservatório."); return; } if (fim && fim < ini){ toast("O fim vem antes do início."); return; }
+    const ondeR = onde==="res" ? alvo.nome : ONDE.find(x => x[0]===onde)[1], ir = onde==="res" ? fichaDe(alvo) : {geral:"inicio", SIN:"sin", NE:"ne", OUTROS:"outros", dados:"dados"}[onde];
+    ADM.avisos.unshift({n:ADM.seq++, tipo:$("#av-tipo").value, txt, onde: onde==="res" ? alvo.id : onde, ondeR, ini, fim, ir});
+    trilhaAdm("Aviso publicado", onde==="res" ? alvo : null, `${ondeR}: ${txt} (${dBR(ini)}${fim ? " a " + dBR(fim) : ", sem fim"})`, "", "gravado");
+    toast("Aviso publicado."); admPublicacao(); };
+  lista();
+  const T = () => TEXTOS_ED.find(x => x.k === $("#tx-sel").value), atual = t => ADM.textos[t.k] ?? TEXTOS_PAD[t.k] ?? "";
+  function carregar(){ const t = T(); $("#tx-ed").value = txtParaEd(atual(t)); $("#tx-ver").href = "#" + t.ir; prevTx(); }
+  function prevTx(){ const t = T(), novo = edParaTxt($("#tx-ed").value); $("#tx-prev").innerHTML = textoHTML(novo) || '<span class="nota">(vazio)</span>';
+    $("#tx-ir").disabled = !podeEditar() || !$("#tx-ed").value.trim() || novo === atual(t); }
+  $("#tx-sel").onchange = carregar; $("#tx-ed").oninput = prevTx;
+  $("#tx-ir").onclick = () => { const t = T(), mot = $("#tx-mot").value.trim(); if (!mot){ toast("Informe o motivo."); $("#tx-mot").focus(); return; }
+    const antes = ADM.textos[t.k], novo = edParaTxt($("#tx-ed").value); ADM.textos[t.k] = novo === TEXTOS_PAD[t.k] ? undefined : novo; if (ADM.textos[t.k]===undefined) delete ADM.textos[t.k];
+    trilhaAdm("Texto da página", null, `${t.r}: ${txtParaEd(novo).slice(0, 160)}`, mot, "gravado", () => { if (antes===undefined) delete ADM.textos[t.k]; else ADM.textos[t.k] = antes; });
+    toast("Texto publicado. Abra a página para ver."); $("#tx-mot").value = ""; const k = t.k; admPublicacao(); $("#tx-sel").value = k; carregar(); };
+  $("#tx-orig").onclick = () => { $("#tx-ed").value = txtParaEd(TEXTOS_PAD[T().k] || ""); prevTx(); };
+  carregar();
+}
+
+/* ---------------- parâmetros */
+function admParametros(){
+  tituloAdm("Parâmetros", "Valores que hoje estão escritos no código. O que muda número publicado passa por aprovação; o resto vale na hora.");
+  const pend = {};
+  $("#conteudo").innerHTML = `
+    <nav class="indice" aria-label="Seções da página"><a href="#admin/parametros" data-alvo="pa-lista">Parâmetros</a><a href="#admin/parametros" data-alvo="pa-hor">Horários das integrações</a></nav>
+    <section class="cartao secao" id="pa-lista" aria-labelledby="t-pa-lista"><h2 id="t-pa-lista"><small>1</small>Parâmetros</h2>
+      <p class="sub">Altere o valor na própria linha. A coluna "Aprovação" diz se a mudança espera um segundo olhar.</p>
+      <div class="adm-pend" id="pa-pend" hidden></div>
+      <div class="tab-box adm-tab"><table><thead><tr><th>Grupo</th><th>Parâmetro</th><th class="r">Valor</th><th>Unidade</th><th>Onde vale</th><th>Origem do valor</th><th>Aprovação</th></tr></thead>
+        <tbody>${PARAM_ADM.map(p => `<tr><td>${esc(p.g)}</td><td><span class="nm">${esc(p.r)}</span>${ADM.params[p.k]!=null ? `<span class="rio">alterado; original ${fmt(p.v, p.dec)}</span>` : ""}</td>
+          <td class="r"><input class="adm-cel" data-k="${p.k}" inputmode="decimal" value="${fmt(parAdm(p.k), p.dec).replace(/\./g, "")}"${podeEditar() ? "" : " disabled"}></td><td>${esc(p.u)}</td><td>${esc(p.onde)}</td><td>${esc(p.fonte)}</td><td>${p.apr ? "sim" : "não"}</td></tr>`).join("")}</tbody></table></div>
+      <p class="nota">No protótipo, só o painel de cobertura usa o valor gravado; as páginas públicas e a crítica não são recalculadas com ele.</p></section>
+    <section class="cartao secao" id="pa-hor" aria-labelledby="t-pa-hor"><h2 id="t-pa-hor"><small>2</small>Horários das integrações</h2>
+      <p class="sub">Horários previstos de cada execução. O painel de integrações marca como "não executou" a execução prevista que não aconteceu. Os horários abaixo são ilustrativos: os reais serão levantados com a STI.</p>
+      <div class="tab-box"><table><thead><tr><th>Integração</th><th>Horários previstos</th></tr></thead><tbody>${ADM_INT.map(I => `<tr><td><span class="nm">${esc(I.r)}</span></td><td>${I.horas.map(h => String(h).padStart(2,"0") + ":00").join(" · ")}</td></tr>`).join("")}</tbody></table></div></section>`;
+  function barra(){ const n = Object.keys(pend).length, el = $("#pa-pend"); el.hidden = !n; if (!n) return;
+    const apr = Object.keys(pend).filter(k => PARAM_ADM.find(p => p.k===k).apr).length;
+    el.innerHTML = `<span><b>${n}</b> ${n===1 ? "alteração" : "alterações"}${apr ? `, ${apr} com aprovação` : ""}</span><input type="text" id="pa-mot" placeholder="Motivo (obrigatório)" aria-label="Motivo"><button type="button" class="acao" id="pa-ir">Gravar</button><button type="button" class="acao sec" id="pa-desc">Descartar</button>`;
+    $("#pa-desc").onclick = () => admParametros();
+    $("#pa-ir").onclick = () => { const mot = $("#pa-mot").value.trim(); if (!mot){ toast("Informe o motivo."); $("#pa-mot").focus(); return; }
+      Object.entries(pend).forEach(([k, v]) => { const p = PARAM_ADM.find(x => x.k===k), antes = parAdm(k), det = `${p.r}: ${fmt(antes, p.dec)} → ${fmt(v, p.dec)} ${p.u}`;
+        if (p.apr) pedidoAdm("Parâmetro", {nome:p.g, codigo:"", id:null}, `${esc(p.r)}: ${fmt(antes, p.dec)} → <b>${fmt(v, p.dec)} ${esc(p.u)}</b>. Vale em: ${esc(p.onde)}.`, mot, () => { ADM.params[k] = v; COB = null; });
+        else { ADM.params[k] = v; COB = null; trilhaAdm("Parâmetro", null, det, mot, "gravado", () => { ADM.params[k] = antes; COB = null; }); } });
+      toast("Parâmetros gravados; os que pedem aprovação foram para a fila."); admParametros(); }; }
+  $$("#pa-lista [data-k]").forEach(i => i.onchange = () => { const p = PARAM_ADM.find(x => x.k === i.dataset.k), v = numBR(i.value);
+    if (v==null || v <= 0){ toast("Valor inválido."); i.value = fmt(parAdm(p.k), p.dec).replace(/\./g, ""); return; }
+    if (Math.abs(v - parAdm(p.k)) < 1e-9) delete pend[p.k]; else pend[p.k] = v; i.parentElement.classList.toggle("mudou", p.k in pend); barra(); });
+}
+
+/* ---------------- páginas públicas: avisos, textos e revisões da série */
+function fichaDe(e){
+  if (!e) return null;
+  if (e.src==="sin" && String(e.codigo)===String(D.ficha.codigo)) return "ficha/FURNAS";
+  if ((e.src==="ne" || e.src==="nv") && NEd.fichas && NEd.fichas[e.codigo]) return "ne/ficha/" + e.codigo;
+  if (e.src==="os") return "outros/ficha/" + e.codigo;
+  return null;
+}
+function entDaRota(h){ const E = entidadesDados();
+  if (h==="ficha/FURNAS") return E.find(e => e.src==="sin" && String(e.codigo)===String(D.ficha.codigo));
+  if (h.startsWith("ne/ficha/")){ const c = h.slice(9); return E.find(e => (e.src==="ne" || e.src==="nv") && String(e.codigo)===c); }
+  if (h.startsWith("outros/ficha/")) return E.find(e => e.id === "OS:" + h.slice(13));
+  return null; }
+function extrasPublicos(h){
+  $("#conteudo").classList.toggle("admin", h.startsWith("admin"));   // tabelas da administração quebram linha (sem rolagem interna)
+  if (h.startsWith("admin")) return;
+  TEXTOS_ED.forEach(T => { if (T.rota(h) && ADM.textos[T.k] != null){ const el = $(T.sel); if (el) el.innerHTML = textoHTML(ADM.textos[T.k]); } });
+  const hoje = new Date().toISOString().slice(0,10), mod = h==="" || h==="inicio" ? "inicio" : h==="dados" ? "dados" : h.startsWith("ne") ? "NE" : h.startsWith("outros") ? "OUTROS" : "SIN", e = entDaRota(h);
+  const A = ADM.avisos.filter(a => !a.removido && a.ini <= hoje && (!a.fim || a.fim >= hoje) && (a.onde==="geral" || a.onde===mod || (e && a.onde===e.id)));
+  if (A.length){ const box = document.createElement("div"); box.className = "avisos-pub";
+    box.innerHTML = A.map(a => `<div class="aviso-pub ${a.tipo}" role="note"><b>${a.tipo==="atencao" ? "Atenção." : "Aviso."}</b> ${esc(a.txt)}</div>`).join("");
+    const c = $("#conteudo"), ac = $(".acesso-adm", c); if (ac) ac.after(box); else c.prepend(box); }
+  if (e){ const R = ADM.revisoes.filter(r => r.id === e.id), n = $$("#conteudo section.secao h2 small").length + 1, ind = $("#conteudo nav.indice");
+    const sec = document.createElement("section"); sec.className = "cartao secao"; sec.id = "rev-serie"; sec.setAttribute("aria-labelledby", "t-rev-serie");
+    sec.innerHTML = `<h2 id="t-rev-serie"><small>${n}</small>Revisões da série</h2>
+      <p class="sub">Correções feitas pela ANA depois da publicação: quando, o que mudou e por quê. A mesma lista vai no leia-me dos arquivos da área de dados.</p>
+      ${R.length ? `<ul class="rev-lista">${R.map(r => `<li><span class="q">${esc(r.quando)}</span><span>${esc(r.texto)}.<span class="m">Motivo: ${esc(r.motivo)}</span></span></li>`).join("")}</ul>`
+        : '<p class="nota">Nenhuma revisão registrada desde a publicação.</p>'}
+      <p class="nota">No protótipo, a lista mostra as correções feitas nesta sessão na área administrativa; os gráficos e as tabelas desta página não são refeitos com elas.</p>`;
+    $("#conteudo").append(sec);
+    if (ind) ind.insertAdjacentHTML("beforeend", `<a href="#${esc(h)}" data-alvo="rev-serie">Revisões da série</a>`); }
+}
+function revisoesLeiaMe(S){ const ids = new Set(S.map(e => e.id)), R = ADM.revisoes.filter(r => ids.has(r.id));
+  return R.length ? [``, `Revisões da série depois da publicação (${R.length}):`, ...R.map(r => `- ${r.quando} · ${r.nome}${r.cod ? " (código " + r.cod + ")" : ""}: ${r.texto}. Motivo: ${r.motivo}.`),
+    `No protótipo, as revisões são listadas, mas os valores deste arquivo não as incorporam.`] : [``, `Revisões da série depois da publicação: nenhuma para os reservatórios selecionados.`]; }
 
 /* ============================================================ rotas */
 const DESKTOP = () => window.matchMedia("(min-width:1024px)").matches;
@@ -5274,6 +5903,7 @@ function rota(){
   else if (h === "ne") paginaNE(); else if (h.startsWith("ne/ficha/")) paginaFichaNE(h.slice(9)); else if (h.startsWith("ne/")) paginaEstadoNE(h.slice(3));
   else if (h === "sin") paginaSIN(); else if (h === "outros") paginaOutros(); else if (h === "outros/cantareira") paginaCantareira(); else if (h === "outros/df" || h === "outros/rmbh") paginaSistemaOS(h.slice(7));
   else if (h.startsWith("outros/ficha/")) paginaFichaOS(h.slice(13)); else if (h === "dados") paginaDados(); else if (h === "admin" || h.startsWith("admin/")) paginaAdmin(h.slice(6)); else paginaInicio();
+  extrasPublicos(h);
   const mod = h === "" || h === "inicio" ? "inicio" : h === "dados" ? "dados" : h.startsWith("admin") ? "admin" : h.startsWith("ne") ? "ne" : h.startsWith("outros") ? "outros" : "sin";
   $$(".modulos button").forEach(b => { if (b.dataset.rota === mod) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
   document.body.classList.toggle("na-inicio", mod === "inicio");
