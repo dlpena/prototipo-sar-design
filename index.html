@@ -561,16 +561,19 @@ td .nm{font-weight:500}
   .lateral-indice{display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--linha);padding-top:16px;margin-top:22px}
   .lateral-indice[hidden]{display:none}
   .lateral-indice .rot{font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--apagado);padding:0 12px 6px}
-  .lateral-indice .ctx{display:flex;flex-direction:column;gap:2px;padding:0 12px 10px;font-size:12.5px}
-  .lateral-indice .ctx a{padding:0;color:var(--apagado);border-radius:0;display:inline}
-  .lateral-indice .ctx a:hover{background:transparent;color:var(--ana)}
-  .lateral-indice .ctx b{color:var(--ana)}
+  .lateral-indice a.voltar{align-items:center;gap:8px;margin:0 0 14px;padding:8px 12px;border:1px solid var(--linha-forte);border-radius:8px;background:#fff;color:var(--ana);font-size:13px;font-weight:500}
+  .lateral-indice a.voltar:hover{background:var(--ana-gelo);border-color:var(--ana)}
+  .lateral-indice a.voltar svg{flex:none}
   .lateral-indice a{display:flex;gap:10px;padding:7px 12px;border-radius:6px;font-size:13.5px;color:var(--tinta-2);text-decoration:none}
   .lateral-indice a i{font:600 13px var(--cond);color:var(--ana-vivo);font-style:normal;min-width:10px}
   .lateral-indice a:hover{background:var(--ana-gelo);color:var(--ana);text-decoration:none}
   .lateral-indice a.ativo{background:var(--ana-bruma);color:var(--ana);font-weight:600}
   .lateral-pe{display:flex;flex-direction:column;gap:10px;margin-top:auto;border-top:1px solid var(--linha);padding:14px 4px 0;font-size:12px;color:var(--apagado)}
-  .lateral-pe .barra-data{margin:0;padding:0;border:0;background:transparent;flex-direction:column;align-items:flex-start;gap:6px}
+  .lateral-pe .barra-data{margin:0;padding:0;border:0;background:transparent;flex-direction:column;align-items:stretch;gap:8px}
+  .lateral-pe .barra-data .data-ref b{font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--apagado);margin:0}
+  .lateral-pe .barra-data input[type=date],.lateral-pe .barra-data .hoje{box-sizing:border-box;width:100%;height:36px;margin:0;border-radius:8px;font-size:13.5px}
+  .lateral-pe .barra-data input[type=date]{padding:0 10px}
+  .lateral-pe .barra-data .hoje{padding:0 10px;text-align:center}
   .lateral-pe .barra-data .dica{display:none}
   .lateral-pe .barra-data .data-ref{flex-wrap:wrap}
   .lateral-pe .selo{align-self:flex-start}
@@ -1338,7 +1341,7 @@ function paginaGrande(){
         <div class="carimbo"><span>Dados do dia <b id="dia-carimbo">${dBR(D.data)}</b></span><span>Base diária</span><span><b>${nRes}</b> com reservatório · <b>${nFio}</b> a fio d'água</span></div>
       </div>
     </div>
-    <div class="barra-data"><label class="data-ref" for="dia-bacia"><b>Data de referência</b></label><input type="date" id="dia-bacia" value="${D.data}" min="${G.res[0].serie[0].data}" max="${D.data}" aria-label="Data de referência"><button class="hoje" id="dia-bacia-hoje" title="Voltar para o último dia fechado">último dia</button><span class="dica">Base diária. Mapa, tabela e cascata mostram o dia escolhido.</span></div>`;
+    <div class="barra-data"><label class="data-ref" for="dia-bacia"><b>Data de referência</b></label><input type="date" id="dia-bacia" value="${D.data}" min="${G.res[0].serie[0].data}" max="${D.data}" aria-label="Data de referência"><button class="hoje" id="dia-bacia-hoje" title="Voltar para os dados mais recentes">Dados mais recentes</button><span class="dica">Base diária. Mapa, tabela e cascata mostram o dia escolhido.</span></div>`;
   const main = $("#conteudo");
   main.innerHTML = `
     <nav class="indice" aria-label="Seções da página">
@@ -1667,14 +1670,14 @@ function paginaFicha(){
         <div class="carimbo"><span>Código SAR <b>${F.codigo}</b></span><span>Último dia fechado <b>${dBR(ult.data)}</b></span><span>Base diária desde <b>${dBR(DI[0].data)}</b></span><span>Base horária desde <b>${fHora(HO[0].t)}</b>, última <b>${fHora(HO[HO.length-1].t)}</b></span></div>
       </div>
     </div>
-    <div class="barra-data"><label class="data-ref" for="dia-sit"><b>Data de referência</b></label><input type="date" id="dia-sit" value="${ult.data}" min="${DI[0].data}" max="${ult.data}" aria-label="Data de referência"><button class="hoje" id="dia-sit-hoje" title="Voltar para o último dia fechado">último dia</button><span class="dica">Base diária. Situação e mesmo dia em outros anos seguem esta data.</span></div>`;
+    <div class="barra-data"><label class="data-ref" for="dia-sit"><b>Data de referência</b></label><input type="date" id="dia-sit" value="${ult.data}" min="${DI[0].data}" max="${ult.data}" aria-label="Data de referência"><button class="hoje" id="dia-sit-hoje" title="Voltar para os dados mais recentes">Dados mais recentes</button><span class="dica">Base diária. Situação e mesmo dia em outros anos seguem esta data.</span></div>`;
   $("#conteudo").innerHTML = `
     <nav class="indice" aria-label="Seções da página">
       <a href="#ficha/FURNAS" data-alvo="f-sit">Situação</a><a href="#ficha/FURNAS" data-alvo="f-graf">Gráficos</a><a href="#ficha/FURNAS" data-alvo="f-dia">Mesmo dia em outros anos</a><a href="#ficha/FURNAS" data-alvo="f-ano">Ano contra anos anteriores</a>
     </nav>
     <section class="cartao secao" id="f-sit" aria-labelledby="t-sit">
       <h2 id="t-sit"><small>1</small>Situação em <span id="dia-sit-txt">${dBR(ult.data)}</span></h2>
-      <p class="sub">Base diária, na data de referência (o padrão é o último dia fechado). Ao lado, a usina e as vizinhas da cascata do Grande.<span class="dica">Mude a data de referência no alto da página para ver outro dia.</span></p>
+      <p class="sub">Base diária, na data de referência (o padrão são os dados mais recentes). Ao lado, a usina e as vizinhas da cascata do Grande.<span class="dica">Mude a data de referência no alto da página para ver outro dia.</span></p>
       <p class="nota" id="aviso-sit" style="margin:0 0 8px"></p>
       <div class="sit-grid">
         <div class="valores" id="valores-ficha"></div>
@@ -2230,7 +2233,7 @@ const legendaEscalaUF = () => `<div class="escala-uf"><b>Volume acumulado</b>` +
 function seletorData(id, min = NEd.serie_min, max = NEd.serie_ate){
   return `<div class="barra-data"><label class="data-ref" for="${id}"><b>Data de referência</b></label>
     <input type="date" id="${id}" value="${dataRef}" min="${min}" max="${max}" aria-label="Data de referência">
-    <button class="hoje" title="Voltar para a última medição do módulo">última medição</button>
+    <button class="hoje" title="Voltar para os dados mais recentes">Dados mais recentes</button>
     <span class="dica">Cada reservatório entra com a medição mais próxima desta data, até ${NEd.limiar_dias} dias antes ou depois. Qualquer data de ${dBR(min)} a ${dBR(max)}.</span></div>`;
 }
 function ligarSeletor(id, aplicar, min = NEd.serie_min, max = NEd.serie_ate){
@@ -3476,7 +3479,7 @@ function paginaCantareira(){
     <h1>Sistema Cantareira</h1>
     <p class="lead">Jaguari-Jacareí, Cachoeira, Atibainha e Paiva Castro, ligados por túneis, abastecem a Região Metropolitana de São Paulo pela Estação Elevatória Santa Inês e liberam água para as bacias dos rios Piracicaba, Capivari e Jundiaí (PCJ). A operação segue a Resolução Conjunta ANA/DAEE nº 925/2017.</p>
     <div class="carimbo"><span>Último dia <b>${dBR(ult)}</b></span><span>Base diária</span><span><b>4</b> reservatórios · <b>${fmt(CAN.vu,2)}</b> hm³ de volume útil</span><span>Série do sistema desde <b>${dBR(CAN.de)}</b></span></div>
-    <div class="barra-data"><label class="data-ref" for="dia-can"><b>Data de referência</b></label><input type="date" id="dia-can" value="${refOS}" min="${min}" max="${ult}" aria-label="Data de referência"><button class="hoje" id="dia-can-hoje" title="Voltar para o último dia">último dia</button><span class="dica">Base diária. Situação, reservatórios, balanço e postos seguem esta data.</span></div>`;
+    <div class="barra-data"><label class="data-ref" for="dia-can"><b>Data de referência</b></label><input type="date" id="dia-can" value="${refOS}" min="${min}" max="${ult}" aria-label="Data de referência"><button class="hoje" id="dia-can-hoje" title="Voltar para os dados mais recentes">Dados mais recentes</button><span class="dica">Base diária. Situação, reservatórios, balanço e postos seguem esta data.</span></div>`;
   const secoes = [["c-sit","Situação"],["c-res","Reservatórios"],["c-bal","Balanço de vazões"],["c-ano","Ao longo do ano"],["c-dia","Mesmo dia em outros anos"],["c-mes","Chuva e afluência"],["c-pcj","Postos do PCJ"]];
   $("#conteudo").innerHTML = `
     <nav class="indice" aria-label="Seções da página">${secoes.map(([id, r]) => `<a href="#outros/cantareira" data-alvo="${id}">${r}</a>`).join("")}</nav>
@@ -3734,7 +3737,7 @@ const soNivelF = F => !F.pct;
 const nomeRes = F => F.sis==="cantareira" ? F.nome : caso(F.nome);
 const PAGINA_SIS = {cantareira:"outros/cantareira", df:"outros/df", rmbh:"outros/rmbh"};
 const abrirFichaOS = cod => { if (FOS[cod]) location.hash = "outros/ficha/" + cod; };
-const barraDataOS = (id, val, min, max, dica) => `<div class="barra-data"><label class="data-ref" for="${id}"><b>Data de referência</b></label><input type="date" id="${id}" value="${val}" min="${min}" max="${max}" aria-label="Data de referência"><button class="hoje" id="${id}-hoje" title="Voltar para o último dia">último dia</button><span class="dica">${dica}</span></div>`;
+const barraDataOS = (id, val, min, max, dica) => `<div class="barra-data"><label class="data-ref" for="${id}"><b>Data de referência</b></label><input type="date" id="${id}" value="${val}" min="${min}" max="${max}" aria-label="Data de referência"><button class="hoje" id="${id}-hoje" title="Voltar para os dados mais recentes">Dados mais recentes</button><span class="dica">${dica}</span></div>`;
 function ligarDataOS(id, min, max, aplicar){
   const e = $("#"+id), ir = iso => { if (iso < min) iso = min; if (iso > max) iso = max; refOS = iso; e.value = iso; aplicar(); };
   e.onchange = () => ir(e.value || max);
@@ -3853,7 +3856,7 @@ function paginaFichaOS(cod){
     <nav class="indice" aria-label="Seções da página">${secoes.map(([id, r]) => `<a href="#outros/ficha/${cod}" data-alvo="${id}">${r}</a>`).join("")}</nav>
     <section class="cartao secao" id="fo-sit" aria-labelledby="t-fo-sit">
       <h2 id="t-fo-sit"><small>1</small>Situação em <span id="fo-sit-dia"></span></h2>
-      <p class="sub">Base diária, na data de referência (o padrão é o último dia).${can ? " Vazões médias do dia, em m³/s." : ""}<span class="dica">Mude a data de referência no alto da página para ver outro dia.</span></p>
+      <p class="sub">Base diária, na data de referência (o padrão são os dados mais recentes).${can ? " Vazões médias do dia, em m³/s." : ""}<span class="dica">Mude a data de referência no alto da página para ver outro dia.</span></p>
       <div class="valores" id="fo-valores"></div>
     </section>
     <section class="cartao secao" id="fo-graf" aria-labelledby="t-fo-graf">
@@ -3986,10 +3989,10 @@ function montarFaixa(novaPagina){
       const elos = $$("a", trilha), atual = (trilha.lastChild.textContent || "").trim();
       if (elos.length > 1 && atual){                       // há nível abaixo do módulo (estado, bacia, ficha)
         const pai = elos[elos.length-1];
-        ctx = `<span class="ctx"><a href="${pai.getAttribute("href")}" title="Voltar para ${esc(pai.textContent)}">‹ ${esc(pai.textContent)}</a><b>${esc(atual)}</b></span>`;
+        ctx = `<a class="voltar" href="${pai.getAttribute("href")}"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Voltar para ${esc(pai.textContent)}</a>`;
       }
     }
-    lat.innerHTML = `<span class="rot">Nesta página</span>${ctx}` +
+    lat.innerHTML = `${ctx}<span class="rot">Nesta página</span>` +
       $$("a", ind).map((a, i) => `<a href="${a.getAttribute("href")}" data-alvo="${a.dataset.alvo}"><i>${i+1}</i>${esc(a.textContent)}</a>`).join("");
     const elos = $$("a[data-alvo]", lat);
     elos.forEach(a => a.onclick = e => { e.preventDefault(); const alvo = document.getElementById(a.dataset.alvo); if (alvo) alvo.scrollIntoView({behavior:"smooth", block:"start"}); });
