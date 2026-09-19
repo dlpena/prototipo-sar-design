@@ -530,12 +530,12 @@ td .nm{font-weight:500}
 .secao:has(> .equiv) .equiv .valor small{color:#7FC4FF}
 .secao:has(> .equiv) .equiv .lado{border-right-color:rgba(255,255,255,.18)}
 .secao:has(> .equiv) .comparacoes li{border-top-color:rgba(255,255,255,.18)}
-/* bloco escuro mais baixo: comparações em duas colunas ao lado do número (Diego, 19/09/2026: altura exagerada) */
-@media (min-width:981px){
-  .equiv{grid-template-columns:minmax(260px,.8fr) minmax(0,1.6fr)}
-  .equiv .comparacoes{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px;align-content:center}
-}
-.secao:has(> .equiv) > p.nota{color:#A9BBD8}
+/* bloco escuro mais baixo (Diego, 19/09/2026): comparações numa coluna só, compactas; a nota vai para a coluna do
+   número, para não somar uma linha abaixo; a altura do bloco fica próxima da altura da lista */
+.equiv .comparacoes li{padding:6px 0}
+.equiv .comparacoes li:first-child{padding-top:0}
+.equiv .lado .nota{margin:14px 0 0;font-size:12px;line-height:1.45;max-width:60ch}
+.secao:has(> .equiv) > p.nota,.secao:has(> .equiv) .lado .nota{color:#A9BBD8}
 .secao:has(> .equiv) .comparacoes li b{color:#FFFFFF}
 .secao:has(> .equiv) .baixar button{color:#C5D2EA}
 .secao:has(> .equiv) .baixar button:hover{color:#FFFFFF;background:rgba(255,255,255,.12)}
@@ -2476,10 +2476,10 @@ function paginaNE(){
         <div class="lado">
           <div class="valor num" id="vol-valor"></div>
           <div class="quando" id="vol-quando"></div>
+          <p class="nota" id="vol-nota"></p>
         </div>
         <ul class="comparacoes" id="comp-ne"></ul>
       </div>
-      <p class="nota" id="vol-nota"></p>
     </section>
     <section class="cartao secao" id="n-ano" aria-labelledby="t-n-ano">
       ${barraBaixar([["baixar-ne-ano", "PNG", "Baixar o gráfico como imagem"]])}
