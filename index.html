@@ -3539,8 +3539,8 @@ function paginaCantareira(){
     <h1>Sistema Cantareira</h1>
     <p class="lead">Jaguari-Jacareí, Cachoeira, Atibainha e Paiva Castro, ligados por túneis, abastecem a Região Metropolitana de São Paulo pela Estação Elevatória Santa Inês e liberam água para as bacias dos rios Piracicaba, Capivari e Jundiaí (PCJ). A operação segue a Resolução Conjunta ANA/DAEE nº 925/2017.</p>
     <div class="carimbo"><span>Dados mais recentes <b>${dBR(ult)}</b></span><span>Base diária</span><span><b>4</b> reservatórios · <b>${fmt(CAN.vu,2)}</b> hm³ de volume útil</span><span>Série do sistema desde <b>${dBR(CAN.de)}</b></span></div>
-    <div class="barra-data"><label class="data-ref" for="dia-can"><b>Data de referência</b></label><input type="date" id="dia-can" value="${refOS}" min="${min}" max="${ult}" aria-label="Data de referência"><button class="hoje" id="dia-can-hoje" title="Voltar para os dados mais recentes">Dados mais recentes</button><span class="dica">Base diária. Situação, reservatórios, balanço e postos seguem esta data.</span></div>`;
-  const secoes = [["c-sit","Situação"],["c-res","Reservatórios"],["c-bal","Balanço de vazões"],["c-ano","Ao longo do ano"],["c-dia","Mesmo dia em outros anos"],["c-mes","Chuva e afluência"],["c-pcj","Postos do PCJ"]];
+    <div class="barra-data"><label class="data-ref" for="dia-can"><b>Data de referência</b></label><input type="date" id="dia-can" value="${refOS}" min="${min}" max="${ult}" aria-label="Data de referência"><button class="hoje" id="dia-can-hoje" title="Voltar para os dados mais recentes">Dados mais recentes</button><span class="dica">Base diária. Situação, reservatórios e balanço seguem esta data.</span></div>`;
+  const secoes = [["c-sit","Situação"],["c-res","Reservatórios"],["c-bal","Balanço de vazões"],["c-ano","Ao longo do ano"],["c-dia","Mesmo dia em outros anos"],["c-mes","Chuva e afluência"]];
   $("#conteudo").innerHTML = `
     <nav class="indice" aria-label="Seções da página">${secoes.map(([id, r]) => `<a href="#outros/cantareira" data-alvo="${id}">${r}</a>`).join("")}</nav>
     <section class="cartao secao" id="c-sit" aria-labelledby="t-c-sit">
@@ -3550,10 +3550,6 @@ function paginaCantareira(){
         <div class="lado">
           <div class="valor num" id="c-valor"></div>
           <div class="quando" id="c-quando"></div>
-          <div class="regua-faixas">${FAIXAS_CAN.slice().reverse().map((f,i,a) => { const ate = f.n===1 ? 100 : FAIXAS_CAN[f.n-2].de, de = f.n===5 ? 0 : f.de; return `<span style="width:${ate-de}%;background:${f.cor};opacity:.8" title="${rotFaixa(f)}"></span>`; }).join("")}</div>
-          <div class="regua-rot" id="c-regua"></div>
-          <ul class="faixas-lista">${FAIXAS_CAN.map(f => `<li><i style="background:${f.cor};opacity:.8"></i><span>Faixa ${f.n} · ${f.r} · ${f.n===1 ? "60% ou mais" : f.n===5 ? "abaixo de 20%" : `${f.de}% a ${FAIXAS_CAN[f.n-2].de}%`}</span><span>Santa Inês até <b class="num">${fmt(f.esi,1)}</b> m³/s</span></li>`).join("")}</ul>
-          <p class="def">A marca na régua é o volume do dia. A faixa de operação que vale no mês é estabelecida pela ANA e pelo DAEE (Art. 6º) e não é calculada aqui. Limites de retirada em Santa Inês: médias mensais máximas por faixa (Art. 4º, § 1º).</p>
         </div>
         <ul class="comparacoes" id="c-comp"></ul>
       </div>
@@ -3577,9 +3573,8 @@ function paginaCantareira(){
     <section class="cartao secao" id="c-ano" aria-labelledby="t-c-ano">
       ${barraBaixar([["baixar-can-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-c-ano"><small>4</small>Ao longo do ano</h2>
-      <p class="sub">Volume útil do sistema (%) dia a dia, nos cinco anos até a data de referência (o último ponto da curva), com os limites das faixas de operação da resolução.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
+      <p class="sub">Volume útil do sistema (%) dia a dia, nos cinco anos até a data de referência (o último ponto da curva).<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div class="graf" id="g-can-ano"></div>
-      <div class="legenda" style="margin-top:6px"><span>Linhas tracejadas: início de cada faixa (Art. 4º)</span>${FAIXAS_CAN.slice(0,4).map(f => `<span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="${f.cor}" stroke-width="1.6" stroke-dasharray="5 4"/></svg>${f.de}% · faixa ${f.n} (${f.r})</span>`).join("")}<span>abaixo de 20% · faixa 5 (Especial)</span></div>
     </section>
     <section class="cartao secao" id="c-dia" aria-labelledby="t-c-dia">
       ${barraBaixar([["baixar-can-dia", "PNG", "Baixar o gráfico como imagem"]])}
@@ -3595,26 +3590,15 @@ function paginaCantareira(){
       <div class="mensal-grade"><div class="graf" id="g-can-chuva"></div><div class="graf" id="g-can-qnat"></div></div>
       <p class="nota" id="c-mes-nota" style="margin:10px 0 0"></p>
     </section>
-    <section class="cartao secao tabela-bacia" id="c-pcj" aria-labelledby="t-c-pcj">
-      <h2 id="t-c-pcj"><small>7</small>Postos de controle do PCJ em <span id="c-pcj-dia"></span></h2>
-      <p class="sub">Vazões nos três postos de controle a jusante do sistema, ao lado dos mínimos da resolução (Art. 5º). No período úmido (dezembro a maio), nas faixas 1 a 4, vale a média móvel de 15 dias, com mínimo que depende da faixa, e um piso de média diária; no período seco (junho a novembro), só a média diária. Na faixa 5, 10,0 m³/s em Valinhos e 2,0 m³/s em Buenópolis, em média diária (§ 10).</p>
-      <div class="tab-box"><table id="tab-pcj">
-        <thead><tr><th>Posto de controle</th><th class="r">Vazão do dia</th><th class="r">Média móvel de 15 dias</th><th class="r">Mínimo da média móvel, faixas 1 e 2</th><th class="r">Mínimo da média móvel, faixas 3 e 4</th><th class="r">Mínimo da média diária</th><th>Período</th></tr>
-        <tr class="unid"><th></th><th class="r">m³/s</th><th class="r">m³/s</th><th class="r">m³/s</th><th class="r">m³/s</th><th class="r">m³/s</th><th></th></tr></thead>
-        <tbody id="corpo-pcj"></tbody></table></div>
-      <div class="legenda" style="margin-top:18px"><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#9FB7D3" stroke-width="1.6"/></svg>Vazão diária</span><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#1C3782" stroke-width="2"/></svg>Média móvel de 15 dias</span><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#C0392B" stroke-width="1.6" stroke-dasharray="5 4"/></svg>Mínimo da média móvel, faixas 1 e 2 (período úmido)</span><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#E8A0A0" stroke-width="1.6" stroke-dasharray="5 4"/></svg>faixas 3 e 4</span><span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="#E07B00" stroke-width="1.6" stroke-dasharray="5 4"/></svg>Mínimo da média diária</span></div>
-      <div class="postos-graf" id="g-pcj" style="margin-top:6px"></div>
-      <p class="nota" style="margin:10px 0 0">A média móvel de 15 dias é calculada pelo SAR a partir da vazão diária informada pela SABESP; pela resolução, as vazões de controle são calculadas pelo DAEE e divulgadas em boletim diário. Os mínimos aparecem por faixa porque a faixa que vale no mês é a estabelecida pela ANA e pelo DAEE (Art. 6º); o período úmido ou seco é o do mês da data.</p>
-    </section>
-    <p class="nota">Fontes: ${esc(OS.fontes.sabesp)} (reservatórios, túneis, Santa Inês, transferência, chuva, médias de longo termo e postos); ${esc(OS.fontes.resolucao)}. O volume útil do sistema é calculado pelo SAR com os quatro reservatórios da resolução; o percentual publicado pela SABESP inclui também o reservatório de Águas Claras e difere deste em até 0,05 ponto percentual.</p>`;
+    <p class="nota">Fontes: ${esc(OS.fontes.sabesp)} (reservatórios, túneis, Santa Inês, transferência, chuva e médias de longo termo); ${esc(OS.fontes.resolucao)}. O volume útil do sistema é calculado pelo SAR com os quatro reservatórios da resolução; o percentual publicado pela SABESP inclui também o reservatório de Águas Claras e difere deste em até 0,05 ponto percentual.</p>`;
   $$(".indice a").forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
   const ir = iso => { if (iso < min) iso = min; if (iso > ult) iso = ult; refOS = iso; $("#dia-can").value = iso; desenhar(); };
   $("#dia-can").onchange = () => ir($("#dia-can").value || ult);
   $("#dia-can-hoje").onclick = () => ir(ult);
   function desenhar(){
     const ref = refOS, p0 = pctCan(ref), f0 = null;   // faixa: só pelo ato mensal da ANA/DAEE, não calculada
-    ["c-sit-dia","c-res-dia","c-bal-dia","c-pcj-dia"].forEach(id => $("#"+id).textContent = dBR(ref));
-    situacaoCan(ref, p0, f0); tabelaCan(ref); balancoCan(ref, f0); anoCan(ref); diaCan(ref); mesCan(ref); pcjCan(ref, f0);
+    ["c-sit-dia","c-res-dia","c-bal-dia"].forEach(id => $("#"+id).textContent = dBR(ref));
+    situacaoCan(ref, p0, f0); tabelaCan(ref); balancoCan(ref, f0); anoCan(ref); diaCan(ref); mesCan(ref);
   }
   redesenharOS = desenhar;
   desenhar();
@@ -3634,7 +3618,6 @@ function situacaoCan(ref, p0, f0){
   const ant = `${+ref.slice(0,4)-1}${ref.slice(4)}`;
   $("#c-valor").innerHTML = `${fmt(p0,1)}<small>%</small>`;
   $("#c-quando").textContent = `volume útil do sistema em ${dBR(ref)} · ${fmt(vol,1)} de ${fmt(CAN.vu,2)} hm³`;
-  $("#c-regua").innerHTML = [0,20,30,40,60,100].map(v => `<b style="left:${v}%">${v}</b>`).join("") + (p0!=null ? `<span class="regua-marca" style="left:${Math.max(0, Math.min(100, p0))}%;top:-19px" title="${fmt(p0,1)}%"></span>` : "");
   $("#c-comp").innerHTML = `<li><span>Em 7 dias</span><b class="num">${dif(p0, pctCan(isoMais(ref,-7)))}</b></li>
     <li><span>Em 30 dias</span><b class="num">${dif(p0, pctCan(isoMais(ref,-30)))}</b></li>
     <li><span>Mesmo dia de ${ant.slice(0,4)}<small>${dif(p0, pctCan(ant))}</small></span><b class="num">${fmt(pctCan(ant),1)}%</b></li>
@@ -3701,21 +3684,20 @@ function balancoCan(ref, f0){
   txt(W - 8, yb - 12, `Santa Inês ${q(esi)}`, {a:"end", fs:12, cor:"#1C3782", b:true});
   txt(W - 8, yb + bh + 18, "para a RMSP", {a:"end", fs:11, cor:"#6F7582"});
   $("#c-balanco").innerHTML = ""; $("#c-balanco").append(svg);
-  // resumo: retirada do sistema (Art. 1º, § 2º) e Santa Inês no mês contra o limite da faixa
+  // resumo: retirada do sistema (Art. 1º, § 2º), Santa Inês no mês e transferência, sem limites por faixa
   const jus = CAN.res.reduce((a, r) => a + (detCan(r.qjus, ref) ?? NaN), 0);
   const i1 = diaEntre(ref, CAN.det_de), i0 = diaEntre(ref.slice(0,8) + "01", CAN.det_de), mes = CAN.vaz.ESI.slice(i0, i1+1).filter(v => v!=null);
   const esiMes = mes.length ? mes.reduce((a,b) => a+b, 0)/mes.length : null;
   $("#c-bal-resumo").innerHTML = `
     <div class="v"><div class="r">Retirada do sistema no dia</div><div class="n num">${fmt(esi + jus,1)}<small>m³/s</small></div><div class="c">Santa Inês ${fmt(esi,1)} + descargas para jusante ${fmt(jus,2)}, como define a resolução (Art. 1º, § 2º)</div></div>
-    <div class="v"><div class="r">Santa Inês, média do mês até ${dBR(ref).slice(0,5)}</div><div class="n num">${fmt(esiMes,1)}<small>m³/s</small></div><div class="c">${true ? `limites médios mensais por faixa (Art. 4º, § 1º): ${FAIXAS_CAN.map(f => fmt(f.esi,1)).join(" · ")} m³/s, da faixa 1 à 5` : ""}</div></div>
-    <div class="v"><div class="r">Transferência do Paraíba do Sul, no dia</div><div class="n num">${fmt(tr,2)}<small>m³/s</small></div><div class="c">nas faixas 2 a 4, somada ao limite de retirada da SABESP (Art. 4º, § 2º)</div></div>`;
+    <div class="v"><div class="r">Santa Inês, média do mês até ${dBR(ref).slice(0,5)}</div><div class="n num">${fmt(esiMes,1)}<small>m³/s</small></div><div class="c">média das vazões diárias do mês, até a data de referência</div></div>
+    <div class="v"><div class="r">Transferência do Paraíba do Sul, no dia</div><div class="n num">${fmt(tr,2)}<small>m³/s</small></div><div class="c">do reservatório Jaguari, na bacia do Paraíba do Sul, para o Atibainha</div></div>`;
 }
 function anoCan(ref){
   const a1 = +ref.slice(0,4), anos = []; for (let a = a1 - 4; a <= a1; a++) anos.push(a);
   const pts = {}; const i0 = diaEntre(`${a1-4}-01-01`, CAN.de), i1 = Math.min(CAN.pct.length - 1, diaEntre(ref, CAN.de));
   for (let i = Math.max(0, i0); i <= i1; i++) pts[isoMais(CAN.de, i)] = CAN.pct[i];
-  graficoCalendario($("#g-can-ano"), pts, {anos, anoAtual:a1, dec:1, unidade:"%", pct:true, marcaDia:ref, rotulo:"Volume útil do Sistema Cantareira (%)", maxVao:3, tol:1,
-    linhas: FAIXAS_CAN.slice(0,4).map(f => ({v:f.de, r:`${f.de}% · início da faixa ${f.n} (${f.r})`, cor:f.cor}))});
+  graficoCalendario($("#g-can-ano"), pts, {anos, anoAtual:a1, dec:1, unidade:"%", pct:true, marcaDia:ref, rotulo:"Volume útil do Sistema Cantareira (%)", maxVao:3, tol:1});
 }
 function diaCan(ref){
   const mmdd = ref.slice(5)==="02-29" ? "02-28" : ref.slice(5), a1 = +ref.slice(0,4), dados = [];
