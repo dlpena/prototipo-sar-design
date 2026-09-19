@@ -2425,7 +2425,7 @@ function barrasFaixas(host, linhas){
       x += w;
     });
     const tot = svgEl("text",{x:x+8, y:y+15, "font-size":11.5, fill:"#6F7582", "font-family":"Arial"});
-    tot.textContent = l.n ? l.n : "nenhum reservatório acompanhado nos últimos 12 meses"; svg.append(tot);
+    tot.textContent = l.n ? l.n : "nenhum reservatório acompanhado"; svg.append(tot);
   });
   host.append(svg, tip);
 }
@@ -2476,7 +2476,7 @@ function paginaNE(){
         <p><b>Volume acumulado e capacidade equivalente.</b> O volume acumulado (hm³) reúne o volume dos reservatórios com medição na janela de ${NEd.limiar_dias} dias; a capacidade equivalente (hm³), a capacidade desses mesmos reservatórios. O volume acumulado (%) é a razão entre os dois. A conta é a mesma para cada estado e para o Nordeste.</p>
         <p><b>Sem informação.</b> O reservatório sem medição de volume na janela não entra em nenhuma das duas parcelas e é contado como sem informação; no mapa, aparece em cinza.</p>
         <p><b>Só nível.</b> Reservatório com régua lida por observador, mas sem curva cota-volume validada: conta como acompanhado e mostra se subiu ou desceu, mas não entra no volume acumulado.</p>
-        <p><b>Sem leitura há 12 meses.</b> Os ${fint(OCULTOS.size)} reservatórios cadastrados sem nenhuma leitura nos últimos 12 meses saem das contagens desta página e seguem na área de dados.</p>
+        <p><b>Retirados do acompanhamento.</b> Os ${fint(OCULTOS.size)} reservatórios cadastrados que a ANA retirou do acompanhamento não entram nas contagens desta página e seguem na área de dados.</p>
         <p><b>Séries e comparações.</b> Os gráficos ao longo do ano, o mesmo dia em outros anos e as comparações usam uma curva encadeada, explicada abaixo do gráfico "Ao longo do ano".</p>
       </div></details>
     </section>
@@ -2524,7 +2524,7 @@ function paginaNE(){
     <section class="cartao secao" id="n-faixas" aria-labelledby="t-n-faixas">
       ${barraBaixar([["baixar-ne-faixas", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-n-faixas"><small>5</small>Faixas e cobertura</h2>
-      <p class="sub">Quantos reservatórios de cada estado estão em cada faixa de volume, quantos têm só leitura de nível e quantos estão sem informação na data. A faixa descreve o reservatório, não o estado. A barra é proporcional ao estado com mais reservatórios acompanhados; os sem nenhuma leitura nos últimos 12 meses não entram.</p>
+      <p class="sub">Quantos reservatórios de cada estado estão em cada faixa de volume, quantos têm só leitura de nível e quantos estão sem informação na data. A faixa descreve o reservatório, não o estado. A barra é proporcional ao estado com mais reservatórios acompanhados; os retirados do acompanhamento não entram.</p>
       ${legendaFaixasNivel()}
       <div class="graf" id="g-ne-faixas"></div>
     </section>
@@ -2545,7 +2545,7 @@ function paginaNE(){
     corpo.innerHTML = "";
     linhas.forEach(e => {
       const tr = document.createElement("tr"); tr.dataset.uf = e.uf; tr.tabIndex = 0;
-      const obs = [e.uf==="MG" ? "só o semiárido" : "", e.nivel_n ? `${e.nivel_n} só com nível` : "", e.n ? "" : "sem leitura em 12 meses"].filter(Boolean);
+      const obs = [e.uf==="MG" ? "só o semiárido" : "", e.nivel_n ? `${e.nivel_n} só com nível` : "", e.n ? "" : "nenhum reservatório acompanhado"].filter(Boolean);
       tr.innerHTML = `<td><i class="bola" style="background:${corUF(e.volume_pct)}"></i><span class="nm">${e.estado}</span>${obs.map(o => `<small class="obs">${o}</small>`).join("")}</td>
         <td class="r num">${fint(e.n)}</td><td class="r num">${fint(e.com_dado)}</td><td class="r num">${e.capacidade_com_dado_hm3 ? fint(e.capacidade_com_dado_hm3) : "–"}</td><td class="r num">${e.volume_hm3 ? fint(e.volume_hm3) : "–"}</td><td class="r num">${e.volume_pct==null ? "–" : fmt(e.volume_pct,1)}</td>`;
       tr.addEventListener("pointerenter", () => acenderUF(e.uf));
@@ -2595,7 +2595,7 @@ function paginaNE(){
     $("#nota-mapa").textContent = (lista.length > comCoord.length ? `${fint(lista.length - comCoord.length)} dos ${fint(lista.length)} reservatórios do módulo não têm coordenada no cadastro e não aparecem no mapa. ` : "") + `Mapa-base e imagem de satélite vêm de serviços externos; onde a rede os bloqueia, ficam só os pontos e os contornos.`;
     $("#fontes-ne").innerHTML = `Fontes: ${esc(NEd.fontes.medicoes)}; ${esc(NEd.fontes.resumo)}; ${esc(NEd.fontes.equivalente)}; ${esc(NEd.fontes.coordenadas)}; ${esc(NEd.fontes.regra)}; contorno do Semiárido: ${esc(NEd.mapa.semiarido_fonte || "INSA")}. ` +
       `${esc(NEd.nivel.fonte)}; crítica das leituras de nível com as regras descritas nas páginas de estado. Estações de fora do cadastro do SAR só entram com nome de açude, barragem ou reservatório: ficaram de fora ${fint(NEd.nivel.descartes.montante)} réguas a montante (medem o rio que chega) e ${fint(NEd.nivel.descartes.nome)} estações cujo nome não indica açude; em Minas Gerais, só as dentro do Semiárido. ` +
-      `Não entram nas contagens os ${fint(OCULTOS.size)} reservatórios do cadastro sem nenhuma leitura nos últimos 12 meses, nem as ${fint(Object.values(NVE).reduce((a, e) => a + e.a_verificar.length, 0))} estações com série a verificar (salto de mais de ${fint(NEd.nivel.filtro.suspeito_cm)} cm entre duas leituras que a crítica não explica). ` +
+      `Não entram nas contagens os ${fint(OCULTOS.size)} reservatórios do cadastro retirados do acompanhamento. No protótipo, a lista dos reservatórios retirados do acompanhamento é simulada pelos que não têm nenhuma leitura nos últimos 12 meses; no sistema, a retirada é decisão da área técnica, com data e motivo registrados. Também não entram as ${fint(Object.values(NVE).reduce((a, e) => a + e.a_verificar.length, 0))} estações com série a verificar (salto de mais de ${fint(NEd.nivel.filtro.suspeito_cm)} cm entre duas leituras que a crítica não explica). ` +
       `Volume acumulado do módulo pelo serviço de volume equivalente do portal em ${dBR(coletada)}${coletada===dataRef ? "" : ", a data coletada mais próxima"}: ${tot.volume_pct_portal==null ? "–" : fmt(tot.volume_pct_portal,1)+"%"} (o portal inclui também reservatórios com medição fora da janela de ${NEd.limiar_dias} dias). ` +
       `<br>A data de referência é livre, de ${dBR(NEd.serie_min)} a ${dBR(NEd.serie_ate)}: a série de 12 meses de cada reservatório está embutida na página e a regra dos ${NEd.limiar_dias} dias é aplicada no navegador. ` +
       `As seções 3 e 4 e as comparações usam a curva encadeada (${esc(CURVA.fonte)}); o valor do portal fica acima só para comparação.` +
@@ -2950,7 +2950,7 @@ function paginaEstado(uf){
     : `Nenhum reservatório ${de} ${estado} tem volume calculado hoje. Há réguas lidas por observador, mas sem curva cota-volume validada para transformar a leitura em volume: a página mostra o nível.`;
   const aviso = [
     temNiv ? `<p><b>Como ler o nível.</b> É a cota da régua lida pelo observador, ainda não validada pela ANA. Ela mostra se o reservatório subiu ou desceu, não quanta água há: sem a curva cota-volume não há volume nem percentual, e esses reservatórios ficam fora do volume acumulado. Também não compara um reservatório com outro, porque cada régua tem a sua referência.</p>` : "",
-    oc.n ? `<p><b>${fint(oc.n)} reservatórios</b> cadastrados ${em} ${estado} não têm nenhuma leitura nos últimos 12 meses (a última ${quando}). O acompanhamento foi interrompido: eles saem desta página e seguem na área de dados.</p>` : "",
+    oc.n ? `<p><b>${fint(oc.n)} reservatórios</b> cadastrados ${em} ${estado} foram retirados do acompanhamento (última leitura ${quando}): eles saem desta página e seguem na área de dados.</p>` : "",
     ...NV.a_verificar.map(x => `<p><b>${esc(caso(x.nome))}</b> tem leitura, mas a série tem um salto de ${fmt(x.maior_salto_cm/100,1)} m entre duas leituras seguidas, que precisa ser conferido antes de entrar.</p>`)].join("");
   $("#titulo-pag").innerHTML = `
     <p class="trilha"><a href="#inicio">Início</a><span class="sep">›</span><a href="#ne">Nordeste e Semiárido</a><span class="sep">›</span>${estado}</p>
@@ -3079,7 +3079,7 @@ function paginaEstado(uf){
     if (temNiv) fontes.push(esc(NEd.nivel.fonte));
     fontes.push(esc(NEd.nivel.fonte_hist));
     const portal = (NEd.portal_por_data[coletada] || {})[uf];
-    $("#fontes-uf").innerHTML = `Fontes: ${fontes.join("; ")}.` +
+    $("#fontes-uf").innerHTML = `Fontes: ${fontes.join("; ")}.` + (oc.n ? ` No protótipo, a lista dos reservatórios retirados do acompanhamento é simulada pelos que não têm nenhuma leitura nos últimos 12 meses; no sistema, a retirada é decisão da área técnica, com data e motivo registrados.` : "") +
       (temVol && portal!=null ? ` Para comparação, o serviço de volume equivalente do portal dá ${fmt(portal,1)}% em ${dBR(coletada)}${coletada===dataRef ? "" : ", a data coletada mais próxima"} (o portal inclui também reservatórios com medição fora da janela de ${NEd.limiar_dias} dias).` : "") +
       (temNiv ? ` Crítica das leituras de nível antes de exibir: ${fint(descartadas)} leituras descartadas neste estado, por três regras — erro grosseiro ` +
         `(mais de ${fint(F.grosso_cm/100)} m da mediana do ano da estação), pico de um dia (mais de ${fint(F.pico_cm)} cm das duas leituras vizinhas, no mesmo sentido) ` +
