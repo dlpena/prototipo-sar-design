@@ -249,7 +249,8 @@ body.na-inicio #conteudo{padding-top:22px}
 .modulo .txt .itens li{font-size:13.5px;padding-left:28px}
 .modulo .txt .itens li::before{width:18px;height:18px;font-size:11px}
 .modulos-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:22px}
-.modulo{padding:22px 24px 24px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.modulo{padding:28px 24px 24px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.modulo::before{content:"";position:absolute;inset:0 0 auto 0;height:6px;background:var(--cor-mod,var(--ana))}
 .modulo .mini-mapa{position:absolute;right:16px;top:14px;width:88px;height:auto;opacity:.95}
 .modulo h2{font-size:20px;color:var(--ana);margin:0;padding-right:100px;min-height:52px}
 .modulo .dado .n{font-size:44px;font-weight:700;color:var(--ana);line-height:1}
@@ -2028,7 +2029,7 @@ function mapaFicha(host, F){
 
 /* ============================================================ página inicial */
 const NE_UFS = new Set(["AL","BA","CE","MA","MG","PB","PE","PI","RN","SE"]), OUTROS_UFS = new Set(["SP","DF","MG"]);
-const COR_MOD = {SIN:"#1C3782", NE:"#2C90CF", OUTROS:"#D9822B"}; // três cores bem distintas; laranja só como marca de dado, como nas linhas dos gráficos
+const COR_MOD = {SIN:"#1C3782", NE:"#0A9396", OUTROS:"#CA6702"};   // marinho, verde-azulado e ocre: três matizes distintos e harmônicos, conferidos no validador de paleta (19/09/2026) // três cores bem distintas; laranja só como marca de dado, como nas linhas dos gráficos
 // parágrafos do SAR atual com enumerações "(i) ...; (ii) ...; e (iii) ..." viram parágrafo de abertura + lista
 function paragrafo(p){
   const partes = p.split(/\s*\((?:i|ii|iii|iv)\)\s*/);
@@ -2075,7 +2076,7 @@ function paginaInicio(){
     </section>
 
     <div class="modulos-grid">
-      <article class="cartao modulo" aria-labelledby="m-sin" style="border-top-color:${COR_MOD.SIN}">
+      <article class="cartao modulo" aria-labelledby="m-sin" style="--cor-mod:${COR_MOD.SIN}">
         ${miniMapa("sin")}
         <h2 id="m-sin">Sistema Interligado Nacional</h2>
         <div class="dado"><div class="n num">${fmt(vSIN,1)}<small>%</small></div><div class="r">reservatório equivalente em ${dBR(ult)}</div></div>
@@ -2083,7 +2084,7 @@ function paginaInicio(){
         <div class="txt"><p>Usinas hidrelétricas operadas sob coordenação do ONS: nível, vazões e volume útil, bacia a bacia.</p></div>
         <button type="button" class="acao" data-rota="sin">Entrar no módulo</button>
       </article>
-      <article class="cartao modulo" aria-labelledby="m-ne" style="border-top-color:${COR_MOD.NE}">
+      <article class="cartao modulo" aria-labelledby="m-ne" style="--cor-mod:${COR_MOD.NE}">
         ${miniMapa("ne")}
         <h2 id="m-ne">Nordeste e Semiárido</h2>
         <div class="dado"><div class="n num">${fmt(sNE.total.volume_pct,1)}<small>%</small></div><div class="r">volume acumulado em ${dBR(D.ne.data)}</div></div>
@@ -2091,7 +2092,7 @@ function paginaInicio(){
         <div class="txt"><p>Açudes do Nordeste e do semiárido mineiro: volume armazenado, nível e situação de cada estado.</p></div>
         <button type="button" class="acao" data-rota="ne">Entrar no módulo</button>
       </article>
-      <article class="cartao modulo" aria-labelledby="m-outros" style="border-top-color:${COR_MOD.OUTROS}">
+      <article class="cartao modulo" aria-labelledby="m-outros" style="--cor-mod:${COR_MOD.OUTROS}">
         ${miniMapa("outros")}
         <h2 id="m-outros">Outros Sistemas Hídricos</h2>
         <div class="dado sistemas">
