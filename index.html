@@ -584,6 +584,13 @@ td .nm{font-weight:500}
   body:not(.na-inicio) .leaflet-top{margin-top:0}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* Página inicial sem barra lateral, sem faixa e sem links de módulo (Diego, 19/09/2026): os cartões e a área de dados
+   já levam aos módulos; o logotipo da ANA fica dentro do cartão de abertura. */
+body.na-inicio header.faixa{display:none}
+@media (min-width:1024px){ body.na-inicio{display:block} }
+body.na-inicio main{padding-top:26px}
+.hero-marca{display:flex;align-items:center;gap:14px;margin:0 0 22px}
+.hero-marca .logo svg{height:52px}
 </style>
 
 </head>
@@ -2044,7 +2051,7 @@ function paginaInicio(){
   $("#conteudo").innerHTML = `
     <section class="hero cartao" aria-labelledby="t-hero">
       <div class="hero-txt">
-        <p class="sobre">Agência Nacional de Águas e Saneamento Básico</p>
+        <div class="hero-marca"><span class="logo" role="img" aria-label="ANA - Agência Nacional de Águas e Saneamento Básico">${$("header .logo").innerHTML}</span><span class="selo">Protótipo</span></div>
         <h1 id="t-hero">Sistema de Acompanhamento de Reservatórios</h1>
         <p class="lead-hero">Acompanhe, dia a dia, a operação dos principais reservatórios do Brasil.</p>
         <form class="busca" role="search" id="busca" autocomplete="off">
