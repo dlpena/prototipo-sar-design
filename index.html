@@ -3647,7 +3647,7 @@ function balancoCan(ref, f0){
   const R = Object.fromEntries(CAN.res.map(r => [r.k, r])), V = k => detCan(CAN.vaz[k], ref);
   const W = 1440, H = 600, BW = 230, BH = 112, BY = 250, CX = [170, 500, 830, 1160];
   const MAR = "#1C3782", NAT = "#0B72C2", TRF = "#8F5B22", JUS = "#07777A", AP = "#5B6B80", TERRA = "#8A97A8", PARADO = "#9AA8BC";
-  const svg = svgEl("svg",{viewBox:`0 66 ${W} ${H - 80}`, role:"img", "aria-label":`Balanço de vazões do Sistema Cantareira em ${dBR(ref)}`, "font-family":"Arial, Helvetica, sans-serif"});
+  const svg = svgEl("svg",{viewBox:`0 112 ${W} ${H - 126}`, role:"img", "aria-label":`Balanço de vazões do Sistema Cantareira em ${dBR(ref)}`, "font-family":"Arial, Helvetica, sans-serif"});
   const txt = (x, y, s, o = {}) => { const e = svgEl("text",{x, y, "text-anchor":o.a || "middle", "font-size":o.fs || 12, fill:o.cor || "#1B2532", "font-weight":o.b ? 700 : 400}); if (o.ls) e.setAttribute("letter-spacing", o.ls); e.textContent = s; svg.append(e); return e; };
   const rot = (x, y, s, a) => txt(x, y, s, {fs:10.5, cor:AP, ls:".06em", a});
   const q = v => v==null ? "–" : fmt(v, v < 10 ? 2 : 1);
@@ -3676,18 +3676,19 @@ function balancoCan(ref, f0){
     const n = txt(cm, y0 + 72, p==null ? "–" : fmt(p,1), {fs:25, b:true}); if (p != null){ const s = svgEl("tspan",{"font-size":14, fill:NAT, dx:2}); s.textContent = "%"; n.append(s); }
     txt(cm, y0 + 94, `${fmt(detCan(r.vol, ref),1)} hm³`, {cor:"#3D4B5C"});
     // vazão natural, por cima
-    const qn = detCan(r.qnat, ref), xn = cx - (i===2 ? 80 : 40);
-    linha(xn, 108, xn, BY + 2, NAT, qn); rot(xn, 94, "VAZÃO NATURAL"); etiqueta(xn, 170, q(qn), NAT, qn);
+    // setas de cima e de baixo com o mesmo comprimento (L) e centradas na figura; no Atibainha, o par é centrado
+    const L = 92, qn = detCan(r.qnat, ref), xn = cx - (i===2 ? 45 : 0);
+    linha(xn, BY + 2 - L, xn, BY + 2, NAT, qn); rot(xn, BY - L - 12, "VAZÃO NATURAL"); etiqueta(xn, BY + 2 - L/2, q(qn), NAT, qn);
     // descarga para jusante, pelo pé da barragem
-    const qj = detCan(r.qjus, ref), xd = cx + BW/2 - 30;
-    linha(xd, y1 + 8, xd, y1 + 100, JUS, qj); etiqueta(xd, y1 + 50, q(qj), JUS, qj); txt(xd, y1 + 124, `para jusante · ${rios[k]}`, {cor:AP});
+    const qj = detCan(r.qjus, ref), xd = cx;
+    linha(xd, y1 + 8, xd, y1 + 8 + L, JUS, qj); etiqueta(xd, y1 + 8 + L/2, q(qj), JUS, qj); txt(xd, y1 + L + 32, `para jusante · ${rios[k]}`, {cor:AP});
     // túnel para o próximo
     if (i < 3){ const tq = V(tuneis[i]), x1 = cx + BW/2 + 2, x2 = CX[i+1] - BW/2 + 6, y = BY + BH/2 + 8, xm = (x1 + x2)/2 - 3;
       linha(x1, y, x2, y, MAR, tq); etiqueta(xm, y, q(tq), MAR, tq); rot(xm, y - 26, `TÚNEL ${tuneis[i].slice(1)}`); }
   });
   // transferência do Jaguari (Paraíba do Sul) para o Atibainha
-  const tr = V("TransfParaibaDoSul"), xt = CX[2] + 10;
-  linha(xt, 108, xt, BY + 2, TRF, tr); rot(xt - 8, 82, "TRANSFERÊNCIA DO JAGUARI", "start"); rot(xt - 8, 95, "(PARAÍBA DO SUL)", "start"); etiqueta(xt, 170, q(tr), TRF, tr);
+  const tr = V("TransfParaibaDoSul"), xt = CX[2] + 45, Lt = 92;
+  linha(xt, BY + 2 - Lt, xt, BY + 2, TRF, tr); rot(xt - 8, BY - Lt - 25, "TRANSFERÊNCIA DO JAGUARI", "start"); rot(xt - 8, BY - Lt - 12, "(PARAÍBA DO SUL)", "start"); etiqueta(xt, BY + 2 - Lt/2, q(tr), TRF, tr);
   // Santa Inês
   const esi = V("ESI"), xe = CX[3] + BW/2 + 2, ye = BY + BH/2 + 8, xme = (xe + W - 40)/2 - 4;
   linha(xe, ye, W - 40, ye, MAR, esi); etiqueta(xme, ye, q(esi), MAR, esi); rot(xme, ye - 26, "SANTA INÊS"); txt(xme, ye + 36, "retirada para a RMSP", {cor:AP});
