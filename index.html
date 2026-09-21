@@ -233,6 +233,23 @@ main{padding-block:26px 60px}
 .api-box{display:flex;gap:8px;align-items:flex-start;background:var(--ana-gelo);border-radius:8px;padding:10px 12px}
 .api-box code{flex:1;font:12.5px ui-monospace,Consolas,monospace;word-break:break-all;color:var(--tinta)}
 .api-box button{all:unset;cursor:pointer;font-size:12.5px;color:var(--ana-medio);white-space:nowrap}
+/* documentação da API (#api): bloco de código com quebra de linha (sem rolagem interna), tabelas que viram lista no celular */
+.api-box.bloco code{white-space:pre-wrap;word-break:normal;overflow-wrap:anywhere}
+.api-passos{margin:4px 0 14px;padding-left:22px;color:var(--tinta-2);font-size:14.5px;line-height:1.6}
+.api-passos li+li{margin-top:4px}
+.api-txt{color:var(--tinta-2);font-size:14.5px;line-height:1.6;margin:10px 0 0}
+:is(.api-passos,.api-txt,.tab-api) code.in{font:12.5px ui-monospace,Consolas,monospace;background:var(--ana-gelo);padding:1px 5px;border-radius:4px;color:var(--tinta)}
+.api-bloco h3{font:500 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--apagado);margin:20px 0 8px}
+.api-bloco:first-of-type h3{margin-top:6px}
+.tab-api{table-layout:fixed;width:100%}
+.tab-api td{white-space:normal;vertical-align:top;overflow-wrap:anywhere}
+@media (max-width:640px){
+  .tab-api colgroup,.tab-api thead{display:none}
+  .tab-api,.tab-api tbody{display:block}
+  .tab-api tr{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;padding:10px 0;border-bottom:1px solid var(--linha)}
+  .tab-api td{display:block;border:0;padding:0}
+  .tab-api td[data-r]::before{content:attr(data-r) ": ";color:var(--apagado)}
+}
 @media (max-width:1180px){.dados-grade{grid-template-columns:1fr}.pedido{position:static}.pacote{grid-template-columns:1fr}}
 
 /* saiba mais: texto de método recolhido; a frase essencial fica fora dele, visível */
@@ -2605,7 +2622,7 @@ function paginaInicio(){
     <section class="cartao faixa-dados" aria-labelledby="t-dados">
       <div>
         <h2 id="t-dados">Área de dados</h2>
-        <p>Baixe as séries de vários reservatórios de uma vez, no período e no formato que escolher, ou acesse por API.</p>
+        <p>Baixe as séries de vários reservatórios de uma vez, no período e no formato que escolher, ou acesse por <a href="#api">API</a>.</p>
       </div>
       <button type="button" class="acao" data-rota="dados">Entrar na área de dados</button>
     </section>
@@ -4620,6 +4637,131 @@ function serieDados(e, base, de, ate){
 const INICIO_PROTO = "No protótipo o arquivo traz só o que está embutido na página: SIN, o dia mais recente (30 dias na bacia do Grande; série diária desde 2000 e horária desde 01/07/2026 em Furnas); " +
   "Nordeste e Semiárido, 12 meses (série desde 2006 nas três fichas de exemplo); Outros Sistemas, a série completa. No sistema, cada reservatório vem com a série inteira.";
 
+/* ---------- documentação da API pública (#api) ----------
+   Endereço, limites, licença e contato: ilustrativos ou a definir com a STI. Os exemplos saem das séries embutidas. */
+const API_BASE = "https://endereco-do-sar/api/v1";
+function paginaAPI(){
+  const ENT = entidadesDados(), FUR = ENT.find(e => e.mod==="SIN" && String(e.codigo)==="19004");
+  const ate = D.data, de = isoMais(ate, -2), VX = ["cota_m","volume_util_pct"], UN = Object.fromEntries(CAT_VARS.map(v => [v.k, v.u]));
+  const linhas = [];
+  serieDados(FUR, "dia", de, ate).forEach(p => VX.forEach(k => { if (p.v[k]!=null) linhas.push({reservatorio:19004, data:p.t, variavel:k, valor:p.v[k], unidade:UN[k]}); }));
+  const qEx = `${API_BASE}/series?reservatorios=19004&variaveis=${VX.join(",")}&inicio=${de}&fim=${ate}`;
+  const json = `{\n  "versao_dados": "${ate}T00:00:00-03:00",\n  "consulta": {"reservatorios": [19004], "variaveis": ${JSON.stringify(VX).replace(/,/g, ", ")}, "inicio": "${de}", "fim": "${ate}", "base": "diaria"},\n` +
+    `  "pagina": 1, "paginas": 1, "linhas": ${linhas.length},\n  "dados": [\n` + linhas.map(l => `    ${JSON.stringify(l).replace(/,"/g, ', "').replace(/":/g, '": ')}`).join(",\n") + `\n  ]\n}`;
+  const csv = ["reservatorio,data,variavel,valor,unidade", ...linhas.map(l => [l.reservatorio, l.data, l.variavel, l.valor, l.unidade].join(","))].join("\n");
+  const bloco = (txt, rot) => `<div class="api-box bloco"><code>${esc(txt)}</code><button type="button" data-copiar aria-label="Copiar ${rot}">Copiar</button></div>`;
+  const cod = t => `<code class="in">${esc(t)}</code>`;
+  const tab = (cols, cab, L) => `<div class="tab-box"><table class="tab-api"><colgroup>${cols.map(w => `<col${w ? ` style="width:${w}"` : ""}>`).join("")}</colgroup>
+    <thead><tr>${cab.map(c => `<th>${c}</th>`).join("")}</tr></thead>
+    <tbody>${L.map(l => `<tr>${l.map((c, i) => `<td${i ? ` data-r="${cab[i]}"` : ""}>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  // consultas: a mesma lista gera a tabela e o arquivo OpenAPI
+  const CONS = [
+    {p:"/reservatorios", r:"Reservatórios", d:"Lista de reservatórios e estações: código, nome, módulo (e sistema), UF, município, bacia ou sistema, tipo, modo de exibição (com volume, só nível ou retirado do acompanhamento), coordenadas, capacidade vigente, variáveis que tem, início da série e data da última leitura.",
+      q:[["modulo","sin, nordeste ou outros"],["uf","sigla do estado"],["bacia","nome da bacia ou do sistema"],["busca","parte do nome, do código ou do município, sem acento"]]},
+    {p:"/reservatorios/{codigo}", r:"Um reservatório", d:"O cadastro de um reservatório com o histórico do que tem vigência: capacidade, curva cota-volume, modo de exibição e composição de agrupamento, cada um com a data de início.", q:[]},
+    {p:"/variaveis", r:"Variáveis", d:"O catálogo de variáveis: nome da coluna, nome, unidade, definição, módulos em que existe e se há base horária. É o mesmo dicionário da área de dados.", q:[]},
+    {p:"/series", r:"Séries", d:"A série de um ou mais reservatórios, no formato longo: uma linha por reservatório, data e variável.", q:[]},
+    {p:"/agregados", r:"Agregados", d:"As séries que as páginas publicam como número do conjunto: reservatório equivalente do SIN (volume útil, em %); volume acumulado do Nordeste e Semiárido e de cada estado (direto e curva encadeada, com o número de reservatórios e a capacidade equivalente de cada data); volume útil do Sistema Cantareira.",
+      q:[["indicador","sin_equivalente, ne_acumulado ou cantareira"],["uf","estado, no volume acumulado (sem uf, o Nordeste)"],["inicio","data inicial"],["fim","data final"],["formato","json ou csv"]]},
+    {p:"/revisoes", r:"Revisões", d:"As correções feitas pela área técnica na série publicada: reservatório, variável, data do dado, valor anterior, valor novo, data da correção e motivo.", q:[["reservatorios","códigos separados por vírgula"],["desde","correções feitas a partir desta data"]]}];
+  const PARS = [
+    ["reservatorios", "Códigos dos reservatórios, separados por vírgula (os mesmos da ficha e da área de dados).", "19004,12112", "obrigatório"],
+    ["variaveis", "Nomes das colunas do catálogo, separados por vírgula.", "cota_m,volume_util_pct", "todas as que cada reservatório tem"],
+    ["inicio", "Data inicial (aaaa-mm-dd).", de, "início da série"],
+    ["fim", "Data final (aaaa-mm-dd).", ate, "dado mais recente"],
+    ["base", "diaria ou horaria. A horária existe só para as usinas do SIN, desde 01/01/2010, até 1 ano por consulta.", "horaria", "diaria"],
+    ["formato", "json ou csv.", "csv", "json"],
+    ["pagina", "Página da resposta, quando a consulta passa do limite de linhas por página.", "2", "1"],
+    ["versao", "Versão dos dados (data e hora de uma carga anterior): devolve a série como estava naquela versão.", `${ate}T00:00:00-03:00`, "a versão em vigor"]];
+  const LIM = [["Linhas por página", "a definir com a STI"], ["Consultas por minuto, por endereço de origem", "a definir com a STI"], ["Período por consulta na base horária", "1 ano"]];
+  const ERR = [
+    ["400", "Parâmetro inválido ou fora da regra.", "A variável \"volume\" não existe. Os nomes estão em /v1/variaveis."],
+    ["404", "Reservatório, consulta ou versão inexistente.", "Reservatório 99999 não encontrado."],
+    ["429", "Limite de consultas por minuto atingido.", "Limite de consultas atingido. Tente de novo em 30 segundos."],
+    ["503", "Serviço fora do ar ou em manutenção.", "Serviço em manutenção. Tente de novo em alguns minutos."]];
+  $("#titulo-pag").innerHTML = `
+    <p class="trilha"><a href="#inicio">Início</a><span class="sep">›</span><a href="#dados">Área de dados</a><span class="sep">›</span>API pública</p>
+    <h1>API pública</h1>
+    <p class="lead">Acesso por programa às mesmas séries da área de dados, para quem precisa de volume grande ou de atualização automática. Aberta: não pede cadastro nem chave.</p>
+    <div class="carimbo"><span>Versão em vigor <b>v1</b></span><span>Acesso aberto, sem cadastro</span><span>JSON e CSV</span><span>Base diária; horária no SIN</span></div>`;
+  $("#conteudo").innerHTML = `
+    <section class="cartao intro" aria-label="Sobre a API"><p>A API devolve as mesmas séries que a área de dados entrega em arquivo: os mesmos reservatórios, o mesmo catálogo de variáveis e a mesma série conferida, com as correções da área técnica. Cada resposta traz a data da versão dos dados, e a mesma consulta, na mesma versão, devolve sempre os mesmos dados. Para baixar uma planilha sem programar, use a <a href="#dados">área de dados</a>, que mostra a consulta equivalente de cada pedido.</p></section>
+    <nav class="indice" aria-label="Seções da página"><a href="#api" data-alvo="a-passos">Primeiros passos</a><a href="#api" data-alvo="a-cons">Consultas</a><a href="#api" data-alvo="a-serie">Parâmetros da série</a><a href="#api" data-alvo="a-resp">Resposta</a><a href="#api" data-alvo="a-ex">Exemplos</a><a href="#api" data-alvo="a-lim">Limites, versões e erros</a><a href="#api" data-alvo="a-esp">Especificação e uso</a></nav>
+    <section class="cartao secao" id="a-passos" aria-labelledby="t-a-passos">
+      <h2 id="t-a-passos"><small>1</small>Primeiros passos</h2>
+      <p class="sub">Três consultas resolvem a maior parte dos usos: achar o código do reservatório, ver o nome das variáveis e pedir a série. O endereço funciona direto no navegador; com ${cod("formato=csv")}, o resultado abre na planilha.</p>
+      <ol class="api-passos">
+        <li>Ache o código do reservatório em ${cod("/v1/reservatorios?busca=furnas")}. O código também aparece na ficha de cada reservatório e na área de dados.</li>
+        <li>Veja o nome das variáveis em ${cod("/v1/variaveis")}: ${cod("cota_m")}, ${cod("volume_util_pct")}, ${cod("afluente_m3s")} e as demais do catálogo.</li>
+        <li>Peça a série em ${cod("/v1/series")}, com os reservatórios, as variáveis e o período.</li></ol>
+      <div class="api-bloco"><h3>Endereço da API</h3>${bloco(API_BASE, "o endereço da API")}</div>
+      <div class="api-bloco"><h3>Consulta de exemplo: Furnas, cota e volume útil nos três últimos dias</h3>${bloco(qEx, "a consulta de exemplo")}</div>
+      <p class="nota" style="margin:10px 0 0">Endereço ilustrativo: a API ainda será criada (solicitação à STI).</p>
+    </section>
+    <section class="cartao secao" id="a-cons" aria-labelledby="t-a-cons">
+      <h2 id="t-a-cons"><small>2</small>Consultas</h2>
+      <p class="sub">Todas as consultas são de leitura (método GET) e respondem em JSON, o padrão, ou em CSV. Todas usam o mesmo cadastro e o mesmo catálogo das páginas.</p>
+      ${tab(["22%","26%",""], ["Consulta","Endereço","O que devolve"], CONS.map(c => [`<span class="nm">${c.r}</span>`, cod("/v1" + c.p), esc(c.d) + (c.q.length ? `<br><span class="nota">Filtros: ${c.q.map(([k, t]) => `${cod(k)} (${esc(t)})`).join("; ")}.</span>` : "")]))}
+    </section>
+    <section class="cartao secao" id="a-serie" aria-labelledby="t-a-serie">
+      <h2 id="t-a-serie"><small>3</small>Parâmetros da série</h2>
+      <p class="sub">Parâmetros da consulta ${cod("/v1/series")}. Só o primeiro é obrigatório; os demais têm um valor padrão.</p>
+      ${tab(["18%","","22%","20%"], ["Parâmetro","O que é","Exemplo","Se omitido"], PARS.map(p => [cod(p[0]), esc(p[1]), cod(p[2]), esc(p[3])]))}
+      <p class="api-txt">Vale a mesma série das páginas e da área de dados: só o que passou pela conferência, com as correções da área técnica. No Nordeste e Semiárido vem a data real de cada leitura, sem preenchimento nem interpolação. O reservatório retirado do acompanhamento continua na API, com o modo de exibição informado em ${cod("/v1/reservatorios")}.</p>
+    </section>
+    <section class="cartao secao" id="a-resp" aria-labelledby="t-a-resp">
+      <h2 id="t-a-resp"><small>4</small>Resposta</h2>
+      <p class="sub">Formato longo: uma linha por reservatório, data e variável, com o valor e a unidade. No JSON, o cabeçalho traz a versão dos dados, a consulta como foi entendida e a paginação; no CSV, essas informações vêm no cabeçalho da resposta HTTP.</p>
+      <div class="api-bloco"><h3>JSON</h3>${bloco(json, "a resposta em JSON")}</div>
+      <div class="api-bloco"><h3>CSV</h3>${bloco(csv, "a resposta em CSV")}</div>
+      <p class="api-txt">No CSV da API, a vírgula separa as colunas, o ponto separa os decimais e a data vem como aaaa-mm-dd, o padrão dos programas. O arquivo da área de dados segue o padrão das planilhas em português (ponto e vírgula, vírgula decimal, dd/mm/aaaa). Na base horária, a coluna ${cod("data")} dá lugar a ${cod("data_hora")} (aaaa-mm-ddThh:mm).</p>
+      <p class="nota" style="margin:10px 0 0">Exemplo montado com a série de Furnas embutida no protótipo, de ${dBR(de)} a ${dBR(ate)}; a versão dos dados é ilustrativa.</p>
+    </section>
+    <section class="cartao secao" id="a-ex" aria-labelledby="t-a-ex">
+      <h2 id="t-a-ex"><small>5</small>Exemplos</h2>
+      <p class="sub">A mesma consulta, em CSV, em quatro ferramentas.</p>
+      <div class="api-bloco"><h3>Navegador</h3><p class="api-txt" style="margin:0 0 8px">Cole o endereço na barra do navegador: o arquivo é baixado.</p>${bloco(qEx + "&formato=csv", "o endereço")}</div>
+      <div class="api-bloco"><h3>Planilha</h3><p class="api-txt" style="margin:0 0 8px">No Excel, Dados › Obter Dados › Da Web, e cole o endereço. A planilha pode ser atualizada depois com um clique.</p>${bloco(qEx + "&formato=csv", "o endereço")}</div>
+      <div class="api-bloco"><h3>Python</h3>${bloco(`import pandas as pd\n\nurl = ("${API_BASE}/series?reservatorios=19004"\n       "&variaveis=cota_m,volume_util_pct&inicio=2026-01-01&formato=csv")\ndados = pd.read_csv(url, parse_dates=["data"])`, "o código em Python")}</div>
+      <div class="api-bloco"><h3>R</h3>${bloco(`url <- paste0("${API_BASE}/series?reservatorios=19004",\n              "&variaveis=cota_m,volume_util_pct&inicio=2026-01-01&formato=csv")\ndados <- read.csv(url)`, "o código em R")}</div>
+    </section>
+    <section class="cartao secao" id="a-lim" aria-labelledby="t-a-lim">
+      <h2 id="t-a-lim"><small>6</small>Limites, versões e erros</h2>
+      <p class="sub">Regras de uso, para que a API continue disponível para todos, e o que acontece quando algo dá errado.</p>
+      <div class="api-bloco"><h3>Limites</h3>${tab(["50%",""], ["Limite","Valor"], LIM.map(l => [esc(l[0]), esc(l[1])]))}
+        <p class="api-txt">A consulta que passa do limite de linhas vem dividida em páginas, com o endereço da página seguinte na resposta. Quem passa do limite de consultas recebe o erro 429, com o tempo de espera.</p></div>
+      <div class="api-bloco"><h3>Versões</h3><p class="api-txt" style="margin:0">A versão vem no endereço (${cod("/v1/")}). Mudança que quebra programas existentes, como nome de campo, formato ou regra, só entra numa versão nova; a anterior continua no ar pelo prazo anunciado nesta página. Acréscimo de reservatório, de variável ou de campo não muda a versão. Cada mudança fica registrada aqui, com a data.</p></div>
+      <div class="api-bloco"><h3>Erros</h3>${tab(["12%","38%",""], ["Código","Quando","Mensagem (exemplo)"], ERR.map(e => [cod(e[0]), esc(e[1]), esc(e[2])]))}
+        <p class="api-txt">Toda mensagem de erro vem em português, com o código, o texto e o parâmetro que causou o erro, quando for o caso.</p></div>
+    </section>
+    <section class="cartao secao" id="a-esp" aria-labelledby="t-a-esp">
+      ${barraBaixar([["baixar-openapi", "OpenAPI", "Baixar a especificação da API no padrão OpenAPI (JSON)"]])}
+      <h2 id="t-a-esp"><small>7</small>Especificação e uso</h2>
+      <p class="sub">A especificação completa, no padrão OpenAPI, serve para gerar clientes e testar a API em ferramentas próprias. Abaixo, as condições de uso e a forma de citar.</p>
+      <div class="api-bloco"><h3>Licença</h3><p class="api-txt" style="margin:0">A definir com a área de dados abertos da ANA.</p></div>
+      <div class="api-bloco"><h3>Como citar</h3>${bloco(`Agência Nacional de Águas e Saneamento Básico (ANA). Sistema de Acompanhamento de Reservatórios (SAR), API pública v1. Dados obtidos em dd/mm/aaaa, versão dos dados aaaa-mm-ddThh:mm.`, "a forma de citar")}</div>
+      <div class="api-bloco"><h3>Contato</h3><p class="api-txt" style="margin:0">Canal a definir, para dúvidas e para avisar de erro nos dados.</p></div>
+    </section>
+    <p class="nota fontes-inicio">Fontes: as mesmas das páginas de cada módulo (ONS, SABESP, órgãos estaduais e rede da ANA), com a conferência e as correções do SAR.</p>`;
+  $$(".indice a").forEach(a => a.onclick = ev => { ev.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
+  $$("[data-copiar]").forEach(b => b.onclick = () => { const t = b.parentElement.querySelector("code").textContent;
+    navigator.clipboard && navigator.clipboard.writeText(t).then(() => toast("Copiado."), () => toast("Não foi possível copiar.")); });
+  // especificação OpenAPI gerada da mesma lista de consultas e parâmetros
+  $("#baixar-openapi").onclick = () => {
+    const par = (n, d, obr) => ({name:n, in:"query", required:!!obr, description:d, schema:{type:"string"}});
+    const LINHA = {type:"object", properties:{reservatorio:{type:"integer"}, data:{type:"string", description:"aaaa-mm-dd; na base horária, data_hora aaaa-mm-ddThh:mm"}, variavel:{type:"string"}, valor:{type:"number"}, unidade:{type:"string"}}};
+    const paths = {};
+    CONS.forEach(c => {
+      const params = c.p==="/series" ? PARS.map(p => par(p[0], p[1], p[3]==="obrigatório")) : c.q.map(([k, t]) => par(k, t));
+      if (c.p.includes("{codigo}")) params.push({name:"codigo", in:"path", required:true, description:"Código do reservatório no SAR.", schema:{type:"integer"}});
+      paths[c.p] = {get:{summary:c.r, description:c.d, parameters:params, responses:{"200":{description:"Consulta atendida.", content:{"application/json":{schema:c.p==="/series" ? {type:"object", properties:{versao_dados:{type:"string"}, pagina:{type:"integer"}, paginas:{type:"integer"}, linhas:{type:"integer"}, dados:{type:"array", items:LINHA}}} : {type:"object"}}, "text/csv":{schema:{type:"string"}}}},
+        ...Object.fromEntries(ERR.map(e => [e[0], {description:e[1]}]))}}};
+    });
+    const spec = {openapi:"3.0.3", info:{title:"SAR – API pública", version:"1.0.0", description:"Séries do Sistema de Acompanhamento de Reservatórios (ANA). Acesso aberto, sem cadastro. Protótipo: endereço e limites ilustrativos."},
+      servers:[{url:API_BASE, description:"endereço ilustrativo"}], paths};
+    baixarArquivo(new Blob([JSON.stringify(spec, null, 2)], {type:"application/json"}), "sar_api_v1_openapi.json");
+    toast("Especificação gerada. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)"); };
+}
 let BUSCA_DADOS = "";   // busca vinda da página inicial ("ver todos na área de dados")
 function paginaDados(){
   const ENT = entidadesDados(), porId = Object.fromEntries(ENT.map(e => [e.id, e])), qInicial = BUSCA_DADOS; BUSCA_DADOS = "";
@@ -4684,7 +4826,7 @@ function paginaDados(){
           <div class="pacote">
             <div><h3>O que vem no arquivo</h3><ul id="d-arquivos"></ul></div>
             <div><h3>Consulta equivalente na API pública</h3><div class="api-box"><code id="d-api"></code><button type="button" id="d-api-copiar">Copiar</button></div>
-              <p class="nota" style="margin:6px 0 0">Endereço ilustrativo: a API pública ainda será criada (solicitação à STI). A mesma consulta devolverá os mesmos dados, com a data da versão.</p></div>
+              <p class="nota" style="margin:6px 0 0">Endereço ilustrativo: a API pública ainda será criada (solicitação à STI). A mesma consulta devolverá os mesmos dados, com a data da versão. <a href="#api">Documentação da API</a>.</p></div>
           </div>
           <p class="nota" style="margin:14px 0 0">${INICIO_PROTO}</p>
         </section>
@@ -4898,7 +5040,7 @@ function paginaDados(){
    conceito em estrutura/area_administrativa.md. Área interna, com login; tudo o que se faz aqui fica na memória da
    página (pedidos, trilha, correções) para o protótipo mostrar o fluxo entre as telas. */
 const ADM = {perfil:"editor", pedidos:[], trilha:[], manual:{}, novos:{}, apagados:{}, modo:{}, exec:[], seq:1, ent:null, semeado:false,
-  revisoes:[], avisos:[], textos:{}, params:{}, susp:{}, excecoes:[], codigos:[], agrup:{}, bacias:{}, inclusoes:[]};
+  revisoes:[], avisos:[], textos:{}, textosMeta:{}, params:{}, susp:{}, excecoes:[], codigos:[], agrup:{}, bacias:{}, inclusoes:[]};
 const ADM_USU = {leitura:"Usuário de leitura", editor:"Editor A", aprovador:"Aprovador B"};
 const ADM_GRUPOS = [["Acompanhamento", [["", "Integrações"], ["cobertura", "Cobertura"], ["suspeitos", "Valores suspeitos"]]],
   ["Dados e cadastro", [["serie", "Correção de série"], ["cadastro", "Cadastro e CAV"], ["inclusao", "Inclusão"], ["codigos", "Códigos das fontes"], ["agrupamentos", "Agrupamentos"]]],
@@ -5348,14 +5490,79 @@ function admTrilha(){
 const DEPARA_NE = {"_meta": {"origem": "notebook_funceme_aesa_apac_unificado.ipynb (Verificação NE SAR, ago/2026)", "extraido_em": "2026-09-12", "res_id": "código do reservatório em syndb_coletorReservatorio.dbo.reservatorio (faixa 12xxx = sistema NE)", "validacao": "AESA: cota interpolada na cotavolume reproduz o volume (razão 1,00); APAC: capacidade implícita, razões 0,82-1,06 ('NILO COELHO (TERRA NOVA)' refutado e removido)"}, "funceme_id_para_res_id": {"2661": 12540, "2462": 12001, "2350": 12002, "78": 12003, "1": 12004, "2197": 12005, "32": 12006, "2481": 12008, "2047": 12009, "2473": 12010, "2286": 12011, "2399": 12012, "2428": 12013, "2295": 12014, "2471": 12015, "2347": 12016, "2390": 12017, "2414": 12018, "45": 12019, "2027": 12020, "2391": 12021, "2043": 12022, "112": 12023, "2034": 12024, "2203": 12025, "2041": 12026, "234": 12027, "2003": 12028, "2467": 12029, "31": 12030, "2345": 12031, "2317": 12032, "240": 12033, "83": 12034, "2270": 12035, "47": 12036, "49": 12037, "2209": 12038, "2": 12039, "2033": 12040, "2322": 12041, "2324": 12042, "163": 12043, "2411": 12044, "2353": 12045, "2226": 12046, "2292": 12047, "173": 12048, "2427": 12049, "2367": 12050, "2396": 12051, "177": 12052, "2264": 12053, "2493": 12054, "2372": 12055, "2337": 12056, "2340": 12057, "2406": 12058, "2310": 12059, "2233": 12060, "2332": 12061, "2403": 12062, "64": 12063, "2460": 12064, "2424": 12065, "2435": 12066, "2237": 12067, "2387": 12068, "2299": 12069, "2449": 12070, "2363": 12071, "2364": 12072, "125": 12073, "2335": 12074, "2210": 12075, "2349": 12076, "170": 12077, "2311": 12078, "2240": 12079, "2200": 12080, "2479": 12081, "2323": 12082, "2327": 12083, "2344": 12084, "2242": 12085, "2312": 12086, "2362": 12087, "2413": 12088, "2393": 12089, "2436": 12090, "2206": 12091, "2001": 12092, "2420": 12093, "2395": 12094, "2253": 12095, "74": 12096, "2266": 12097, "127": 12098, "33": 12099, "2211": 12100, "2205": 12101, "2400": 12102, "2276": 12103, "2022": 12104, "65": 12105, "2477": 12106, "236": 12107, "2445": 12108, "53": 12109, "2214": 12110, "2381": 12111, "194": 12112, "97": 12113, "2241": 12114, "223": 12115, "158": 12116, "3": 12117, "4": 12118, "2052": 12119, "2283": 12120, "2026": 12121, "2351": 12122, "2333": 12123, "2275": 12124, "2302": 12125, "84": 12126, "2035": 12127, "2265": 12128, "2049": 12129, "2476": 12130, "2004": 12131, "133": 12132, "2213": 12133, "2202": 12134, "2466": 12135, "2054": 12136, "2301": 12137, "2014": 12138, "2267": 12139, "2440": 12140, "2474": 12141, "34": 12142, "2490": 12143, "2257": 12145, "2451": 12146, "2438": 12147, "197": 12148, "2380": 12149, "2008": 12150, "178": 12151, "60": 12152, "134": 12153, "2009": 12154, "2439": 12155, "2309": 12156, "2369": 12157, "2375": 12158, "5": 12159, "30": 12160, "2282": 12161, "2307": 12162, "2461": 12163, "2468": 12164, "2212": 12165, "2196": 12166, "2346": 12167, "2320": 12168, "2384": 12169, "2368": 12170, "2341": 12171, "2195": 12172, "2228": 12173, "2433": 12174, "2407": 12175, "2053": 12176, "239": 12177, "59": 12178, "2219": 12179, "2405": 12180, "6": 12181, "2281": 12182, "2459": 12183, "172": 12184, "2492": 12185, "119": 12186, "51": 12187, "72": 12188, "2031": 12189, "77": 12190, "2271": 12191, "2023": 12192, "2305": 12193, "169": 12194, "95": 12195, "2288": 12196, "7": 12197, "1123": 12198, "2289": 12199, "2478": 12200, "2379": 12201, "36": 12202, "2204": 12203, "2013": 12204, "2389": 12205, "2269": 12206, "2365": 12207, "2315": 12208, "2410": 12209, "2419": 12210, "2360": 12211, "2316": 12212, "2036": 12213, "2037": 12214, "2470": 12215, "2431": 12216, "244": 12217, "180": 12218, "69": 12219, "52": 12220, "2007": 12221, "2306": 12222, "2415": 12223, "2002": 12224, "135": 12225, "2227": 12226, "2254": 12227, "2329": 12228, "2285": 12229, "171": 12230, "2201": 12231, "1120": 12232, "2397": 12233, "2263": 12234, "121": 12235, "2443": 12236, "2394": 12237, "2038": 12238, "2039": 12239, "28": 12240, "2223": 12241, "2326": 12242, "2383": 12243, "189": 12244, "2422": 12245, "2199": 12246, "2354": 12247, "2417": 12248, "2421": 12249, "2293": 12250, "2252": 12251, "2472": 12252, "2331": 12253, "63": 12254, "2277": 12255, "2348": 12256, "2442": 12257, "2030": 12258, "199": 12259, "164": 12260, "2491": 12261, "2338": 12262, "2017": 12263, "235": 12264, "2455": 12265, "2402": 12266, "201": 12267, "8": 12268, "2012": 12269, "2465": 12270, "2434": 12271, "2278": 12272, "2321": 12273, "126": 12274, "2303": 12275, "2376": 12276, "2426": 12277, "2298": 12278, "2051": 12279, "1119": 12280, "161": 12281, "2448": 12282, "2319": 12283, "2025": 12284, "2221": 12285, "2318": 12286, "61": 12287, "2432": 12288, "168": 12289, "2279": 12290, "2357": 12291, "2401": 12292, "26": 12293, "2300": 12294, "2385": 12295, "2297": 12296, "155": 12297, "2258": 12298, "9": 12299, "2287": 12300, "80": 12301, "88": 12302, "2011": 12303, "2021": 12304, "2382": 12305, "2370": 12306, "2260": 12307, "89": 12308, "2010": 12309, "2452": 12310, "2430": 12311, "2425": 12312, "56": 12313, "10": 12314, "2342": 12315, "2464": 12316, "2358": 12317, "148": 12318, "2392": 12319, "2024": 12320, "2409": 12321, "2044": 12322, "11": 12323, "179": 12324, "12": 12325, "192": 12326, "2398": 12327, "2412": 12328, "2458": 12329, "2235": 12330, "2314": 12331, "2048": 12332, "2050": 12333, "167": 12334, "2220": 12335, "2374": 12336, "2262": 12337, "2480": 12338, "2251": 12339, "2423": 12340, "27": 12341, "2019": 12342, "67": 12343, "2386": 12345, "2352": 12346, "2245": 12347, "90": 12348, "2215": 12349, "2408": 12350, "2248": 12351, "13": 12352, "2020": 12353, "2045": 12354, "82": 12355, "2361": 12356, "2291": 12357, "14": 12358, "62": 12359, "79": 12360, "2230": 12361, "2046": 12362, "68": 12363, "15": 12364, "16": 12365, "2355": 12366, "54": 12367, "2006": 12368, "117": 12369, "2457": 12370, "186": 12371, "2255": 12372, "2018": 12373, "17": 12375, "2225": 12376, "2250": 12377, "2475": 12378, "2429": 12379, "174": 12380, "2456": 12381, "2042": 12382, "2330": 12383, "181": 12384, "2284": 12385, "2441": 12386, "2198": 12387, "2356": 12388, "18": 12389, "2339": 12390, "2404": 12391, "2454": 12392, "2418": 12393, "2040": 12394, "2218": 12395, "2238": 12396, "166": 12397, "55": 12398, "2274": 12399, "2222": 12400, "233": 12401, "2446": 12402, "50": 12403, "19": 12404, "141": 12405, "2249": 12406, "190": 12407, "2261": 12408, "2208": 12409, "2005": 12410, "2032": 12411, "39": 12412, "2290": 12414, "85": 12415, "2334": 12416, "2296": 12417, "185": 12418, "2304": 12419, "2229": 12420, "20": 12421, "2247": 12422, "21": 12423, "2236": 12424, "2308": 12425, "81": 12426, "99": 12427, "2280": 12428, "2234": 12429, "2239": 12430, "2325": 12431, "2336": 12432, "2328": 12433, "2259": 12435, "2016": 12436, "2373": 12437, "2273": 12438, "2388": 12439, "159": 12440, "22": 12441, "2216": 12443, "2453": 12444, "160": 12445, "66": 12446, "2207": 12447, "2313": 12448, "2378": 12449, "2217": 12450, "2232": 12451, "2366": 12452, "254": 12453, "75": 12454, "2246": 12455, "2244": 12456, "92": 12457, "2463": 12458, "23": 12459, "111": 12460, "132": 12461, "2231": 12462, "2447": 12463, "2416": 12464, "96": 12465, "129": 12466, "2015": 12467, "2028": 12468, "2469": 12469, "24": 12470, "122": 12471, "2029": 12472, "58": 12473, "162": 12474, "191": 12475, "2444": 12476, "2450": 12477, "2371": 12478, "2268": 12479, "110": 12480, "2294": 12481, "70": 12482, "25": 12483, "2377": 12484, "2224": 12485, "2343": 12486, "2243": 12487, "2256": 12488, "130": 12489, "2359": 12490, "2437": 12492, "211": 12497, "202": 12523, "217": 12524, "220": 12525, "215": 12526, "44": 12527, "208": 12528, "212": 12529, "210": 12530, "205": 12531, "216": 12532, "213": 12533, "147": 12534, "1124": 12535, "206": 12536}, "aesa_nome_para_res_id": {"Cachoeira dos Cegos": 12080, "Jenipapeiro (Buiú)": 12231, "Capoeira": 12101, "Baião": 12038, "Carneiro": 12110, "Soledade": 12443, "Tapera": 12450, "Mucutu": 12285, "Santo Antônio": 12400, "Escondido": 12173, "Bom Jesus II": 12060, "Serra Branca II": 12429, "Catolé I": 12114, "Cacimba de Várzea": 12085, "Vazante": 12487, "Tavares II": 12456, "Poleiros": 12351, "Curimataú": 12145, "Olivedos": 12298, "Jatobá II": 12227, "Serrote": 12435, "Paraíso (Luiz Oliveira)": 12307, "São Francisco II": 12408, "Pirpirituba": 12337, "Bichinho": 12053, "Cochos": 12128, "Frutuoso II": 12191, "Santa Rosa": 12399, "Caraibeiras": 12103, "Livramento (Russos)": 12255, "Serra Branca I": 12428, "Felismina Queiroz": 12182, "Chã dos Pereiras": 12120, "Jenipapeiro": 12229, "Sabonete": 12385, "Albino": 12011, "Ouro Velho": 12300, "Gavião": 12196, "Glória": 12199, "Prata II": 12357, "São José II": 12414, "Bastiana": 12047, "Riacho Verde": 12493, "Lagoa do Matias": 12250, "Algodão": 12014, "São José III": 12417, "Brejinho": 12069, "Covão": 12137, "Manguape": 12539, "Chupadouro II": 12125, "Massaranduba": 12275, "Jangada": 12222, "Emídio": 12162, "São Sebastião": 12425, "Duas Estradas": 12156, "Cafundó": 12086, "Suspiro": 12448, "Pimenta": 12331}, "apac_nome_para_res_id": {"SERRO AZUL": 12538, "SACO II": 12388, "SACO I": 12537, "PAO DE ACUCAR": 12306, "BOTAFOGO": 12068, "VARZEA DO UNA": 12484, "UTINGA": 12478, "PALMEIRINHA/PEDRAFINA": 12305, "IPANEMINHA": 12212, "JUA": 12242, "SICUPEMA": 12437, "BITA": 12055, "DUAS SERRAS": 12157}};
 // textos editáveis: o padrão vem do próprio código das páginas ({janela_ne} = parâmetro da janela do NE)
 const TEXTOS_PAD = {"inicio": "Acompanhe, dia a dia, a operação dos principais reservatórios do Brasil.", "sin": "O Sistema Interligado Nacional (SIN) reúne as usinas hidrelétricas operadas sob coordenação do Operador Nacional do Sistema Elétrico (ONS). Parte delas tem reservatório de regularização, cujo volume útil permite armazenar água no período úmido para uso no período seco; as demais operam a fio d'água, sem capacidade de regularização significativa, e dependem das afluências naturais e da operação dos reservatórios a montante. A operação desses reservatórios considera a geração de energia, o controle de cheias e os usos múltiplos da água.", "ne_lead": "Açudes dos nove estados do Nordeste e do semiárido de Minas Gerais: volume acumulado de cada estado e do conjunto, situação de cada reservatório e, onde ainda não há volume calculado, o nível.", "ne_intro": "Os reservatórios do semiárido não são medidos todos os dias. Para a <b>data de referência</b>, cada um entra com a medição mais próxima, até {janela_ne} dias antes ou depois.", "outros": "Três sistemas de abastecimento público, com dados diários: o Sistema Cantareira, que abastece grande parte da Região Metropolitana de São Paulo; os reservatórios do Distrito Federal (Descoberto, Santa Maria e Lago Paranoá); e o Sistema Paraopeba (Rio Manso, Vargem das Flores e Serra Azul), que contribui para o abastecimento da Região Metropolitana de Belo Horizonte.", "cantareira": "Jaguari-Jacareí, Cachoeira, Atibainha e Paiva Castro, ligados por túneis, abastecem a Região Metropolitana de São Paulo pela Estação Elevatória Santa Inês e liberam água para as bacias dos rios Piracicaba, Capivari e Jundiaí (PCJ). A operação segue a Resolução Conjunta ANA/DAEE nº 925/2017.", "dados": "Escolha os reservatórios, as variáveis e o período e baixe a série no formato do SAR, com o dicionário das variáveis e as fontes. Reservatórios de módulos diferentes podem ir no mesmo arquivo."};
-const TEXTOS_ED = [
-  {k:"inicio", r:"Página inicial · frase de apresentação", rota:h => h==="" || h==="inicio", sel:".lead-hero", ir:"inicio"},
-  {k:"sin", r:"Sistema Interligado Nacional · apresentação", rota:h => h==="sin", sel:"#conteudo .intro > p:first-child", ir:"sin"},
-  {k:"ne_lead", r:"Nordeste e Semiárido · subtítulo", rota:h => h==="ne", sel:"#titulo-pag .lead", ir:"ne"},
-  {k:"ne_intro", r:"Nordeste e Semiárido · apresentação", rota:h => h==="ne", sel:"#conteudo .intro > p:first-child", ir:"ne"},
-  {k:"outros", r:"Outros Sistemas Hídricos · apresentação", rota:h => h==="outros", sel:"#conteudo .intro > p:first-child", ir:"outros"},
-  {k:"cantareira", r:"Sistema Cantareira · subtítulo", rota:h => h==="outros/cantareira", sel:"#titulo-pag .lead", ir:"outros/cantareira"},
-  {k:"dados", r:"Área de dados · subtítulo", rota:h => h==="dados", sel:"#titulo-pag .lead", ir:"dados"}];
+// páginas com textos editáveis; bacia, estado e fichas são modelos: o texto vale para todas as páginas do modelo
+const PAGS_TX = [
+  {k:"inicio", r:"Página inicial", ir:"inicio", casa:h => h==="" || h==="inicio"},
+  {k:"sin", r:"Sistema Interligado Nacional", ir:"sin", casa:h => h==="sin"},
+  {k:"bacia", r:"Bacia do SIN (modelo de todas as bacias)", ir:"bacia/GRANDE", casa:h => h.startsWith("bacia/")},
+  {k:"ficha", r:"Ficha de usina do SIN (modelo)", ir:"ficha/FURNAS", casa:h => h.startsWith("ficha/")},
+  {k:"ne", r:"Nordeste e Semiárido", ir:"ne", casa:h => h==="ne"},
+  {k:"ne_estado", r:"Estado do Nordeste (modelo de todos os estados)", ir:"ne/PI", casa:h => /^ne\/[A-Z]{2}$/.test(h)},
+  {k:"ne_ficha", r:"Ficha de açude do Nordeste (modelo)", ir:"ne/ficha/12112", casa:h => h.startsWith("ne/ficha/")},
+  {k:"outros", r:"Outros Sistemas Hídricos", ir:"outros", casa:h => h==="outros"},
+  {k:"cantareira", r:"Sistema Cantareira", ir:"outros/cantareira", casa:h => h==="outros/cantareira"},
+  {k:"os_sistema", r:"Distrito Federal e Paraopeba (modelo)", ir:"outros/df", casa:h => h==="outros/df" || h==="outros/rmbh"},
+  {k:"os_ficha", r:"Ficha de reservatório de Outros Sistemas (modelo)", ir:"outros/ficha/29001", casa:h => h.startsWith("outros/ficha/")},
+  {k:"dados", r:"Área de dados", ir:"dados", casa:h => h==="dados"},
+  {k:"api", r:"API pública", ir:"api", casa:h => h==="api"}];
+// fora da edição de texto: tabelas, mapas, legendas, controles, carimbo, avisos e códigos
+const TX_FORA = "table,.leaflet-container,.carimbo,.baixar,svg,.legenda,.aviso-pub,.avisos-pub,nav,label,.pedido,.adm-form,.mf,.chips-filtro,.api-box,.previa-box,#rev-serie,.trilha";
+const txSemDica = el => { const c = el.cloneNode(true); c.querySelectorAll(".dica").forEach(d => d.remove()); return c.innerHTML.trim(); };
+const txPlano = h => { const d = document.createElement("div"); d.innerHTML = h; return d.textContent.replace(/\s+/g, " ").trim(); };
+const txNorm = h => { const d = document.createElement("div"); d.innerHTML = h; return d.innerHTML.trim(); };
+// os textos de uma página, na ordem da tela; a chave (grupo|tipo|ordem) não depende do conteúdo, para valer depois de editado
+function textosDe(doc){
+  const out = [], cont = {};
+  doc.querySelectorAll("#titulo-pag p.lead, #conteudo p, #conteudo p.sub > span.dica").forEach(el => {
+    if (el.closest(TX_FORA) || el.querySelector("button,input,select")) return;
+    const sec = el.closest("section[id]"), intro = el.closest(".intro"), saiba = el.closest("details.saiba");
+    const tipo = el.matches("span.dica") ? "instrução" : el.matches("#titulo-pag p.lead, .lead-hero") ? "subtítulo" : saiba ? "saiba mais" : intro ? "apresentação" :
+      el.matches("p.sub") ? "texto da seção" : el.matches("[class*='fontes']") ? "linha de fontes" : el.matches(".nota") ? "nota" : "texto";
+    const html = tipo==="texto da seção" ? txSemDica(el) : el.innerHTML.trim(), t = txPlano(html); if (!t) return;
+    const grupo = sec ? sec.id : intro ? "intro" : el.closest("#titulo-pag") ? "titulo" : "pagina", ck = grupo + "|" + tipo, n = cont[ck] = (cont[ck] ?? -1) + 1;
+    const h2 = sec && sec.querySelector("h2"), num = h2 && h2.querySelector("small") ? h2.querySelector("small").textContent.trim() : "";
+    const titulo = sec && h2 ? `${num ? "Seção " + num + " · " : ""}${h2.textContent.trim().slice(num.length).trim()}` : intro ? "Apresentação" : grupo==="titulo" ? "Título da página" : "Página";
+    const outras = (html.match(/<([a-z0-9]+)/gi) || []).map(x => x.slice(1).toLowerCase()).filter(x => !["a","b","strong","code","br","wbr"].includes(x));
+    out.push({id:`${ck}|${n}`, el, titulo, tipo, html, t, fixo: outras.length ? "formatacao" : /\d/.test(txPlano(html.replace(/<code[^>]*>.*?<\/code>/g, ""))) ? "valores" : ""});
+  });
+  // os textos que têm marcador no código (janela do Nordeste): editáveis, com o marcador no original
+  Object.values(TEXTOS_PAD).forEach(pad => { const t = txPlano(textoHTML(pad)); out.forEach(x => { if (x.t === t){ x.pad = pad; x.fixo = ""; } }); });
+  return out;
+}
+// editor: **negrito**, [texto](#endereço), `código`; quebra de linha vira <br>
+const txEd = h => h.replace(/<wbr>/g, "").replace(/<br\s*\/?>/g, "\n").replace(/<a [^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/g, "[$2]($1)")
+  .replace(/<code[^>]*>(.*?)<\/code>/g, "`$1`").replace(/<(b|strong)>(.*?)<\/\1>/g, "**$2**").replace(/<[^>]+>/g, "")
+  .replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+const txHTML = s => txNorm(esc(s.trim()).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\[([^\]]+)\]\((#[^)\s]*)\)/g, '<a href="$2">$1</a>')
+  .replace(/`([^`]+)`/g, '<code class="in">$1</code>').replace(/\n/g, "<br>"));
+// páginas públicas: põe o texto editado no lugar e reaplica quando a página se redesenha
+let TX_APLICANDO = false, txTimer = null;
+function aplicarTextos(){
+  const h = decodeURIComponent(location.hash.slice(1)); if (h.startsWith("admin")) return;
+  const Pg = PAGS_TX.find(p => p.casa(h)); if (!Pg) return;
+  const K = Object.keys(ADM.textos).filter(k => k.startsWith(Pg.k + "::")); if (!K.length) return;
+  TX_APLICANDO = true;
+  try { const L = textosDe(document);
+    K.forEach(k => { const x = L.find(y => Pg.k + "::" + y.id === k); if (!x) return; const novo = txNorm(textoHTML(ADM.textos[k]));
+      if (x.tipo==="texto da seção"){ if (txSemDica(x.el) !== novo){ const d = x.el.querySelector(".dica"); x.el.innerHTML = novo; if (d) x.el.append(d); } }
+      else if (x.el.innerHTML.trim() !== novo) x.el.innerHTML = novo; }); }
+  finally { setTimeout(() => { TX_APLICANDO = false; }, 0); }
+}
+["conteudo","titulo-pag"].forEach(id => new MutationObserver(() => { if (TX_APLICANDO) return; clearTimeout(txTimer); txTimer = setTimeout(aplicarTextos, 60); })
+  .observe(document.getElementById(id), {childList:true, subtree:true}));
+// o original de cada página é lido da própria página, aberta num quadro oculto (uma vez por página)
+const TX_CACHE = {};
+function carregarTextosPag(Pg, pronto){
+  if (TX_CACHE[Pg.k]) return pronto(TX_CACHE[Pg.k]);
+  const velho = document.getElementById("tx-quadro"); if (velho) velho.remove();
+  const f = document.createElement("iframe"); f.id = "tx-quadro"; f.setAttribute("aria-hidden", "true"); f.tabIndex = -1;
+  f.style.cssText = "position:absolute;left:-12000px;top:0;width:1366px;height:900px;border:0;visibility:hidden";
+  f.onload = () => setTimeout(() => { let L = null;
+    try { L = textosDe(f.contentDocument).map(({el, ...x}) => x); TX_CACHE[Pg.k] = L; } catch (e) { L = null; }
+    f.remove(); pronto(L); }, 900);
+  f.src = location.href.split("#")[0] + "#" + Pg.ir;
+  document.body.append(f);
+}
 const FCRIT = (NEd.nivel && NEd.nivel.filtro) || {grosso_cm:2000, pico_cm:50, degrau_cm:150, volta_dias:20, suspeito_cm:300};
 const PARAM_ADM = [
   {k:"janela_ne", g:"Nordeste e Semiárido", r:"Janela da medição mais próxima da data de referência", v:NEd.limiar_dias, u:"dias", dec:0, apr:true,
@@ -5920,11 +6127,11 @@ function admAgrupamentos(){
 function admPublicacao(){
   const hoje = new Date().toISOString().slice(0,10);
   const sitAv = a => a.fim && a.fim < hoje ? "encerrado" : a.ini > hoje ? "programado" : "no ar";
-  tituloAdm("Avisos e textos", "Avisos com início e fim, gerais, por módulo ou por reservatório, e os textos de apresentação das páginas, sem nova versão do sistema.",
+  tituloAdm("Avisos e textos", "Avisos com início e fim, gerais, por módulo ou por reservatório, e todos os textos explicativos das páginas, sem nova versão do sistema.",
     `<span><b>${ADM.avisos.filter(a => !a.removido && sitAv(a)==="no ar").length}</b> avisos no ar</span>`);
   const ONDE = [["geral","Todas as páginas públicas"],["SIN","Módulo SIN"],["NE","Módulo Nordeste e Semiárido"],["OUTROS","Módulo Outros Sistemas"],["dados","Área de dados"],["res","Um reservatório (ficha)"]];
   $("#conteudo").innerHTML = `
-    <nav class="indice" aria-label="Seções da página"><a href="#admin/publicacao" data-alvo="pu-av">Novo aviso</a><a href="#admin/publicacao" data-alvo="pu-lista">Avisos</a><a href="#admin/publicacao" data-alvo="pu-tx">Textos das páginas</a></nav>
+    <nav class="indice" aria-label="Seções da página"><a href="#admin/publicacao" data-alvo="pu-av">Novo aviso</a><a href="#admin/publicacao" data-alvo="pu-lista">Avisos</a><a href="#admin/publicacao" data-alvo="pu-tx">Textos das páginas</a><a href="#admin/publicacao" data-alvo="pu-alt">Textos alterados</a></nav>
     <section class="cartao secao" id="pu-av" aria-labelledby="t-pu-av"><h2 id="t-pu-av"><small>1</small>Novo aviso</h2>
       <p class="sub">O aviso aparece no alto das páginas escolhidas enquanto estiver no período. Publicado na hora, com registro na trilha.</p>
       <div class="adm-form"><label>Onde<select id="av-onde">${ONDE.map(([v, r]) => `<option value="${v}">${r}</option>`).join("")}</select></label>
@@ -5936,10 +6143,15 @@ function admPublicacao(){
       <div class="adm-form"><button type="button" class="acao" id="av-ir"${podeEditar() ? "" : " disabled"}>Publicar aviso</button><button type="button" class="acao sec" id="av-ex"${podeEditar() ? "" : " disabled"}>Usar um exemplo</button></div></section>
     <section class="cartao secao" id="pu-lista" aria-labelledby="t-pu-lista"><h2 id="t-pu-lista"><small>2</small>Avisos</h2><div id="av-lista"></div></section>
     <section class="cartao secao" id="pu-tx" aria-labelledby="t-pu-tx"><h2 id="t-pu-tx"><small>3</small>Textos das páginas</h2>
-      <p class="sub">Escolha o texto, edite e veja a prévia. Negrito com dois asteriscos (**assim**). {janela_ne} é trocado pela janela do Nordeste em vigor nas páginas.</p>
-      <div class="adm-form"><label class="largo">Texto<select id="tx-sel">${TEXTOS_ED.map(T => `<option value="${T.k}">${T.r}${ADM.textos[T.k]!=null ? " (alterado)" : ""}</option>`).join("")}</select></label><a class="acao sec" id="tx-ver" href="#inicio">Abrir a página</a></div>
-      <div class="adm-tx"><label>Texto<textarea id="tx-ed" rows="7"${podeEditar() ? "" : " disabled"}></textarea></label><div><span class="rot">Prévia</span><div class="adm-tx-prev" id="tx-prev"></div></div></div>
-      <div class="adm-form"><label class="largo">Motivo<input type="text" id="tx-mot" placeholder="Ex.: texto revisado pela comunicação"${podeEditar() ? "" : " disabled"}></label><button type="button" class="acao" id="tx-ir" disabled>Publicar texto</button><button type="button" class="acao sec" id="tx-orig"${podeEditar() ? "" : " disabled"}>Voltar ao texto original</button></div></section>`;
+      <p class="sub">Todo texto explicativo das páginas públicas se edita aqui, sem nova versão do sistema: subtítulo, apresentação, texto e instrução de cada seção, "saiba mais", notas e linha de fontes. Nas páginas que seguem um modelo (bacia, estado e fichas), o texto vale para todas as páginas do modelo.<span class="dica">Negrito com **dois asteriscos**; link com [texto](#endereço); {janela_ne} é trocado pela janela do Nordeste em vigor.</span></p>
+      <div class="adm-form"><label>Página<select id="tx-pag">${PAGS_TX.map(Pg => `<option value="${Pg.k}">${esc(Pg.r)}</option>`).join("")}</select></label>
+        <label class="largo">Texto<select id="tx-sel" disabled><option>Carregando os textos da página…</option></select></label><a class="acao sec" id="tx-ver" href="#inicio">Abrir a página</a></div>
+      <p class="nota" id="tx-info"></p>
+      <p class="aviso-dados" id="tx-fixo" hidden></p>
+      <div class="adm-tx"><label>Texto<textarea id="tx-ed" rows="7" disabled></textarea></label><div><span class="rot">Prévia</span><div class="adm-tx-prev" id="tx-prev"></div></div></div>
+      <div class="adm-form"><label class="largo">Motivo<input type="text" id="tx-mot" placeholder="Ex.: texto revisado pela comunicação"${podeEditar() ? "" : " disabled"}></label><button type="button" class="acao" id="tx-ir" disabled>Publicar texto</button><button type="button" class="acao sec" id="tx-orig" disabled>Voltar ao texto original</button></div></section>
+    <section class="cartao secao" id="pu-alt" aria-labelledby="t-pu-alt"><h2 id="t-pu-alt"><small>4</small>Textos alterados</h2>
+      <p class="sub">Textos que estão diferentes do original, em todas as páginas, com quem alterou, quando e por quê.</p><div id="tx-alt"></div></section>`;
   let alvo = null;
   const avHTML = a => `<div class="aviso-pub ${a.tipo}" role="note"><b>${a.tipo==="atencao" ? "Atenção." : "Aviso."}</b> ${esc(a.txt)}</div>`;
   const prevAv = () => { const txt = $("#av-txt").value.trim(); $("#av-prev").innerHTML = txt ? avHTML({tipo:$("#av-tipo").value, txt}) : '<p class="nota">Escreva o texto do aviso.</p>';
@@ -5958,17 +6170,49 @@ function admPublicacao(){
     trilhaAdm("Aviso publicado", onde==="res" ? alvo : null, `${ondeR}: ${txt} (${dBR(ini)}${fim ? " a " + dBR(fim) : ", sem fim"})`, "", "gravado");
     toast("Aviso publicado."); admPublicacao(); };
   lista();
-  const T = () => TEXTOS_ED.find(x => x.k === $("#tx-sel").value), atual = t => ADM.textos[t.k] ?? TEXTOS_PAD[t.k] ?? "";
-  function carregar(){ const t = T(); $("#tx-ed").value = txtParaEd(atual(t)); $("#tx-ver").href = "#" + t.ir; prevTx(); }
-  function prevTx(){ const t = T(), novo = edParaTxt($("#tx-ed").value); $("#tx-prev").innerHTML = textoHTML(novo) || '<span class="nota">(vazio)</span>';
-    $("#tx-ir").disabled = !podeEditar() || !$("#tx-ed").value.trim() || novo === atual(t); }
-  $("#tx-sel").onchange = carregar; $("#tx-ed").oninput = prevTx;
-  $("#tx-ir").onclick = () => { const t = T(), mot = $("#tx-mot").value.trim(); if (!mot){ toast("Informe o motivo."); $("#tx-mot").focus(); return; }
-    const antes = ADM.textos[t.k], novo = edParaTxt($("#tx-ed").value); ADM.textos[t.k] = novo === TEXTOS_PAD[t.k] ? undefined : novo; if (ADM.textos[t.k]===undefined) delete ADM.textos[t.k];
-    trilhaAdm("Texto da página", null, `${t.r}: ${txtParaEd(novo).slice(0, 160)}`, mot, "gravado", () => { if (antes===undefined) delete ADM.textos[t.k]; else ADM.textos[t.k] = antes; });
-    toast("Texto publicado. Abra a página para ver."); $("#tx-mot").value = ""; const k = t.k; admPublicacao(); $("#tx-sel").value = k; carregar(); };
-  $("#tx-orig").onclick = () => { $("#tx-ed").value = txtParaEd(TEXTOS_PAD[T().k] || ""); prevTx(); };
-  carregar();
+  // textos das páginas
+  const PT = () => { const s = $("#tx-pag"); return s ? PAGS_TX.find(Pg => Pg.k === s.value) : null; };   // null quando a tela já foi trocada
+  let LT = [];
+  const chave = x => PT().k + "::" + x.id, orig = x => x.pad ?? x.html, atual = x => ADM.textos[chave(x)] ?? orig(x);
+  const X = () => LT.find(x => x.id === $("#tx-sel").value);
+  const rotTx = x => { const M = LT.filter(y => y.titulo===x.titulo && y.tipo===x.tipo); return `${x.tipo[0].toUpperCase() + x.tipo.slice(1)}${M.length > 1 ? " " + (M.indexOf(x) + 1) : ""}: ${x.t.slice(0, 60)}${x.t.length > 60 ? "…" : ""}`; };
+  function opcoesTx(){ const sel = $("#tx-sel").value, G = [...new Set(LT.map(x => x.titulo))];
+    $("#tx-sel").innerHTML = G.map(g => `<optgroup label="${esc(g)}">${LT.filter(x => x.titulo===g).map(x => `<option value="${esc(x.id)}">${esc(rotTx(x))}${ADM.textos[chave(x)]!=null ? " (alterado)" : ""}${x.fixo ? " (só leitura no protótipo)" : ""}</option>`).join("")}</optgroup>`).join("");
+    if (sel && LT.some(x => x.id===sel)) $("#tx-sel").value = sel;
+    const nf = LT.filter(x => x.fixo).length, na = LT.filter(x => ADM.textos[chave(x)]!=null).length;
+    $("#tx-info").textContent = `${fint(LT.length)} textos nesta página${na ? `, ${fint(na)} ${na===1 ? "alterado" : "alterados"}` : ""}${nf ? `; ${fint(nf)} com números do dia ou formatação especial ficam só para leitura no protótipo` : ""}.`; }
+  function escolherPag(){ const Pg = PT(); $("#tx-ver").href = "#" + Pg.ir; LT = [];
+    $("#tx-sel").disabled = true; $("#tx-sel").innerHTML = "<option>Carregando os textos da página…</option>"; $("#tx-info").textContent = "";
+    $("#tx-ed").value = ""; $("#tx-ed").disabled = true; $("#tx-prev").innerHTML = ""; $("#tx-fixo").hidden = true; $("#tx-ir").disabled = true; $("#tx-orig").disabled = true;
+    carregarTextosPag(Pg, L => { if (PT() !== Pg) return;
+      if (!L){ $("#tx-info").textContent = "Não foi possível ler os textos desta página."; return; }
+      LT = L; opcoesTx(); $("#tx-sel").disabled = false; carregar(); }); }
+  function carregar(){ const x = X(); if (!x) return;
+    $("#tx-ed").value = txEd(atual(x)); $("#tx-ed").disabled = !podeEditar() || !!x.fixo; $("#tx-orig").disabled = !podeEditar() || !!x.fixo;
+    $("#tx-fixo").hidden = !x.fixo;
+    $("#tx-fixo").textContent = x.fixo==="valores" ? "Este texto traz números que vêm do dado ou de parâmetros (contagens, datas, janelas). No sistema, cada número entra por marcador, como {janela_ne}, e o resto do texto é editável; no protótipo, fica só para leitura."
+      : x.fixo ? "Este texto tem formatação que o editor do protótipo não reproduz (ícones, destaques). No sistema, é editável como os demais; no protótipo, fica só para leitura." : "";
+    prevTx(); }
+  function prevTx(){ const x = X(); if (!x) return; const novo = txHTML($("#tx-ed").value);
+    $("#tx-prev").innerHTML = textoHTML(x.fixo ? atual(x) : novo) || '<span class="nota">(vazio)</span>';
+    $("#tx-ir").disabled = !podeEditar() || !!x.fixo || !$("#tx-ed").value.trim() || novo === txHTML(txEd(atual(x))); }
+  function listaAlt(){ const K = Object.keys(ADM.textos).filter(k => ADM.textosMeta[k]);
+    $("#tx-alt").innerHTML = K.length ? `<div class="tab-box adm-tab"><table><thead><tr><th>Página</th><th>Texto</th><th>Quando</th><th>Motivo</th><th></th></tr></thead><tbody>${K.map(k => { const m = ADM.textosMeta[k];
+      return `<tr><td>${esc(m.pag)}</td><td>${esc(m.onde)}<br><span class="nota">${esc(txPlano(ADM.textos[k]).slice(0, 140))}</span></td><td>${esc(m.quando)}<br><span class="nota">${esc(m.quem)}</span></td><td>${esc(m.motivo)}</td>
+        <td class="r"><a class="acao sec" href="#${esc(m.ir)}">Ver na página</a>${podeEditar() ? `<button type="button" class="acao sec" data-tx="${esc(k)}">Voltar ao original</button>` : ""}</td></tr>`; }).join("")}</tbody></table></div>`
+      : '<p class="nota">Nenhum texto alterado. Todas as páginas estão com o texto original.</p>';
+    $$("#tx-alt [data-tx]").forEach(b => b.onclick = () => { const k = b.dataset.tx, m = ADM.textosMeta[k], antes = ADM.textos[k];
+      delete ADM.textos[k]; trilhaAdm("Texto da página", null, `${m.pag} · ${m.onde}: volta ao texto original`, "", "gravado", () => { ADM.textos[k] = antes; });
+      toast("Texto original de volta."); listaAlt(); if (LT.length){ opcoesTx(); carregar(); } }); }
+  $("#tx-pag").onchange = escolherPag; $("#tx-sel").onchange = carregar; $("#tx-ed").oninput = prevTx;
+  $("#tx-ir").onclick = () => { const x = X(), k = chave(x), mot = $("#tx-mot").value.trim(); if (!mot){ toast("Informe o motivo."); $("#tx-mot").focus(); return; }
+    const antes = ADM.textos[k], novo = txHTML($("#tx-ed").value), onde = `${x.titulo} · ${x.tipo}`;
+    if (novo === txHTML(txEd(orig(x)))) delete ADM.textos[k]; else ADM.textos[k] = novo;
+    ADM.textosMeta[k] = {pag:PT().r, onde, ir:PT().ir, quando:agoraAdm(), quem:ADM_USU[ADM.perfil], motivo:mot};
+    trilhaAdm("Texto da página", null, `${PT().r} · ${onde}: ${$("#tx-ed").value.trim().slice(0, 160)}`, mot, "gravado", () => { if (antes===undefined) delete ADM.textos[k]; else ADM.textos[k] = antes; });
+    toast("Texto publicado. Abra a página para ver."); $("#tx-mot").value = ""; opcoesTx(); carregar(); listaAlt(); };
+  $("#tx-orig").onclick = () => { const x = X(); if (!x) return; $("#tx-ed").value = txEd(orig(x)); prevTx(); };
+  listaAlt(); escolherPag();
 }
 
 /* ---------------- parâmetros */
@@ -6017,7 +6261,7 @@ function entDaRota(h){ const E = entidadesDados();
 function extrasPublicos(h){
   $("#conteudo").classList.toggle("admin", h.startsWith("admin"));   // tabelas da administração quebram linha (sem rolagem interna)
   if (h.startsWith("admin")) return;
-  TEXTOS_ED.forEach(T => { if (T.rota(h) && ADM.textos[T.k] != null){ const el = $(T.sel); if (el) el.innerHTML = textoHTML(ADM.textos[T.k]); } });
+  aplicarTextos();
   const hoje = new Date().toISOString().slice(0,10), mod = h==="" || h==="inicio" ? "inicio" : h==="dados" ? "dados" : h.startsWith("ne") ? "NE" : h.startsWith("outros") ? "OUTROS" : "SIN", e = entDaRota(h);
   const A = ADM.avisos.filter(a => !a.removido && a.ini <= hoje && (!a.fim || a.fim >= hoje) && (a.onde==="geral" || a.onde===mod || (e && a.onde===e.id)));
   if (A.length){ const box = document.createElement("div"); box.className = "avisos-pub";
@@ -6118,9 +6362,9 @@ function rota(){
   if (h === "bacia/GRANDE") paginaGrande(); else if (h === "ficha/FURNAS") paginaFicha();
   else if (h === "ne") paginaNE(); else if (h.startsWith("ne/ficha/")) paginaFichaNE(h.slice(9)); else if (h.startsWith("ne/")) paginaEstadoNE(h.slice(3));
   else if (h === "sin") paginaSIN(); else if (h === "outros") paginaOutros(); else if (h === "outros/cantareira") paginaCantareira(); else if (h === "outros/df" || h === "outros/rmbh") paginaSistemaOS(h.slice(7));
-  else if (h.startsWith("outros/ficha/")) paginaFichaOS(h.slice(13)); else if (h === "dados") paginaDados(); else if (h === "admin" || h.startsWith("admin/")) paginaAdmin(h.slice(6)); else paginaInicio();
+  else if (h.startsWith("outros/ficha/")) paginaFichaOS(h.slice(13)); else if (h === "dados") paginaDados(); else if (h === "api") paginaAPI(); else if (h === "admin" || h.startsWith("admin/")) paginaAdmin(h.slice(6)); else paginaInicio();
   extrasPublicos(h);
-  const mod = h === "" || h === "inicio" ? "inicio" : h === "dados" ? "dados" : h.startsWith("admin") ? "admin" : h.startsWith("ne") ? "ne" : h.startsWith("outros") ? "outros" : "sin";
+  const mod = h === "" || h === "inicio" ? "inicio" : h === "dados" || h === "api" ? "dados" : h.startsWith("admin") ? "admin" : h.startsWith("ne") ? "ne" : h.startsWith("outros") ? "outros" : "sin";
   $$(".modulos button").forEach(b => { if (b.dataset.rota === mod) b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current"); });
   document.body.classList.toggle("na-inicio", mod === "inicio");
   window.scrollTo(0,0);
