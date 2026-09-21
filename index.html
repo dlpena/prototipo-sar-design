@@ -1316,16 +1316,17 @@ const pdfSecao = (tabelas, nome) => { const t0 = tabelas.find(Boolean);
 // ---- KMZ no padrão do projeto mapa-reservatorios (github.com/dlpena/mapa-reservatorios): legenda.png fixa no canto
 // da tela (ScreenOverlay) e a mesma legenda na descrição do documento; ícones PNG com a forma e a cor do mapa da página.
 // A legenda é a de cada mapa: {titulo, grupos:[{titulo, itens:[{r, cor, forma}]}]}; forma: circulo, triangulo, sobe,
-// desce, est (losango), area, linha
+// desce, est (losango), vazio (losango vazado: contorno na cor, miolo branco), area, linha
 const xk = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const abgr = (c, a = "ff") => a + c.slice(5,7) + c.slice(3,5) + c.slice(1,3);
-const FORMA_KMZ = {triangulo:"M7 1.2 L13 12.4 L1 12.4 Z", sobe:ICO_NV_K("sobe"), desce:ICO_NV_K("desce"), est:ICO_NV_K("est")};
+const FORMA_KMZ = {triangulo:"M7 1.2 L13 12.4 L1 12.4 Z", sobe:ICO_NV_K("sobe"), desce:ICO_NV_K("desce"), est:ICO_NV_K("est"), vazio:ICO_NV_K("est")};
 function ICO_NV_K(k){ return {sobe:"M7 1.5 L12.5 11.5 L1.5 11.5 Z", desce:"M1.5 2.5 L12.5 2.5 L7 12.5 Z", est:"M7 1.2 L12.8 7 L7 12.8 L1.2 7 Z"}[k]; }
 function desenhaForma(ctx, forma, cor, x, y, tam){      // (x, y) canto superior esquerdo de uma caixa tam × tam
   const s = tam/14; ctx.save(); ctx.translate(x, y); ctx.fillStyle = cor; ctx.strokeStyle = "rgba(255,255,255,.95)";
   if (forma==="circulo"){ ctx.beginPath(); ctx.arc(tam/2, tam/2, tam/2 - 1.2*s, 0, 6.2832); ctx.lineWidth = 1.4*s; ctx.fill(); ctx.stroke(); }
   else if (forma==="area"){ ctx.fillRect(1, 2, tam - 2, tam - 4); ctx.strokeStyle = "#8A97A8"; ctx.lineWidth = 1; ctx.strokeRect(1, 2, tam - 2, tam - 4); }
   else if (forma==="linha"){ ctx.strokeStyle = cor; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, tam/2); ctx.lineTo(tam, tam/2); ctx.stroke(); }
+  else if (forma==="vazio"){ ctx.scale(s, s); const p = new Path2D(FORMA_KMZ.vazio); ctx.fillStyle = "#fff"; ctx.strokeStyle = cor; ctx.lineWidth = 1.6; ctx.fill(p); ctx.stroke(p); }
   else { ctx.scale(s, s); const p = new Path2D(FORMA_KMZ[forma]); ctx.lineWidth = 1.2; ctx.fill(p); ctx.stroke(p); }
   ctx.restore();
 }
@@ -3180,12 +3181,13 @@ async function kmzEstadoNE(lista, estado){
   const pasta = k => { const L = com.filter(r => r.faixa===k); return L.length ? `<Folder><name>${x(ROT_FAIXA(k))}</name>${L.map(r =>
     `<Placemark><name>${x(caso(r.nome))}</name><styleUrl>#${k}</styleUrl><description><![CDATA[<b>${r.volume_pct==null ? "sem informação" : fmt(r.volume_pct,1)+"% do volume"}</b><br>Capacidade: ${r.capacidade_hm3==null?"–":fmt(r.capacidade_hm3,1)} hm³<br>Cota: ${r.cota==null?"–":fmt(r.cota,2)} m<br>Volume: ${r.volume_hm3==null?"–":fmt(r.volume_hm3,1)} hm³<br>Município: ${x(r.municipio||"–")}<br>Bacia: ${x(caso(r.bacia||"–"))}<br>Última medição: ${r.data ? dBR(r.data) : "–"} (${dDias(r)})]]></description><Point><coordinates>${r.lon},${r.lat},0</coordinates></Point></Placemark>`).join("")}</Folder>` : ""; };
   const pastaNivel = () => niv.length ? `<Folder><name>Só nível (sem curva cota-volume)</name>${niv.map(r =>
-    `<Placemark><name>${x(caso(r.nome))}</name><styleUrl>#nv_${r.sem_info ? "sem" : r.tend}</styleUrl><description><![CDATA[<b>${r.nivel_m==null ? "sem leitura na janela" : fmt(r.nivel_m,2)+" m de nível"}</b><br>Em 30 dias: ${r.var30==null ? "–" : sinal(r.var30)+" m"}<br>Município: ${x(r.municipio||"–")}<br>Leitura usada: ${r.data ? dBR(r.data)+" ("+dDias(r)+")" : "última em "+(r.ultima ? dBR(r.ultima) : "–")}<br>Leitura do observador, não validada; sem volume por falta de curva cota-volume.]]></description><Point><coordinates>${r.lon},${r.lat},0</coordinates></Point></Placemark>`).join("")}</Folder>` : "";
+    `<Placemark><name>${x(caso(r.nome))}</name><styleUrl>#nv_${r.sem_info ? "sem" : r.tend}</styleUrl><description><![CDATA[<b>${r.nivel_m==null ? "sem leitura na janela" : fmt(r.nivel_m,2)+" m de nível"}</b><br>Em 30 dias: ${r.var30==null ? (r.sem_info ? "–" : "sem comparação") : sinal(r.var30)+" m"}<br>Município: ${x(r.municipio||"–")}<br>Leitura usada: ${r.data ? dBR(r.data)+" ("+dDias(r)+")" : "última em "+(r.ultima ? dBR(r.ultima) : "–")}<br>Leitura do observador, não validada; sem volume por falta de curva cota-volume.]]></description><Point><coordinates>${r.lon},${r.lat},0</coordinates></Point></Placemark>`).join("")}</Folder>` : "";
   const estilos = {}; ["restricao","atencao","normal","sem"].forEach(k => estilos[k] = {forma:"circulo", cor:FX[k].cor, escala:.7});
-  if (niv.length) Object.assign(estilos, {nv_sobe:{forma:"sobe", cor:COR_NV}, nv_desce:{forma:"desce", cor:COR_NV}, nv_est:{forma:"est", cor:COR_NV}, nv_sem:{forma:"est", cor:COR_NV_SEM}});
+  if (niv.length) Object.assign(estilos, {nv_sobe:{forma:"sobe", cor:COR_NV}, nv_desce:{forma:"desce", cor:COR_NV}, nv_est:{forma:"est", cor:COR_NV}, nv_semcomp:{forma:"vazio", cor:COR_NV}, nv_sem:{forma:"est", cor:COR_NV_SEM}});
   const grupos = [{titulo:"Reservatório com volume, pela faixa", itens:["restricao","atencao","normal","sem"].map(k => ({r:ROT_FAIXA(k), cor:FX[k].cor, forma:"circulo"}))}];
   if (niv.length) grupos.push({titulo:"Só nível, variação em 30 dias", itens:[{r:"subiu", cor:COR_NV, forma:"sobe"}, {r:"desceu", cor:COR_NV, forma:"desce"},
-    {r:`estável (menos de ${fmt(LIM_EST*100,0)} cm)`, cor:COR_NV, forma:"est"}, {r:"sem leitura na janela", cor:COR_NV_SEM, forma:"est"}]});
+    {r:`estável (menos de ${fmt(LIM_EST*100,0)} cm)`, cor:COR_NV, forma:"est"}, {r:"sem comparação (sem leitura perto de 30 dias antes)", cor:COR_NV, forma:"vazio"},
+    {r:"sem leitura na janela", cor:COR_NV_SEM, forma:"est"}]});
   const kml = ["restricao","atencao","normal","sem"].map(pasta).join("") + pastaNivel();
   await montarKMZ({arquivo:`sar_${estado.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/\s+/g,"_")}_${dataRef}.kmz`, nome:`SAR · ${estado} · data de referência ${dBR(dataRef)}`, n:com.length + niv.length,
     descricao:`Reservatórios do módulo Nordeste e Semiárido: ${xk(estado)}, na data de referência ${dBR(dataRef)}. Cada reservatório entra com a medição mais próxima, até ${NEd.limiar_dias} dias antes ou depois.` +
@@ -3256,12 +3258,14 @@ async function pdfTabelaEstado(lista, niv, estado, uf){
    Variação em 30 dias, igual no volume e no nível: contra a leitura mais próxima do dia 30 dias antes da usada,
    até FOLGA30 dias antes ou depois dele (Diego, 21/09/2026); a ficha mostra a data da leitura comparada ("desde dd/mm"). */
 const COR_NV = "#4A7FB0", COR_NV_SEM = "#9E9E9E", LIM_EST = .05, FOLGA30 = 7;
-const ICO_NV = {sobe:"M7 1.5 L12.5 11.5 L1.5 11.5 Z", desce:"M1.5 2.5 L12.5 2.5 L7 12.5 Z", est:"M7 1.2 L12.8 7 L7 12.8 L1.2 7 Z"};
-const icoNV = (tend, cor) => `<svg class="nv-ico" viewBox="0 0 14 14" aria-hidden="true"><path d="${ICO_NV[tend]}" fill="${cor || COR_NV}" stroke="#fff" stroke-width="1"/></svg>`;
+const ICO_NV = {sobe:"M7 1.5 L12.5 11.5 L1.5 11.5 Z", desce:"M1.5 2.5 L12.5 2.5 L7 12.5 Z", est:"M7 1.2 L12.8 7 L7 12.8 L1.2 7 Z", semcomp:"M7 1.2 L12.8 7 L7 12.8 L1.2 7 Z"};
+// "semcomp": leitura na janela sem leitura para comparar (nenhuma perto de 30 dias antes), losango vazado
+const tracoNV = (tend, cor, borda) => tend==="semcomp" ? `fill="#fff" stroke="${COR_NV}" stroke-width="1.6"` : `fill="${cor || COR_NV}" stroke="#fff" stroke-width="${borda}"`;
+const icoNV = (tend, cor) => `<svg class="nv-ico" viewBox="0 0 14 14" aria-hidden="true"><path d="${ICO_NV[tend]}" ${tracoNV(tend, cor, 1)}/></svg>`;
 const icoDe = r => r.sem_info ? icoNV("est", COR_NV_SEM) : icoNV(r.tend);
 const sinal = (v, n=2) => v==null ? "–" : (v > 0 ? "+" : v < 0 ? "−" : "") + fmt(Math.abs(v), n);
 const legendaNivel = () => `<div class="legenda"><span>Só nível, variação em 30 dias:</span><span>${icoNV("sobe")}subiu</span><span>${icoNV("desce")}desceu</span>` +
-  `<span>${icoNV("est")}estável (menos de ${fmt(LIM_EST*100,0)} cm)</span><span>${icoNV("est", COR_NV_SEM)}sem leitura na janela</span></div>`;
+  `<span>${icoNV("est")}estável (menos de ${fmt(LIM_EST*100,0)} cm)</span><span>${icoNV("semcomp")}sem comparação</span><span>${icoNV("est", COR_NV_SEM)}sem leitura na janela</span></div>`;
 const PREP = {PI:["no","do"], AL:["em","de"], SE:["em","de"], CE:["no","do"], MA:["no","do"], PB:["na","da"], PE:["em","de"],
               RN:["no","do"], BA:["na","da"], MG:["em","de"]};
 
@@ -3279,15 +3283,15 @@ function nivelNa(st){
   let k1 = -1, d1 = 1e9;
   for (let k = 0; k < k0; k++){ const d = Math.abs(s[k][0] - alvo30); if (d <= FOLGA30 && d < d1){ d1 = d; k1 = k; } }
   const var30 = k1 < 0 ? null : (u[1] - s[k1][1]) / 100;
-  const tend = var30==null ? "est" : var30 >= LIM_EST ? "sobe" : var30 <= -LIM_EST ? "desce" : "est";
+  const tend = var30==null ? "semcomp" : var30 >= LIM_EST ? "sobe" : var30 <= -LIM_EST ? "desce" : "est";
   return {...st, modo:"nivel", nivel_m:u[1]/100, data:isoDia(u[0]), dias:alvo-u[0], sem_info:false, var30, tend, ultima};
 }
 function marcaNivel(r){
   const ic = L.divIcon({className:"nv-marca", iconSize:[18,18], iconAnchor:[9,9],
-    html:`<svg viewBox="0 0 14 14" width="18" height="18"><path d="${ICO_NV[r.sem_info ? "est" : r.tend]}" fill="${r.sem_info ? COR_NV_SEM : COR_NV}" stroke="#fff" stroke-width="1.2"/></svg>`});
+    html:`<svg viewBox="0 0 14 14" width="18" height="18"><path d="${ICO_NV[r.sem_info ? "est" : r.tend]}" ${tracoNV(r.sem_info ? "est" : r.tend, r.sem_info ? COR_NV_SEM : COR_NV, 1.2)}/></svg>`});
   return L.marker([r.lat, r.lon], {icon:ic}).bindTooltip(`<div class="pop"><b>${esc(caso(r.nome))}</b>` +
     `<div class="valor num">${r.nivel_m==null ? "sem leitura" : fmt(r.nivel_m,2)+' <small>m de nível</small>'}</div>` +
-    `<div class="l"><span>Em 30 dias</span><span class="num">${r.var30==null ? "–" : sinal(r.var30)+" m"}</span></div>` +
+    `<div class="l"><span>Em 30 dias</span><span class="num">${r.var30==null ? (r.sem_info ? "–" : "sem comparação") : sinal(r.var30)+" m"}</span></div>` +
     `<div class="l"><span>Município</span><span>${esc(r.municipio||"–")}</span></div>` +
     `<div class="l"><span>Leitura usada</span><span>${r.data ? dBR(r.data)+" · "+dDias(r) : "última em "+(r.ultima ? dBR(r.ultima) : "–")}</span></div>` +
     `<div class="l"><span>Volume</span><span>sem curva cota-volume</span></div></div>`, {direction:"top", offset:[0,-8], opacity:1});
@@ -3765,7 +3769,7 @@ function paginaFichaNE(cod){
       const n = leituraNa(SN, "nivel", dataRef, LIM);
       if (n){
         const p30 = leituraNa(SN, "nivel", menos(n.iso, 30), FOLGA30), a1 = leituraNa(SN, "nivel", anoAnt(dataRef), LIM);
-        const d30 = p30 && p30.iso !== n.iso ? n.v - p30.v : null, tend = d30==null ? "est" : d30 >= LIM_EST ? "sobe" : d30 <= -LIM_EST ? "desce" : "est";
+        const d30 = p30 && p30.iso !== n.iso ? n.v - p30.v : null, tend = d30==null ? "semcomp" : d30 >= LIM_EST ? "sobe" : d30 <= -LIM_EST ? "desce" : "est";
         const rotT = d30==null ? "sem comparação" : tend==="sobe" ? "subiu" : tend==="desce" ? "desceu" : "estável";
         h += `<div class="v principal"><div class="r">Nível<span class="faixa-tag">${icoNV(tend)}${rotT} em 30 dias</span></div><div class="n num">${fmt(n.v,2)}<small>m</small></div>
           <div class="c"><span>${quando(n)}</span><span>em 30 dias <b class="num">${d30==null ? "–" : sinal(d30) + " m"}</b>${d30==null ? " <small>sem leitura perto de 30 dias antes</small>" : ` <small>desde ${dBR(p30.iso)}</small>`}</span><span>mesmo dia de ${+dataRef.slice(0,4)-1} <b class="num">${a1 ? fmt(a1.v,2) + " m" : "–"}</b></span></div></div>`;
