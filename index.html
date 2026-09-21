@@ -3656,14 +3656,15 @@ const diaAbs = iso => Math.round(Date.parse(iso + "T00:00:00Z")/864e5);
 const isoAbs = d => new Date(d*864e5).toISOString().slice(0,10);
 const VAO_MAX = 40;   // vão maior que isso não é ligado no gráfico (série do NE é irregular)
 
-// leitura mais próxima de uma data que tenha o valor k, até lim dias antes ou depois (regra do portal)
+// leitura mais próxima de uma data que tenha o valor k, até lim dias antes ou depois (regra do portal);
+// no empate entre uma antes e outra depois, vale a anterior, como em resNa e nivelNa (Diego, 21/09/2026)
 function leituraNa(A, k, iso, lim){
   const alvo = diaAbs(iso);
   let a = 0, b = A.length;
   while (a < b){ const m = (a+b) >> 1; if (A[m].d < alvo) a = m+1; else b = m; }
   let melhor = null;
   for (let j = a; j < A.length && A[j].d - alvo <= lim; j++) if (A[j][k]!=null){ melhor = A[j]; break; }
-  for (let j = a-1; j >= 0 && alvo - A[j].d <= lim; j--) if (A[j][k]!=null){ if (!melhor || alvo - A[j].d < melhor.d - alvo) melhor = A[j]; break; }
+  for (let j = a-1; j >= 0 && alvo - A[j].d <= lim; j--) if (A[j][k]!=null){ if (!melhor || alvo - A[j].d <= melhor.d - alvo) melhor = A[j]; break; }
   return melhor ? {...melhor, v: melhor[k], dias: alvo - melhor.d} : null;
 }
 function abrirFichaNE(r){
