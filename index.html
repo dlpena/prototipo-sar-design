@@ -3253,8 +3253,9 @@ async function pdfTabelaEstado(lista, niv, estado, uf){
 
 /* ---- açudes só com nível (HidroInfoAna, sem curva cota-volume validada) ----
    Mesma regra do volume: a leitura mais próxima da data de referência, até 30 dias antes ou depois.
-   Variação em 30 dias: contra a leitura mais próxima de 30 dias antes da usada, com folga de 7 dias. */
-const COR_NV = "#4A7FB0", COR_NV_SEM = "#9E9E9E", LIM_EST = .05;
+   Variação em 30 dias, igual no volume e no nível: contra a leitura mais próxima do dia 30 dias antes da usada,
+   até FOLGA30 dias antes ou depois dele (Diego, 21/09/2026); a ficha mostra a data da leitura comparada ("desde dd/mm"). */
+const COR_NV = "#4A7FB0", COR_NV_SEM = "#9E9E9E", LIM_EST = .05, FOLGA30 = 7;
 const ICO_NV = {sobe:"M7 1.5 L12.5 11.5 L1.5 11.5 Z", desce:"M1.5 2.5 L12.5 2.5 L7 12.5 Z", est:"M7 1.2 L12.8 7 L7 12.8 L1.2 7 Z"};
 const icoNV = (tend, cor) => `<svg class="nv-ico" viewBox="0 0 14 14" aria-hidden="true"><path d="${ICO_NV[tend]}" fill="${cor || COR_NV}" stroke="#fff" stroke-width="1"/></svg>`;
 const icoDe = r => r.sem_info ? icoNV("est", COR_NV_SEM) : icoNV(r.tend);
@@ -3276,7 +3277,7 @@ function nivelNa(st){
   if (k0 < 0) return {...st, modo:"nivel", nivel_m:null, data:null, dias:null, sem_info:true, var30:null, tend:"est", ultima};
   const u = s[k0], alvo30 = u[0] - 30;
   let k1 = -1, d1 = 1e9;
-  for (let k = 0; k < k0; k++){ const d = Math.abs(s[k][0] - alvo30); if (d <= 7 && d < d1){ d1 = d; k1 = k; } }
+  for (let k = 0; k < k0; k++){ const d = Math.abs(s[k][0] - alvo30); if (d <= FOLGA30 && d < d1){ d1 = d; k1 = k; } }
   const var30 = k1 < 0 ? null : (u[1] - s[k1][1]) / 100;
   const tend = var30==null ? "est" : var30 >= LIM_EST ? "sobe" : var30 <= -LIM_EST ? "desce" : "est";
   return {...st, modo:"nivel", nivel_m:u[1]/100, data:isoDia(u[0]), dias:alvo-u[0], sem_info:false, var30, tend, ultima};
@@ -3747,7 +3748,7 @@ function paginaFichaNE(cod){
     if (!soNivel){
       const u = leituraNa(SR, "pct", dataRef, LIM), c = leituraNa(SR, "cota", dataRef, LIM);
       if (u){
-        const p30 = leituraNa(SR, "pct", menos(u.iso, 30), 15), a1 = leituraNa(SR, "pct", anoAnt(dataRef), LIM), fx = FX[faixaPct(u.v)];
+        const p30 = leituraNa(SR, "pct", menos(u.iso, 30), FOLGA30), a1 = leituraNa(SR, "pct", anoAnt(dataRef), LIM), fx = FX[faixaPct(u.v)];
         const ok30 = p30 && p30.iso !== u.iso;
         h += `<div class="v principal"><div class="r">Volume<span class="faixa-tag"><i class="bola" style="background:${fx.cor}"></i>${fx.rot}</span></div><div class="n num">${fmt(u.v,1)}<small>%</small></div>
           <div class="c"><span>${quando(u)}</span><span>em 30 dias <b class="num">${ok30 ? sinal(u.v - p30.v, 1) + " p.p." : "–"}</b>${ok30 ? ` <small>desde ${dBR(p30.iso)}</small>` : " <small>sem leitura perto de 30 dias antes</small>"}</span><span>mesmo dia de ${+dataRef.slice(0,4)-1} <b class="num">${a1 ? fmt(a1.v,1) + "%" : "–"}</b></span></div></div>`;
@@ -3762,11 +3763,11 @@ function paginaFichaNE(cod){
     } else {
       const n = leituraNa(SN, "nivel", dataRef, LIM);
       if (n){
-        const p30 = leituraNa(SN, "nivel", menos(n.iso, 30), 7), a1 = leituraNa(SN, "nivel", anoAnt(dataRef), LIM);
+        const p30 = leituraNa(SN, "nivel", menos(n.iso, 30), FOLGA30), a1 = leituraNa(SN, "nivel", anoAnt(dataRef), LIM);
         const d30 = p30 && p30.iso !== n.iso ? n.v - p30.v : null, tend = d30==null ? "est" : d30 >= LIM_EST ? "sobe" : d30 <= -LIM_EST ? "desce" : "est";
         const rotT = d30==null ? "sem comparação" : tend==="sobe" ? "subiu" : tend==="desce" ? "desceu" : "estável";
         h += `<div class="v principal"><div class="r">Nível<span class="faixa-tag">${icoNV(tend)}${rotT} em 30 dias</span></div><div class="n num">${fmt(n.v,2)}<small>m</small></div>
-          <div class="c"><span>${quando(n)}</span><span>em 30 dias <b class="num">${d30==null ? "–" : sinal(d30) + " m"}</b></span><span>mesmo dia de ${+dataRef.slice(0,4)-1} <b class="num">${a1 ? fmt(a1.v,2) + " m" : "–"}</b></span></div></div>`;
+          <div class="c"><span>${quando(n)}</span><span>em 30 dias <b class="num">${d30==null ? "–" : sinal(d30) + " m"}</b>${d30==null ? " <small>sem leitura perto de 30 dias antes</small>" : ` <small>desde ${dBR(p30.iso)}</small>`}</span><span>mesmo dia de ${+dataRef.slice(0,4)-1} <b class="num">${a1 ? fmt(a1.v,2) + " m" : "–"}</b></span></div></div>`;
       } else h += `<div class="v principal"><div class="r">Nível</div><div class="n num vazio">sem leitura na janela</div><div class="c"><span>a leitura de nível começa em ${dBR(SN[0].iso)}</span></div></div>`;
       const vSar = leituraNa(SR, "pct", dataRef, LIM);
       h += caixa("Volume", "–", "", "sem curva cota-volume validada");
