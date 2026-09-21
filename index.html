@@ -1180,7 +1180,7 @@ function legendaPNG(ctx, linhas, y0){
     });
   });
 }
-const LEG_ANOS = ano => [{r:`${ano} (ano corrente)`, cor:"#1C3782"}, {r:String(ano-1), cor:"#4A7FB0"}, {r:"anos anteriores", cor:"#C9CED6"}];
+const LEG_ANOS = (ano, rot = "ano da data de referência") => [{r:`${ano} (${rot})`, cor:"#1C3782"}, {r:String(ano-1), cor:"#4A7FB0"}, {r:"anos anteriores", cor:"#C9CED6"}];
 
 // fonte curta do PNG, pelo módulo da página
 function fontePNG(){
@@ -1459,14 +1459,15 @@ function rotulosPonta(svg, fins, cor, destaque, baixo){
 }
 
 /* ============================================================ gráfico do equivalente */
-function graficoEquivalente(host){
-  const S = D.equivalente.serie, ult = D.equivalente.ultimo_dia, anoAtual = +ult.slice(0,4);
+function graficoEquivalente(host, ate = D.equivalente.ultimo_dia){
+  const anoAtual = +ate.slice(0,4);
+  const S = Object.fromEntries(Object.entries(D.equivalente.serie).filter(([k]) => k <= ate && +k.slice(0,4) > anoAtual - 5));
   const anos = [...new Set(Object.keys(S).map(k => +k.slice(0,4)))].sort();
   const idx = iso => { const t = Date.UTC(2025, +iso.slice(5,7)-1, +iso.slice(8,10)); return Math.round((t - Date.UTC(2025,0,1))/864e5); };
   const serie = {}; anos.forEach(a => serie[a] = Array(365).fill(null));
   Object.entries(S).forEach(([k,v]) => { if (k.slice(5)==="02-29") return; serie[+k.slice(0,4)][idx(k)] = v; });
   guardaCSV(host, ["data","volume_util_pct"], Object.keys(S).sort().map(k => [dBR(k), S[k]]));
-  const W = Math.max(300, host.clientWidth), H = 250, m = {l:40, r:56, t:12, b:26};
+  const W = Math.max(300, host.clientWidth), H = 262, m = {l:40, r:56, t:24, b:26};
   const todos = Object.values(S); let lo = Math.floor(Math.min(...todos)/10)*10, hi = Math.ceil(Math.max(...todos)/10)*10;
   const X = i => m.l + i*(W-m.l-m.r)/364, Y = v => m.t + (hi-v)/(hi-lo)*(H-m.t-m.b);
   const cor = a => a===anoAtual ? "#1C3782" : a===anoAtual-1 ? "#4A7FB0" : "#C9CED6";
@@ -1480,6 +1481,12 @@ function graficoEquivalente(host){
     const t = svgEl("text",{x:X(idx(`2025-${String(k+1).padStart(2,"0")}-15`)),y:H-8,"text-anchor":"middle"}); t.textContent = W < 480 && k % 2 ? "" : mm; eixo.append(t);
   });
   svg.append(eixo);
+  if (ate.slice(5) !== "02-29"){
+    const xd = X(idx(ate));
+    svg.append(svgEl("line",{x1:xd, x2:xd, y1:m.t, y2:H-m.b, stroke:"#C0392B", "stroke-width":1, "stroke-dasharray":"3 3", opacity:.7}));
+    const md = svgEl("text",{x:xd, y:m.t-8, "text-anchor":"middle", "font-size":10.5, "font-family":"Arial", fill:"#C0392B"});
+    md.textContent = "data de referência"; svg.append(md);
+  }
   const ordem = anos.slice().sort((a,b) => (a===anoAtual) - (b===anoAtual) || (a===anoAtual-1) - (b===anoAtual-1));
   const fins = [];
   ordem.forEach(a => {
@@ -1510,8 +1517,8 @@ function graficoEquivalente(host){
 
 /* barras: o dia escolhido em cada ano da série */
 function graficoBarras(host, dia){
-  const S = D.equivalente.serie, anoAtual = +D.equivalente.ultimo_dia.slice(0,4);
-  const anos = [...new Set(Object.keys(S).map(k => +k.slice(0,4)))].sort();
+  const S = D.equivalente.serie, anoAtual = +dia.slice(0,4);
+  const anos = [...new Set(Object.keys(S).map(k => +k.slice(0,4)))].filter(a => a <= anoAtual && a > anoAtual - 5).sort();
   const dados = anos.map(a => ({a, v: S[a + dia.slice(4)]})).filter(d => d.v != null);
   guardaCSV(host, ["ano","data","volume_util_pct"], dados.map(d => [d.a, dBR(d.a + dia.slice(4)), d.v]));
   const W = Math.max(300, host.clientWidth), H = 240, m = {l:40, r:16, t:28, b:30};
@@ -1526,7 +1533,7 @@ function graficoBarras(host, dia){
   svg.append(eixo);
   dados.forEach((d,i) => {
     const x = m.l + faixa*(i+.5), h = Y(0)-Y(d.v), atual = d.a === anoAtual;
-    const r = svgEl("path",{d:`M${x-larg/2} ${Y(0)} V${Y(d.v)+4} a4 4 0 0 1 4 -4 H${x+larg/2-4} a4 4 0 0 1 4 4 V${Y(0)} Z`, fill: atual ? "#1C3782" : "#8FB2D6"});
+    const r = svgEl("path",{d:`M${x-larg/2} ${Y(0)} V${Y(d.v)+4} a4 4 0 0 1 4 -4 H${x+larg/2-4} a4 4 0 0 1 4 4 V${Y(0)} Z`, fill: atual ? "#1C3782" : d.a === anoAtual - 1 ? "#4A7FB0" : "#C9CED6"});
     const tt = svgEl("title"); tt.textContent = `${dBR(d.a + dia.slice(4))}: ${fmt(d.v,2)}%`; r.append(tt);
     const val = svgEl("text",{x, y:Y(d.v)-8, "text-anchor":"middle", "font-size":12.5, "font-weight": atual?700:400, fill:"#1B2532","font-family":"Arial"}); val.textContent = fmt(d.v,1)+"%";
     const rot = svgEl("text",{x, y:H-10, "text-anchor":"middle", "font-size":12, fill: atual ? "#1C3782" : "#5B6B80", "font-weight": atual?700:400,"font-family":"Arial"}); rot.textContent = dBR(d.a + dia.slice(4));
@@ -1537,15 +1544,15 @@ function graficoBarras(host, dia){
 
 /* ============================================================ página principal do SIN */
 function paginaSIN(){
-  const ult = D.equivalente.ultimo_dia, S = D.equivalente.serie;
+  const ult = D.equivalente.ultimo_dia, S = D.equivalente.serie, ini = Object.keys(S).sort()[0];
   const menos = (iso, dias) => { const t = new Date(iso+"T12:00:00Z"); t.setUTCDate(t.getUTCDate()-dias); return t.toISOString().slice(0,10); };
-  const v0 = S[ult], v7 = S[menos(ult,7)], v30 = S[menos(ult,30)], vAno = S[(+ult.slice(0,4)-1)+ult.slice(4)];
-  const dif = (a,b) => { const d = a-b; return `${d>0?"+":d<0?"−":""}${fmt(Math.abs(d),1)} p.p.`; };
+  const dif = (a,b) => { if (a==null || b==null) return "–"; const d = a-b; return `${d>0?"+":d<0?"−":""}${fmt(Math.abs(d),1)} p.p.`; };
   const nRes = RES.length, nComCoord = RES.filter(r => r.x!=null).length;
   $("#titulo-pag").innerHTML = `
     <p class="trilha"><a href="#inicio">Início</a><span class="sep">›</span>Sistema Interligado Nacional</p>
     <h1>Sistema Interligado Nacional</h1>
-    <div class="carimbo"><span>Dados mais recentes <b>${dBR(D.data)}</b></span><span>Base diária</span><span><b>${nRes}</b> usinas em <b>${ORDEM_BACIAS.length}</b> bacias</span></div>`;
+    <div class="carimbo"><span>Dados do dia <b id="dia-carimbo-sin">${dBR(ult)}</b></span><span>Base diária</span><span><b>${nRes}</b> usinas em <b>${ORDEM_BACIAS.length}</b> bacias</span></div>
+    <div class="barra-data"><label class="data-ref" for="dia-sin"><b>Data de referência</b></label><input type="date" id="dia-sin" value="${ult}" min="${ini}" max="${ult}" aria-label="Data de referência"><button class="hoje" id="dia-sin-hoje" title="Voltar para os dados mais recentes">Dados mais recentes</button><span class="dica">Base diária. O reservatório equivalente e os gráficos mostram o dia escolhido; o mapa das usinas mostra os dados mais recentes.</span></div>`;
   const main = $("#conteudo");
   main.innerHTML = `
     <section class="cartao intro" aria-label="Sobre o módulo">
@@ -1592,29 +1599,24 @@ function paginaSIN(){
       <p class="sub">O volume útil das usinas com reservatório, agregado num único reservatório equivalente e expresso em % do volume útil total, conforme a definição adotada no SAR: indica o armazenamento do SIN como um todo.</p>
     <div class="equiv">
       <div class="lado">
-        <div class="valor num">${fmt(v0,1)}<small>%</small></div>
-        <div class="quando">volume útil armazenado em ${dBR(ult)}</div>
+        <div class="valor num" id="equiv-valor"></div>
+        <div class="quando" id="equiv-quando"></div>
       </div>
-      <ul class="comparacoes">
-        <li><span>Em 7 dias</span><b class="num">${dif(v0,v7)}</b></li>
-        <li><span>Em 30 dias</span><b class="num">${dif(v0,v30)}</b></li>
-        <li><span>Mesmo dia de ${+ult.slice(0,4)-1}</span><b class="num">${fmt(vAno,1)}%</b></li>
-      </ul>
+      <ul class="comparacoes" id="equiv-comp"></ul>
     </div>
     </section>
 
     <section class="cartao secao" id="s-ano" aria-labelledby="t-ano">
       ${barraBaixar([["baixar-equiv-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-equiv-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-ano"><small>3</small>Ao longo do ano</h2>
-      <p class="sub">O reservatório equivalente dia a dia, com o ano corrente em destaque sobre os quatro anteriores: permite comparar o armazenamento atual com o da mesma época nesses anos e acompanhar o ritmo de enchimento e de deplecionamento.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
+      <p class="sub">O reservatório equivalente dia a dia nos cinco anos até a data de referência, com o ano dela em destaque: permite comparar o armazenamento com o da mesma época nos anos anteriores e acompanhar o ritmo de enchimento e de deplecionamento. A data de referência é o último ponto da curva e fica marcada pelo tracejado.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div class="graf" id="g-equiv"></div>
     </section>
 
     <section class="cartao secao" id="s-dia" aria-labelledby="t-dia">
       ${barraBaixar([["baixar-barras-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-barras-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-dia"><small>4</small>Mesmo dia em outros anos</h2>
-      <p class="sub">O reservatório equivalente na mesma data de cada ano disponível: comparação entre anos sem o efeito da sazonalidade.</p>
-      <div class="cab-graf" style="margin-bottom:6px"><span></span><label class="data-ref">Data de referência <input type="date" id="dia-ref" min="${ult.slice(0,4)}-01-01" max="${ult}" value="${ult}"></label></div>
+      <p class="sub">O reservatório equivalente na data de referência, em cada um dos cinco anos até ela: comparação entre anos sem o efeito da sazonalidade.</p>
       <div class="graf" id="g-barras"></div>
     </section>
 
@@ -1624,21 +1626,36 @@ function paginaSIN(){
       ${barraBaixar([["baixar-kmz", "KMZ", "Baixar as usinas visíveis em KMZ (Google Earth)"]])}
       <p class="resumo-filtros" id="resumo-filtros"></p>
       <div id="mapa-situacao"></div>
+      <p class="nota" id="aviso-usinas-dia" style="margin:8px 0 0" hidden></p>
       <p class="nota" style="margin:8px 0 0">${nRes - nComCoord} das ${nRes} usinas não têm coordenada no cadastro do ONS e não aparecem no mapa. Mapa-base e imagem de satélite vêm de serviços externos; onde a rede os bloqueia, ficam só as bacias.</p>
     </section>`;
   $$(".indice a").forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
-  graficoEquivalente($("#g-equiv"));
-  graficoBarras($("#g-barras"), ult);
-  $("#dia-ref").addEventListener("change", e => { if (S[e.target.value] != null) graficoBarras($("#g-barras"), e.target.value); });
+  let dia = ult;
+  const render = d => {
+    dia = d;
+    const v0 = S[d], v7 = S[menos(d,7)], v30 = S[menos(d,30)], vAno = S[(+d.slice(0,4)-1)+d.slice(4)];
+    $("#dia-carimbo-sin").textContent = dBR(d);
+    $("#equiv-valor").innerHTML = v0==null ? "–" : `${fmt(v0,1)}<small>%</small>`;
+    $("#equiv-quando").textContent = v0==null ? `sem dado em ${dBR(d)}` : `volume útil armazenado em ${dBR(d)}`;
+    $("#equiv-comp").innerHTML = `<li><span>Em 7 dias</span><b class="num">${dif(v0,v7)}</b></li><li><span>Em 30 dias</span><b class="num">${dif(v0,v30)}</b></li>` +
+      `<li><span>Mesmo dia de ${+d.slice(0,4)-1}</span><b class="num">${vAno==null ? "–" : fmt(vAno,1)+"%"}</b></li>`;
+    graficoEquivalente($("#g-equiv"), d);
+    graficoBarras($("#g-barras"), d);
+    const av = $("#aviso-usinas-dia");
+    av.hidden = d === D.data;
+    av.textContent = `No mapa, as usinas seguem nos dados mais recentes, de ${dBR(D.data)}: no protótipo só o dia mais recente de cada usina está embutido.`;
+  };
+  $("#dia-sin").addEventListener("change", e => { const v = e.target.value; if (v && v <= ult && v >= ini && S[v] != null) render(v); });
+  $("#dia-sin-hoje").onclick = () => { const e = $("#dia-sin"); e.value = ult; e.dispatchEvent(new Event("change")); };
+  render(ult);
   mapaSIN($("#mapa-sin"));
-  const anoEq = +ult.slice(0,4);
   const basesBacias = () => ORDEM_BACIAS.map(b => { const l = POR_BACIA(b); return {b, nome:NOME[b], comRes:l.filter(r => r.tipo!=="fio" && r.vu!=null).length, nFio:l.filter(r => r.tipo==="fio").length}; });
   $("#baixar-bacias-csv").onclick = () => salvarCSV(["bacia","usinas_com_reservatorio","usinas_a_fio_dagua"], basesBacias().map(x => [x.nome, x.comRes, x.nFio]), "sar_sin_bacias.csv");
   $("#baixar-bacias-pdf").onclick = () => pdfSecao([$("#tab-bacias"), $("#tab-bacias-2")], "sar_sin_bacias.pdf");
-  $("#baixar-equiv-csv").onclick = () => baixarCSVGrafico([$("#g-equiv")], "sar_sin_equivalente.csv");
-  $("#baixar-barras-csv").onclick = () => baixarCSVGrafico([$("#g-barras")], `sar_sin_equivalente_${$("#dia-ref").value}_por_ano.csv`);
-  $("#baixar-equiv-png").onclick = () => baixarPNG([$("#g-equiv svg")], "sar_sin_equivalente_ano.png", `Reservatório equivalente do SIN ao longo do ano · até ${dBR(ult)}`, LEG_ANOS(anoEq));
-  $("#baixar-barras-png").onclick = () => baixarPNG([$("#g-barras svg")], "sar_sin_equivalente_por_ano.png", `Reservatório equivalente do SIN em ${dBR($("#dia-ref").value)} de cada ano`, LEG_ANOS(anoEq));
+  $("#baixar-equiv-csv").onclick = () => baixarCSVGrafico([$("#g-equiv")], `sar_sin_equivalente_ao_longo_do_ano_ate_${dia}.csv`);
+  $("#baixar-barras-csv").onclick = () => baixarCSVGrafico([$("#g-barras")], `sar_sin_equivalente_mesmo_dia_${dia}.csv`);
+  $("#baixar-equiv-png").onclick = () => baixarPNG([$("#g-equiv svg")], `sar_sin_equivalente_ao_longo_do_ano_ate_${dia}.png`, `Reservatório equivalente do SIN ao longo do ano · até ${dBR(dia)}`, LEG_ANOS(+dia.slice(0,4)));
+  $("#baixar-barras-png").onclick = () => baixarPNG([$("#g-barras svg")], `sar_sin_equivalente_mesmo_dia_${dia}.png`, `Reservatório equivalente do SIN em ${dBR(dia)} de cada ano`, LEG_ANOS(+dia.slice(0,4)));
   listaBacias();
   mapaLeaflet();
 }
@@ -2251,7 +2268,7 @@ function paginaFicha(){
   $("#baixar-dia-csv").onclick = () => baixarCSVGrafico([$("#g-dia")], `sar_furnas_mesmo_dia_${$("#dia-sit").value}.csv`);
   $("#baixar-ano-csv").onclick = () => baixarCSVGrafico([$("#g-ano")], "sar_furnas_ano_contra_anos.csv");
   $("#baixar-dia-png").onclick = () => baixarPNG([$("#g-dia svg")], `sar_furnas_mesmo_dia_${$("#dia-sit").value}.png`,
-    `Furnas · ${VARS[$("#var-dia").value].r} em ${dBR($("#dia-sit").value).slice(0,5)} de cada ano`, LEG_ANOS(+fichaEstado.ult.data.slice(0,4)));
+    `Furnas · ${VARS[$("#var-dia").value].r} em ${dBR($("#dia-sit").value).slice(0,5)} de cada ano`, LEG_ANOS(+fichaEstado.ult.data.slice(0,4), "ano corrente"));
   graficoMesmoDia();
 
   // 4. ano contra anos
@@ -2278,7 +2295,7 @@ function paginaFicha(){
   });
   atualizarChips();
   $("#var-ano").onchange = graficoAnos;
-  $("#baixar-ano-png").onclick = () => baixarPNG([$("#g-ano svg")], `sar_furnas_ano_contra_anos.png`, `Furnas · ${VARS[$("#var-ano").value].r} ao longo do ano`, LEG_ANOS(+fichaEstado.ult.data.slice(0,4)));
+  $("#baixar-ano-png").onclick = () => baixarPNG([$("#g-ano svg")], `sar_furnas_ano_contra_anos.png`, `Furnas · ${VARS[$("#var-ano").value].r} ao longo do ano`, LEG_ANOS(+fichaEstado.ult.data.slice(0,4), "ano corrente"));
   graficoAnos();
 }
 function redesenharFicha(){ if (!fichaEstado) return; desenharGraficos(); graficoMesmoDia(); graficoAnos(); }
@@ -3076,7 +3093,7 @@ function paginaNE(){
   $("#baixar-ne-ano-csv").onclick = () => baixarCSVGrafico([$("#g-ne-ano")], `sar_ne_ao_longo_do_ano_ate_${dataRef}.csv`);
   $("#baixar-ne-dia-csv").onclick = () => baixarCSVGrafico([$("#g-ne-dia")], `sar_ne_mesmo_dia_${dataRef}.csv`);
   $("#baixar-ne-faixas-csv").onclick = () => baixarCSVGrafico([$("#g-ne-faixas")], `sar_ne_faixas_${dataRef}.csv`);
-  $("#baixar-ne-ano").onclick = () => baixarPNG([$("#g-ne-ano svg")], "sar_ne_ao_longo_do_ano.png", "Nordeste · volume acumulado ao longo do ano", LEG_ANOS(anoAtual));
+  $("#baixar-ne-ano").onclick = () => baixarPNG([$("#g-ne-ano svg")], "sar_ne_ao_longo_do_ano.png", "Nordeste · volume acumulado ao longo do ano", LEG_ANOS(+dataRef.slice(0,4)));
   $("#baixar-ne-dia").onclick = () => baixarPNG([$("#g-ne-dia svg")], `sar_ne_mesmo_dia_${dataRef}.png`, `Nordeste · volume acumulado em ${dBR(dataRef).slice(0,5)} de cada ano`, LEG_ANOS(+dataRef.slice(0,4)));
   $("#baixar-ne-faixas").onclick = () => baixarPNG([$("#g-ne-faixas svg")], `sar_ne_faixas_${dataRef}.png`, `Nordeste · reservatórios por faixa de volume · ${dBR(dataRef)}`,
     ["restricao","atencao","normal"].map(k => ({r:ROT_FAIXA(k), cor:FX[k].cor, area:true})).concat([{r:ROT_NV_FAIXA, cor:COR_NV, area:true}, {r:ROT_FAIXA("sem"), cor:FX.sem.cor, area:true}]));
@@ -3549,7 +3566,7 @@ function paginaEstado(uf){
 
   const u = uf.toLowerCase();
   if (curva){
-    $("#baixar-uf-ano").onclick = () => baixarPNG([$("#g-uf-ano svg")], `sar_${u}_ao_longo_do_ano.png`, `${estado} · volume acumulado ao longo do ano`, LEG_ANOS(anoAtual));
+    $("#baixar-uf-ano").onclick = () => baixarPNG([$("#g-uf-ano svg")], `sar_${u}_ao_longo_do_ano.png`, `${estado} · volume acumulado ao longo do ano`, LEG_ANOS(+dataRef.slice(0,4)));
     $("#baixar-uf-dia").onclick = () => baixarPNG([$("#g-uf-dia svg")], `sar_${u}_mesmo_dia_${dataRef}.png`, `${estado} · volume acumulado em ${dBR(dataRef).slice(0,5)} de cada ano`, LEG_ANOS(+dataRef.slice(0,4)));
   }
   $("#baixar-uf-hist").onclick = () => baixarPNG([$("#g-uf-hist svg")], `sar_${u}_historico_monitoramento.png`, `${estado} · histórico do monitoramento`);
@@ -6113,7 +6130,7 @@ window.addEventListener("resize", () => { montarFaixa(); mediTopo(); });
 $$("[data-rota]").forEach(b => b.onclick = () => { location.hash = b.dataset.rota; });
 $("#rodape-fontes").textContent = `Fontes: ${D.fontes.medicoes}; ${D.fontes.equivalente}; ${D.fontes.cadastro}; ${D.fontes.contornos}.`;
 window.addEventListener("hashchange", rota);
-let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (location.hash.startsWith("#outros/") && redesenharOS){ redesenharOS(); return; } if (location.hash.includes("ficha")){ redesenharFicha(); return; } if (!location.hash.includes("bacia") && $("#g-equiv")){ graficoEquivalente($("#g-equiv")); graficoBarras($("#g-barras"), $("#dia-ref").value); } }, 200); });
+let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (location.hash.startsWith("#outros/") && redesenharOS){ redesenharOS(); return; } if (location.hash.includes("ficha")){ redesenharFicha(); return; } if (!location.hash.includes("bacia") && $("#g-equiv")){ const d = ($("#dia-sin") || {}).value || D.equivalente.ultimo_dia; graficoEquivalente($("#g-equiv"), d); graficoBarras($("#g-barras"), d); } }, 200); });
 rota();
 })();
 </script>
