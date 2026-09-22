@@ -263,6 +263,11 @@ details.saiba>summary:focus-visible{outline:2px solid var(--ana-medio);outline-o
 details.saiba .saiba-corpo{margin:10px 0 0;padding:14px 18px;background:var(--branco);border:1px solid var(--linha);border-radius:10px;font-size:14px;line-height:1.55}
 details.saiba .saiba-corpo p{margin:0}
 details.saiba .saiba-corpo p+p{margin-top:8px}
+/* "Como ler este gráfico": fecho discreto de toda seção de gráfico */
+details.saiba.como-ler{margin:14px 0 0}
+details.saiba.como-ler>summary{font-size:13px;font-weight:400;color:var(--apagado)}
+details.saiba.como-ler>summary:hover{color:var(--ana)}
+details.saiba.como-ler .saiba-corpo{font-size:13.5px;color:var(--tinta-2)}
 main>section+section,main>.secao+.secao{margin-top:22px}
 .equiv{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,300px);gap:0}
 .equiv .lado{padding:22px 26px;border-right:1px solid var(--linha)}
@@ -1492,7 +1497,7 @@ function graficoEquivalente(host, ate = D.equivalente.ultimo_dia){
   const serie = {}; anos.forEach(a => serie[a] = Array(365).fill(null));
   Object.entries(S).forEach(([k,v]) => { if (k.slice(5)==="02-29") return; serie[+k.slice(0,4)][idx(k)] = v; });
   guardaCSV(host, ["data","volume_util_pct"], Object.keys(S).sort().map(k => [dBR(k), S[k]]));
-  const W = Math.max(300, host.clientWidth), H = 262, m = {l:40, r:56, t:24, b:26};
+  const W = Math.max(300, host.clientWidth), H = alturaGraf("principal", W), m = {l:40, r:56, t:24, b:26};
   const todos = Object.values(S); let lo = Math.floor(Math.min(...todos)/10)*10, hi = Math.ceil(Math.max(...todos)/10)*10;
   const X = i => m.l + i*(W-m.l-m.r)/364, Y = v => m.t + (hi-v)/(hi-lo)*(H-m.t-m.b);
   const cor = a => a===anoAtual ? "#1C3782" : a===anoAtual-1 ? "#4A7FB0" : "#C9CED6";
@@ -1540,13 +1545,40 @@ function graficoEquivalente(host, ate = D.equivalente.ultimo_dia){
   alvo.addEventListener("pointerleave", () => { tip.hidden = true; cruz.setAttribute("visibility","hidden"); });
 }
 
+/* altura padrão dos gráficos por família (Diego, 22/09/2026: sem aparência de achatado, igual em todas as páginas)
+   principal: ao longo do ano / ano contra anos anteriores e o gráfico principal da série no período;
+   barras: mesmo dia em outros anos e histórico do monitoramento;
+   apoio: gráfico abaixo do principal, no mesmo eixo de tempo, e gráficos repetidos por reservatório (DF e RMBH).
+   Segundo valor: celular (caixa com menos de 600 px). Um número passado no lugar da família vale como altura fixa. */
+function alturaGraf(a, W){
+  const ALT = {principal:[380, 280], barras:[320, 260], apoio:[300, 240]};
+  return typeof a === "number" ? a : ALT[a][W < 600 ? 1 : 0];
+}
+/* "Como ler este gráfico": texto recolhido, sempre o último elemento da seção do gráfico (Diego, 22/09/2026) */
+function comoLer(...ps){
+  return `<details class="saiba como-ler"><summary>Como ler este gráfico</summary><div class="saiba-corpo">${ps.filter(Boolean).map(p => `<p>${p}</p>`).join("")}</div></details>`;
+}
+// parágrafos comuns, iguais entre módulos
+function ler(k, x){
+  switch (k){
+    case "anos": return `<b>Anos.</b> Cada ano ocupa o mesmo calendário, de janeiro a dezembro. O ano da data de referência aparece em azul-escuro, com traço mais espesso; o anterior, em azul-médio; os demais, em cinza, com o ano escrito no fim de cada curva. A curva do ano da data de referência termina nela, marcada pela linha tracejada vermelha.`;
+    case "cinco": return `<b>Período.</b> O gráfico mostra sempre os cinco anos até o da data de referência.`;
+    case "selecao": return `<b>Seleção dos anos.</b> Ao abrir a página, e sempre que a data de referência passa para outro ano, ficam selecionados os cinco anos até o dela; os botões incluem ou retiram anos, até ${MAX_ANOS} ao mesmo tempo.`;
+    case "cursor": return `<b>Valores.</b> Com o cursor sobre o gráfico, o balão mostra o valor do mesmo dia em cada ano.`;
+    case "faixas": return `<b>Faixas de operação.</b> ${x} O botão do ano encerrado antes do início da vigência tem contorno tracejado.`;
+    case "leituras": return `<b>Leituras.</b> A curva liga as leituras nas datas em que foram feitas; intervalo de mais de ${VAO_MAX} dias sem leitura interrompe a curva.`;
+    case "dia": return `<b>Barras.</b> Cada barra é um ano, com o valor no mesmo dia e mês da data de referência; a do ano da data de referência aparece em azul-escuro, e a do ano anterior, em azul-médio. O valor está escrito junto de cada barra; o ano sem dado nessa data fica sem barra.`;
+    case "escala": return `<b>Escala.</b> No volume em %, o eixo vertical vai de 0 a 100%; nas demais variáveis, não começa em zero, para que as diferenças entre os anos fiquem visíveis.`;
+  }
+}
+
 /* barras: o dia escolhido em cada ano da série */
 function graficoBarras(host, dia){
   const S = D.equivalente.serie, anoAtual = +dia.slice(0,4);
   const anos = [...new Set(Object.keys(S).map(k => +k.slice(0,4)))].filter(a => a <= anoAtual && a > anoAtual - 5).sort();
   const dados = anos.map(a => ({a, v: S[a + dia.slice(4)]})).filter(d => d.v != null);
   guardaCSV(host, ["ano","data","volume_util_pct"], dados.map(d => [d.a, dBR(d.a + dia.slice(4)), d.v]));
-  const W = Math.max(300, host.clientWidth), H = 240, m = {l:40, r:16, t:28, b:30};
+  const W = Math.max(300, host.clientWidth), H = alturaGraf("barras", W), m = {l:40, r:16, t:28, b:30};
   const hi = 100, Y = v => m.t + (hi - v)/hi*(H-m.t-m.b);
   const faixa = (W-m.l-m.r)/dados.length, larg = Math.min(24, faixa*.5);
   const svg = svgEl("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":`Reservatório equivalente do SIN em ${dBR(dia)} de cada ano`});
@@ -1634,8 +1666,9 @@ function paginaSIN(){
     <section class="cartao secao" id="s-ano" aria-labelledby="t-ano">
       ${barraBaixar([["baixar-equiv-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-equiv-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-ano"><small>3</small>Ao longo do ano</h2>
-      <p class="sub">O reservatório equivalente dia a dia nos cinco anos até a data de referência, com o ano dela em destaque: permite comparar o armazenamento com o da mesma época nos anos anteriores e acompanhar o ritmo de enchimento e de deplecionamento. A data de referência é o último ponto da curva e fica marcada pelo tracejado.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
+      <p class="sub">O reservatório equivalente dia a dia nos cinco anos até a data de referência: permite comparar o armazenamento com o da mesma época nos anos anteriores e acompanhar o ritmo de enchimento e de deplecionamento.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div class="graf" id="g-equiv"></div>
+      ${comoLer(ler("anos"), ler("cinco"), ler("cursor"))}
     </section>
 
     <section class="cartao secao" id="s-dia" aria-labelledby="t-dia">
@@ -1643,6 +1676,7 @@ function paginaSIN(){
       <h2 id="t-dia"><small>4</small>Mesmo dia em outros anos</h2>
       <p class="sub">O reservatório equivalente na data de referência, em cada um dos cinco anos até ela: comparação entre anos sem o efeito da sazonalidade.</p>
       <div class="graf" id="g-barras"></div>
+      ${comoLer(ler("dia"), "<b>Escala.</b> O eixo vertical vai de 0 a 100%.")}
     </section>
 
     <section class="cartao secao" id="s-usinas" aria-labelledby="t-usinas">
@@ -2248,6 +2282,9 @@ function paginaFicha(){
       <div class="graf" id="g-vazoes"></div>
       <div class="graf" id="g-segundo"></div>
       <p class="nota" id="resumo-graf" style="margin:12px 0 0"></p>
+      ${comoLer("<b>Eixo do tempo.</b> Os dois gráficos compartilham o eixo do tempo: com o cursor sobre qualquer um deles, a mesma data (ou hora, na base horária) é marcada nos dois, e o balão mostra os valores.",
+        "<b>Escalas.</b> As vazões ficam num gráfico e o nível ou o volume útil no outro, para que nenhum gráfico tenha dois eixos verticais. O volume útil é apresentado de 0 a 100%.",
+        "<b>Base horária.</b> Dados abertos do ONS, não consistidos pelo ONS. A afluência horária é calculada por balanço hídrico e oscila; quando ela está marcada, o aviso aparece acima dos gráficos.")}
     </section>
     <section class="cartao secao" id="f-dia" aria-labelledby="t-dia">
       ${barraBaixar([["baixar-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-dia-png", "PNG", "Baixar o gráfico como imagem"]])}
@@ -2255,16 +2292,17 @@ function paginaFicha(){
       <p class="sub">O valor na data de referência em cada ano da série diária.<span class="dica">Escolha a variável.</span></p>
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-dia" aria-label="Variável">${["vu","cota"].map(k => `<option value="${k}">${VARS[k].r} (${VARS[k].u})</option>`).join("")}</select></fieldset></div>
       <div class="graf" id="g-dia"></div>
+      ${comoLer(ler("dia"), ler("escala"))}
     </section>
     <section class="cartao secao" id="f-ano" aria-labelledby="t-ano">
       ${barraBaixar([["baixar-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-ano-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-ano"><small>4</small>Ano contra anos anteriores</h2>
       <p class="sub">A série diária de cada ano sobreposta no mesmo calendário, até a data de referência.<span class="dica">Selecione os anos a comparar, até ${MAX_ANOS} simultaneamente; posicione o cursor sobre o gráfico para ler o mesmo dia em cada ano.</span></p>
-      ${saibaAnos({faixas: FAIXAS_ANA[F.nome] ? "No volume útil, as faixas de operação da resolução aparecem ao fundo apenas quando a data de referência está dentro da vigência da resolução; com data anterior, o gráfico é apresentado sem elas." : ""})}
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-ano" aria-label="Variável">${["vu","cota"].map(k => `<option value="${k}">${VARS[k].r}${k==="vu" ? " (%)" : " (m)"}</option>`).join("")}</select></fieldset>
         <fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos"></span></legend><span id="anos-chips"></span></fieldset></div>
       <div class="graf" id="g-ano"></div>
       ${notaFaixasAno(F.nome)}
+      ${comoLer(ler("anos"), ler("selecao"), ler("cursor"), FAIXAS_ANA[F.nome] && ler("faixas", "No volume útil, as faixas de operação da resolução aparecem ao fundo apenas quando a data de referência está dentro da vigência da resolução; com data anterior, o gráfico é apresentado sem elas."))}
     </section>`;
   $$(".indice a").forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
 
@@ -2386,8 +2424,8 @@ function desenharGraficos(){
   const {base, S} = recorte();
   const vaz = $$("input[name=vaz]:checked").map(i => i.value), seg = $("input[name=seg]:checked").value;
   const sync = {};
-  graficoLinhas($("#g-vazoes"), S, vaz.map(k => ({k, ...VARS[k]})), {base, unidade:"m³/s", dec:0, altura:260, sync, rotulo:"Vazões (m³/s)"});
-  graficoLinhas($("#g-segundo"), S, [{k:seg, ...VARS[seg]}], {base, unidade:VARS[seg].u, dec:VARS[seg].dec, altura:200, sync, rotulo:`${VARS[seg].r} (${VARS[seg].u})`});
+  graficoLinhas($("#g-vazoes"), S, vaz.map(k => ({k, ...VARS[k]})), {base, unidade:"m³/s", dec:0, altura:"principal", sync, rotulo:"Vazões (m³/s)"});
+  graficoLinhas($("#g-segundo"), S, [{k:seg, ...VARS[seg]}], {base, unidade:VARS[seg].u, dec:VARS[seg].dec, altura:"apoio", sync, rotulo:`${VARS[seg].r} (${VARS[seg].u})`});
   $("#resumo-graf").textContent = S.length ? `${S.length} ${base==="dia" ? "dias" : "horas"}, de ${base==="dia" ? fData(S[0].t) : fHora(S[0].t)} a ${base==="dia" ? fData(S[S.length-1].t) : fHora(S[S.length-1].t)}.` : "Nenhum registro no período.";
 }
 function baixarSerie(){
@@ -2414,7 +2452,7 @@ function marcasTempo(t0, t1){
 function graficoLinhas(host, S, series, o){
   host.innerHTML = "";
   if (!S.length || !series.length){ host.innerHTML = `<p class="nota" style="padding:14px 0">${series.length ? "Nenhum registro no período." : "Marque ao menos uma vazão."}</p>`; return; }
-  const W = Math.max(300, host.clientWidth), H = o.altura + 22, m = {l:62, r:16, t:36, b:24};
+  const W = Math.max(300, host.clientWidth), H = alturaGraf(o.altura || "principal", W), m = {l:62, r:16, t:36, b:24};
   const vals = series.flatMap(s => S.map(p => p[s.k]).filter(v => v!=null));
   if (!vals.length){ host.innerHTML = `<p class="nota" style="padding:14px 0">Sem dados de ${series.map(s => s.r.toLowerCase()).join(", ")} no período.</p>`; return; }
   let lo = Math.min(...vals), hi = Math.max(...vals); if (hi===lo){ hi += 1; lo -= 1; }
@@ -2467,12 +2505,12 @@ function niceStep(bruto){ const p = Math.pow(10, Math.floor(Math.log10(bruto))),
 // 3. barras: valor do mesmo dia em cada ano
 function graficoMesmoDia(){
   const host = $("#g-dia"), DI = fichaEstado.DI, k = $("#var-dia").value, V = VARS[k], ref = $("#dia-sit").value || fichaEstado.ult.data;
-  const mmdd = ref.slice(5), anos = [...new Set(DI.map(o => +o.data.slice(0,4)))], anoAtual = +fichaEstado.ult.data.slice(0,4);
+  const mmdd = ref.slice(5), anos = [...new Set(DI.map(o => +o.data.slice(0,4)))], anoAtual = +ref.slice(0,4);
   const dados = anos.map(a => ({a, v: (DI.find(o => o.data===`${a}-${mmdd}`)||{})[k] ?? null}));
   const colV = V.r.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/\W+/g, "_") + "_" + (COL_UNID[V.u] || "").split("_").pop();
   guardaCSV(host, ["ano","data",colV], dados.map(d => [d.a, dBR(`${d.a}-${mmdd}`), d.v]));
   host.innerHTML = "";
-  const W = Math.max(300, host.clientWidth), H = 262, m = {l:62, r:16, t:36, b:26};
+  const W = Math.max(300, host.clientWidth), H = alturaGraf("barras", W), m = {l:62, r:16, t:36, b:26};
   const vals = dados.map(d => d.v).filter(v => v!=null); let lo = 0, hi = Math.max(...vals);
   if (k==="cota"){ lo = Math.min(...vals); const p = (hi-lo)*.12||1; lo -= p; hi += p; } else if (k==="vu") hi = Math.max(100, hi); else hi *= 1.06;
   const X = i => m.l + i*(W-m.l-m.r)/anos.length, bw = Math.min(28, (W-m.l-m.r)/anos.length*.7), Y = v => m.t + (hi-v)/(hi-lo)*(H-m.t-m.b);
@@ -2553,14 +2591,6 @@ function reguaFicha(nome, vu, dia){
     <div class="regua-rot">${cortes.map(v => `<b style="left:${v}%">${v}</b>`).join("")}${marca}</div>
     <p class="regua-nota">Faixas de operação de ${caso(nome)} (${RA.art} da ${RA.ato})${RA.periodos ? `, no ${RA.periodos.find(p => p.meses.includes(+dia.slice(5,7))).rot}` : ""}, como referência. ${notaVigencia(RA, dia, "as faixas")}${RA.obs ? " " + RA.obs : ""}</p>`;
 }
-// "Como ler este gráfico" do ano contra anos anteriores: explicação recolhida, sem nova observação (Diego, 22/09/2026)
-function saibaAnos(o = {}){
-  return `<details class="saiba"><summary>Como ler este gráfico</summary><div class="saiba-corpo">
-    <p><b>Data de referência.</b> Cada ano ocupa o mesmo calendário, de janeiro a dezembro. O ano da data de referência fica em destaque, e a sua curva termina na data, marcada pela linha tracejada vermelha. Ao abrir a página, e sempre que a data de referência passa para outro ano, ficam selecionados os cinco anos até o dela.</p>
-    ${o.leituras ? `<p><b>Leituras.</b> Cada ponto corresponde a uma leitura, na data em que foi feita; intervalos de mais de ${o.leituras} dias sem leitura interrompem a curva.</p>` : ""}
-    ${o.faixas ? `<p><b>Faixas de operação.</b> ${o.faixas} O botão do ano encerrado antes do início da vigência tem contorno tracejado.</p>` : ""}
-  </div></details>`;
-}
 // legenda e nota das faixas (ou dos estágios) abaixo do gráfico ano contra anos
 function notaFaixasAno(nome){
   const RA = FAIXAS_ANA[nome]; if (!RA) return "";
@@ -2580,7 +2610,7 @@ function graficoAnos(){
     DI.filter(o => anos.includes(+o.data.slice(0,4)) && o[k]!=null).map(o => [dBR(o.data), o[k]]));
   host.innerHTML = "";
   if (!anos.length){ host.innerHTML = '<p class="nota" style="padding:14px 0">Escolha ao menos um ano.</p>'; return; }
-  const W = Math.max(300, host.clientWidth), H = 292, m = {l:62, r:54, t:36, b:26};
+  const W = Math.max(300, host.clientWidth), H = alturaGraf("principal", W), m = {l:62, r:54, t:36, b:26};
   const vals = anos.flatMap(a => serie[a].filter(v => v!=null)); let lo = Math.min(...vals), hi = Math.max(...vals); const p = (hi-lo)*.06||1; lo -= p; hi += p;
   if (k!=="cota" && lo > 0 && lo < (hi-lo)*.3) lo = 0;
   if (k==="vu"){ lo = 0; hi = Math.max(100, Math.max(...vals)); }
@@ -2932,7 +2962,7 @@ function graficoCalendario(host, pontos, o){
   guardaCSV(host, ["data", o.colCSV || COL_UNID[o.unidade] || "valor"],
     Object.keys(pontos).filter(iso => anos.includes(+iso.slice(0,4)) && pontos[iso]!=null).sort().map(iso => [dBR(iso), pontos[iso]]), o.rotCSV);
   host.innerHTML = "";
-  const W = Math.max(300, host.clientWidth), H = o.altura || 292, m = {l:52, r:56, t:36, b:26};
+  const W = Math.max(300, host.clientWidth), H = alturaGraf(o.altura || "principal", W), m = {l:52, r:56, t:36, b:26};
   const vals = anos.flatMap(a => serie[a].filter(v => v!=null));
   if (!vals.length){ host.innerHTML = '<p class="nota" style="padding:14px 0">Sem série no período.</p>'; return; }
   let lo = Math.min(...vals), hi = Math.max(...vals);
@@ -3004,7 +3034,7 @@ function graficoBarrasAnos(host, dados, o){
   const comLeitura = dados.some(d => d.leitura!=null);   // ficha do NE: data pedida e data da leitura usada
   guardaCSV(host, ["ano","data", ...(comLeitura ? ["leitura_usada"] : []), o.colCSV || COL_UNID[o.unidade] || "valor"],
     dados.map(d => [d.a, d.data || d.rot || "", ...(comLeitura ? [d.leitura || ""] : []), d.v]), o.rotCSV);
-  const W = Math.max(300, host.clientWidth), H = o.altura || 262, m = {l:52, r:16, t:36, b:26};
+  const W = Math.max(300, host.clientWidth), H = alturaGraf(o.altura || "barras", W), m = {l:52, r:16, t:36, b:26};
   const vals = dados.map(d => d.v).filter(v => v!=null);
   if (!vals.length){ host.innerHTML = '<p class="nota" style="padding:14px 0">Sem dados.</p>'; return; }
   let lo = 0, hi = o.pct ? Math.max(100, Math.max(...vals)) : Math.max(...vals)*1.06;
@@ -3129,7 +3159,7 @@ function paginaNE(){
         <p><b>Sem informação.</b> O reservatório sem medição de volume na janela não entra em nenhuma das duas parcelas e é contado como sem informação; no mapa, aparece em cinza.</p>
         <p><b>Só nível.</b> Reservatório sem curva cota-volume validada: é acompanhado pelo nível, que mostra se ele subiu ou desceu, e não entra no volume acumulado.</p>
         <p><b>Retirados do acompanhamento.</b> Os ${fint(OCULTOS.size)} reservatórios cadastrados que a ANA retirou do acompanhamento não entram nas contagens desta página e seguem na área de dados.</p>
-        <p><b>Séries e comparações.</b> Os gráficos ao longo do ano, o mesmo dia em outros anos e as comparações usam uma curva encadeada, explicada abaixo do gráfico "Ao longo do ano".</p>
+        <p><b>Séries e comparações.</b> Os gráficos ao longo do ano, o mesmo dia em outros anos e as comparações usam uma curva encadeada, explicada em "Como ler este gráfico", abaixo do gráfico "Ao longo do ano".</p>
       </div></details>
     </section>
     <section class="cartao secao" id="n-estados" aria-labelledby="t-n-estados">
@@ -3161,22 +3191,25 @@ function paginaNE(){
     <section class="cartao secao" id="n-ano" aria-labelledby="t-n-ano">
       ${barraBaixar([["baixar-ne-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-ne-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-n-ano"><small>3</small>Ao longo do ano</h2>
-      <p class="sub">Volume armazenado nos reservatórios do Nordeste com medição, em % da capacidade deles, nos cinco anos até a data de referência, que é o último ponto da curva e fica marcada pelo tracejado.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
+      <p class="sub">Volume armazenado nos reservatórios do Nordeste com medição, em % da capacidade deles, nos cinco anos até a data de referência.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div class="graf" id="g-ne-ano"></div>
-      <p class="nota" style="margin:10px 0 0">${NOTA_CURVA}</p>
+      ${comoLer(ler("anos"), ler("cinco"), ler("cursor"), NOTA_CURVA)}
     </section>
     <section class="cartao secao" id="n-dia" aria-labelledby="t-n-dia">
       ${barraBaixar([["baixar-ne-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-ne-dia", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-n-dia"><small>4</small>Mesmo dia em outros anos</h2>
       <p class="sub" id="sub-dia"></p>
       <div class="graf" id="g-ne-dia"></div>
+      ${comoLer(ler("dia"), "<b>Escala.</b> O eixo vertical vai de 0 a 100%.")}
     </section>
     <section class="cartao secao" id="n-faixas" aria-labelledby="t-n-faixas">
       ${barraBaixar([["baixar-ne-faixas-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-ne-faixas", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-n-faixas"><small>5</small>Faixas e cobertura</h2>
-      <p class="sub">Quantos reservatórios de cada estado estão em cada faixa de volume, quantos têm só leitura de nível e quantos estão sem informação na data. A faixa descreve o reservatório, não o estado. A barra é proporcional ao estado com mais reservatórios acompanhados; os retirados do acompanhamento não entram.</p>
+      <p class="sub">Quantos reservatórios de cada estado estão em cada faixa de volume, quantos têm só leitura de nível e quantos estão sem informação na data.</p>
       ${legendaFaixasNivel()}
       <div class="graf" id="g-ne-faixas"></div>
+      ${comoLer("<b>Barras.</b> Cada linha é um estado, com uma barra dividida nas cores da legenda: faixas de volume, só nível e sem informação. A faixa descreve o reservatório, não o estado. Com o cursor sobre um trecho, o balão mostra a quantidade de reservatórios.",
+        "<b>Comprimento.</b> A barra é proporcional ao número de reservatórios acompanhados no estado; o estado com mais reservatórios ocupa a largura toda. Os retirados do acompanhamento não entram.")}
     </section>
     <section class="cartao secao" id="n-mapa" aria-labelledby="t-n-mapa">
       ${barraBaixar([["baixar-ne-kmz", "KMZ", "Baixar os reservatórios em KMZ (Google Earth), com a legenda"]])}
@@ -3472,7 +3505,7 @@ function marcaNivel(r){
 function graficoMonitoramento(host, hist, rotulo, op = {}){
   host.innerHTML = "";
   const anos = Object.keys(hist).map(Number).sort((a,b) => a-b);
-  const W = Math.max(300, host.clientWidth), H = op.altura || 266, m = {l:44, r:12, t:58, b:26};
+  const W = Math.max(300, host.clientWidth), H = alturaGraf(op.altura || "barras", W), m = {l:44, r:12, t:58, b:26};
   const series = ["sar","hidro"].filter(k => anos.some(a => hist[a][k]));
   const rotS = k => (op.rot && op.rot[k]) || (k==="sar" ? "reservatorios com volume" : "reservatorios com leitura de nivel");
   guardaCSV(host, ["ano", ...series.map(k => rotS(k).normalize("NFD").replace(/\p{M}/gu, "").replace(/\W+/g, "_"))], anos.map(a => [a, ...series.map(k => hist[a][k] || 0)]));
@@ -3561,7 +3594,7 @@ function mesmoDiaCurva(g, host, rotulo){
 }
 // o que é o número, em uma frase (como no SIN); o método vai numa nota abaixo do gráfico
 // (anos da curva: ANOS_CURVA; o texto diz "últimos cinco anos", sem período fixo, Diego 18/09/2026)
-const NOTA_CURVA = `Como a curva é calculada: a cada ${CURVA.passo} dias, cada reservatório entra com a leitura mais próxima, até ${NEd.limiar_dias} dias antes ou depois, e a variação entre dois pontos usa só os reservatórios medidos nos dois; a curva é ancorada no número do dia da última medição e vai até a data de referência. Assim, um reservatório que começa ou deixa de ser medido não aparece como água que entrou ou saiu.`;
+const NOTA_CURVA = `<b>Cálculo da curva.</b> A cada ${CURVA.passo} dias, cada reservatório entra com a leitura mais próxima, até ${NEd.limiar_dias} dias antes ou depois, e a variação entre dois pontos usa só os reservatórios medidos nos dois; a curva é ancorada no número do dia da última medição e vai até a data de referência. Assim, um reservatório que começa ou deixa de ser medido não aparece como água que entrou ou saiu.`;
 
 // minigráfico de 12 meses: eixo de tempo real, vão longo sem ligar, ponto na leitura usada
 function miniNE(host, pts, usado, dec, unid){
@@ -3640,21 +3673,23 @@ function paginaEstado(uf){
     ${curva ? `<section class="cartao secao" id="u-ano" aria-labelledby="t-u-ano">
       ${barraBaixar([["baixar-uf-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-uf-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-u-ano"><small>${num("u-ano")}</small>Ao longo do ano</h2>
-      <p class="sub">Volume armazenado nos reservatórios ${de} ${estado} com medição, em % da capacidade deles${misto ? " (só os que têm volume; os só com nível não entram)" : ""}, nos cinco anos até a data de referência, que é o último ponto da curva e fica marcada pelo tracejado.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
+      <p class="sub">Volume armazenado nos reservatórios ${de} ${estado} com medição, em % da capacidade deles${misto ? " (só os que têm volume; os só com nível não entram)" : ""}, nos cinco anos até a data de referência.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div class="graf" id="g-uf-ano"></div>
-      <p class="nota" style="margin:10px 0 0">${NOTA_CURVA}</p>
+      ${comoLer(ler("anos"), ler("cinco"), ler("cursor"), NOTA_CURVA)}
     </section>` : ""}
     ${curva ? `<section class="cartao secao" id="u-dia" aria-labelledby="t-u-dia">
       ${barraBaixar([["baixar-uf-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-uf-dia", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-u-dia"><small>${num("u-dia")}</small>Mesmo dia em outros anos</h2>
       <p class="sub" id="sub-u-dia"></p>
       <div class="graf" id="g-uf-dia"></div>
+      ${comoLer(ler("dia"), "<b>Escala.</b> O eixo vertical vai de 0 a 100%.")}
     </section>` : ""}
     <section class="cartao secao" id="u-hist" aria-labelledby="t-u-hist">
       ${barraBaixar([["baixar-uf-hist-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-uf-hist", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-u-hist"><small>${num("u-hist")}</small>Histórico do monitoramento</h2>
       <p class="sub">Reservatórios ${de} ${estado} com pelo menos uma medição em cada ano: com volume${temHidro ? " e só com nível" : ""}. Mostra quando o acompanhamento começou, parou ou passou a ter só o nível.</p>
       <div class="graf" id="g-uf-hist"></div>
+      ${comoLer(`<b>Barras.</b> Para cada ano, a barra azul-escura conta os reservatórios com ao menos uma medição de volume${temHidro ? ", e a azul-clara, os que só têm leitura de nível" : ""}. A queda de um ano para o outro indica que parte dos reservatórios deixou de ser medida, e não variação do volume armazenado.`)}
     </section>
     <p class="nota fontes-inicio" id="fontes-uf"></p>`;
   $$(".indice a").forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
@@ -3884,7 +3919,7 @@ function paginaFichaNE(cod){
     <section class="cartao secao" id="fn-graf" aria-labelledby="t-fn-graf">
       ${barraBaixar([["baixar-f-csv", "CSV", "Baixar a série do período em CSV"], ["baixar-f-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-fn-graf"><small>2</small>Gráfico</h2>
-      <p class="sub">${soNivel ? "Nível e, abaixo, o volume publicado até o fim do acompanhamento de volume, no mesmo período. " : ""}Pontos nas datas reais das leituras; vão de mais de ${VAO_MAX} dias não é ligado. Tracejado vermelho: data de referência.${soNivel ? "" : '<span class="dica">Escolha o período e a variável.</span>'}</p>
+      <p class="sub">${soNivel ? "Nível e, abaixo, o volume publicado até o fim do acompanhamento de volume, no mesmo período. " : ""}${soNivel ? "" : 'Leituras do reservatório no período escolhido.<span class="dica">Escolha o período e a variável.</span>'}</p>
       <div class="controles painel">
         <fieldset class="largo"><legend>Período</legend><span id="presets" class="presets"></span><span class="datas"><label>de <input type="date" id="g-de"></label><label>até <input type="date" id="g-ate"></label></span></fieldset>
         ${varsGraf.length ? `<fieldset><legend>Variável</legend>${varsGraf.map((k,i) => `<label><input type="radio" name="var-f" value="${k}"${i===0 ? " checked" : ""}> <i class="sw" style="border-color:${VNE[k].cor}"></i>${VNE[k].r} (${VNE[k].u})</label>`).join("")}</fieldset>` : ""}
@@ -3894,6 +3929,8 @@ function paginaFichaNE(cod){
       <p class="nota" id="resumo-f" style="margin:12px 0 0"></p>
       <h3 class="sub-bloco">Medições por ano<small>quando o acompanhamento foi regular, esparso ou parou</small></h3>
       <div class="graf" id="g-med"></div>
+      ${comoLer(`<b>Leituras.</b> A linha liga as leituras nas datas em que foram feitas; intervalo de mais de ${VAO_MAX} dias sem leitura não é ligado, e a leitura isolada aparece como ponto. A linha tracejada vermelha marca a data de referência. Com o cursor sobre o gráfico, o balão mostra a leitura mais próxima.`,
+        `<b>Medições por ano.</b> As barras contam as leituras de cada ano${soNivel ? ", com volume e de nível," : ""} e mostram quando o acompanhamento foi regular, esparso ou parou.`)}
     </section>
     <section class="cartao secao" id="fn-dia" aria-labelledby="t-fn-dia">
       ${barraBaixar([["baixar-f-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-f-dia", "PNG", "Baixar o gráfico como imagem"]])}
@@ -3901,15 +3938,16 @@ function paginaFichaNE(cod){
       <p class="sub" id="sub-f-dia"></p>
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-dia-f" aria-label="Variável">${varsComp.map(opcao).join("")}</select></fieldset></div>
       <div class="graf" id="g-f-dia"></div>
+      ${comoLer(ler("dia"), ler("escala"))}
     </section>
     <section class="cartao secao" id="fn-ano" aria-labelledby="t-fn-ano">
       ${barraBaixar([["baixar-f-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-f-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-fn-ano"><small>4</small>Ano contra anos anteriores</h2>
       <p class="sub">As leituras de cada ano sobrepostas no mesmo calendário, nas datas reais, até a data de referência.<span class="dica">Selecione os anos a comparar, até ${MAX_ANOS} simultaneamente; posicione o cursor sobre o gráfico para ler o mesmo dia em cada ano.</span></p>
-      ${saibaAnos({leituras: VAO_MAX})}
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-ano-f" aria-label="Variável">${varsComp.map(opcao).join("")}</select></fieldset>
         <fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos-f"></span></legend><span id="anos-chips-f"></span></fieldset></div>
       <div class="graf" id="g-f-ano"></div>
+      ${comoLer(ler("anos"), ler("leituras"), ler("selecao"), ler("cursor"))}
     </section>
     <p class="nota fontes-inicio" id="fontes-f"></p>`;
   $$(".indice a").forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
@@ -3993,10 +4031,10 @@ function paginaFichaNE(cod){
       svg.append(svgEl("line",{x1:x, x2:x, y1:g.m.t, y2:g.H - g.m.b, stroke:"#C0392B", "stroke-width":1, "stroke-dasharray":"3 3", opacity:.7})); }
   };
   const escalaDe = k => k==="pct" ? [0, 100] : k==="hm3" ? [0, F.capacidade_hm3] : null;
-  function grafico(host, k, de, ate, rotulo){
+  function grafico(host, k, de, ate, rotulo, alt = "principal"){
     const S = pontosDe(k, de, ate);
     if (!S.some(o => o[k]!=null)){ host.innerHTML = `<p class="nota" style="padding:10px 0">${rotulo}: nenhuma leitura de ${dBR(de)} a ${dBR(ate)}.</p>`; return 0; }
-    graficoLinhas(host, S, [{k, ...VNE[k], r:rotVar(k)}], {base:"dia", unidade:VNE[k].u, dec:VNE[k].dec, altura:230, sync:{}, rotulo,
+    graficoLinhas(host, S, [{k, ...VNE[k], r:rotVar(k)}], {base:"dia", unidade:VNE[k].u, dec:VNE[k].dec, altura:alt, sync:{}, rotulo,
       escala:escalaDe(k), t0:Date.parse(de + "T00:00:00Z"), t1:Date.parse(ate + "T00:00:00Z"), depois:porCima(k, de, ate)});
     return S.filter(o => o[k]!=null).length;
   }
@@ -4008,13 +4046,13 @@ function paginaFichaNE(cod){
       $("#resumo-f").textContent = `${fint(n)} leituras de ${VNE[k].r.toLowerCase()} de ${dBR(de)} a ${dBR(ate)}.`;
     } else {
       const n1 = grafico($("#g-f1"), "nivel", de, ate, "Nível (m)");
-      const n2 = grafico($("#g-f2"), "pct", de, ate, `Volume (%) · acompanhamento até ${dBR(ultVol.iso)}`);
+      const n2 = grafico($("#g-f2"), "pct", de, ate, `Volume (%) · acompanhamento até ${dBR(ultVol.iso)}`, "apoio");
       $("#resumo-f").textContent = `${fint(n1)} leituras de nível e ${fint(n2)} de volume de ${dBR(de)} a ${dBR(ate)}.`;
     }
   }
   const hist = {};
   for (let a = +inicio.slice(0,4); a <= anoFim; a++) hist[a] = {sar: SR.filter(o => o.iso.startsWith(String(a))).length, hidro: soNivel ? SN.filter(o => o.iso.startsWith(String(a))).length : null};
-  graficoMonitoramento($("#g-med"), hist, "Medições por ano", {altura:180, rot:{sar:"leituras com volume", hidro:"leituras de nível"}});
+  graficoMonitoramento($("#g-med"), hist, "Medições por ano", {altura:"apoio", rot:{sar:"leituras com volume", hidro:"leituras de nível"}});
 
   // 3. mesmo dia em outros anos (regra dos 30 dias em cada ano)
   $("#var-dia-f").onchange = mesmoDia;
@@ -4214,11 +4252,11 @@ function paginaCantareira(){
       ${barraBaixar([["baixar-can-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-can-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-c-ano"><small>4</small>Ao longo do ano</h2>
       <p class="sub">Volume útil do sistema (%) dia a dia, cada ano no mesmo calendário, até a data de referência. Ao fundo, as faixas de operação pelo volume útil acumulado, conforme o art. 4º da Resolução Conjunta ANA/DAEE nº 925/2017.<span class="dica">Selecione os anos a comparar, até ${MAX_ANOS} simultaneamente; posicione o cursor sobre o gráfico para ler o mesmo dia em cada ano.</span></p>
-      ${saibaAnos({faixas: "As faixas aparecem ao fundo apenas quando a data de referência está dentro da vigência da resolução; com data anterior, o gráfico é apresentado sem elas."})}
       <div class="controles"><fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos-can"></span></legend><span id="anos-chips-can"></span></fieldset></div>
       <div class="graf" id="g-can-ano"></div>
       ${legendaFaixasCan()}
       <p class="nota" style="margin:8px 0 0">As faixas são referência e valem a partir de 30/05/2017, início da vigência da resolução (art. 9º). A faixa em vigor é estabelecida mensalmente pela ANA e pelo DAEE, até o último dia útil do mês anterior, e as faixas 4 e 5 podem ser estabelecidas a qualquer momento (art. 6º da resolução); por isso, pode diferir da indicada pelo volume do dia.</p>
+      ${comoLer(ler("anos"), ler("selecao"), ler("cursor"), ler("faixas", "As faixas aparecem ao fundo apenas quando a data de referência está dentro da vigência da resolução; com data anterior, o gráfico é apresentado sem elas."))}
     </section>
     <section class="cartao secao" id="c-dia" aria-labelledby="t-c-dia">
       ${barraBaixar([["baixar-can-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-can-dia", "PNG", "Baixar o gráfico como imagem"]])}
@@ -4226,13 +4264,15 @@ function paginaCantareira(){
       <p class="sub">Volume útil do sistema (%) no dia da data de referência, em cada um dos cinco anos até ela.</p>
       <div class="graf" id="g-can-dia"></div>
       <p class="nota" id="c-dia-nota" style="margin:8px 0 0"></p>
+      ${comoLer(ler("dia"), "<b>Escala.</b> O eixo vertical vai de 0 a 100%.")}
     </section>
     <section class="cartao secao" id="c-mes" aria-labelledby="t-c-mes">
       ${barraBaixar([["baixar-can-mes-csv", "CSV", "Baixar os dados dos gráficos em CSV"], ["baixar-can-mes", "PNG", "Baixar os gráficos como imagem"]])}
       <h2 id="t-c-mes"><small>6</small>Chuva e afluência contra a média</h2>
-      <p class="sub">Chuva acumulada e vazão natural média de cada mês, nos 12 meses até a data de referência, ao lado da média de longo termo do mês informada pela SABESP. O mês da data de referência vai até esse dia.</p>
+      <p class="sub">Chuva acumulada e vazão natural média de cada mês, nos 12 meses até a data de referência, ao lado da média de longo termo do mês informada pela SABESP.</p>
       <div class="mensal-grade"><div class="graf" id="g-can-chuva"></div><div class="graf" id="g-can-qnat"></div></div>
       <p class="nota" id="c-mes-nota" style="margin:10px 0 0"></p>
+      ${comoLer("<b>Barras e média.</b> Cada barra é um mês: a chuva acumulada, em mm, e a vazão natural média, em m³/s. O traço vermelho é a média de longo termo do mês informada pela SABESP, a do próprio ano. A barra do mês da data de referência vai só até esse dia.")}
     </section>
     <p class="nota">Fontes: ${esc(OS.fontes.sabesp)} (reservatórios, túneis, Santa Inês, transferência, chuva e médias de longo termo); ${esc(OS.fontes.resolucao)}. O volume útil do sistema é calculado pelo SAR com os quatro reservatórios da resolução; o percentual publicado pela SABESP inclui também o reservatório de Águas Claras e difere deste em até 0,05 ponto percentual.</p>`;
   $$(".indice a").forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
@@ -4436,7 +4476,7 @@ function anoCan(ref){
   const anos = [...anosCan].sort((a,b) => a-b);
   const pts = {}; const i0 = diaEntre(`${anos[0]}-01-01`, CAN.de), i1 = Math.min(CAN.pct.length - 1, diaEntre(ref, CAN.de));
   for (let i = Math.max(0, i0); i <= i1; i++) pts[isoMais(CAN.de, i)] = CAN.pct[i];
-  graficoCalendario($("#g-can-ano"), pts, {colCSV:"volume_util_pct", anos, anoAtual:a1, dec:1, unidade:"%", pct:true, marcaDia:ref, rotulo:"Volume útil do Sistema Cantareira (%)", maxVao:3, tol:1, faixas: ref >= VIG_CAN ? FAIXAS_OPERACAO_CAN : null, altura:380});
+  graficoCalendario($("#g-can-ano"), pts, {colCSV:"volume_util_pct", anos, anoAtual:a1, dec:1, unidade:"%", pct:true, marcaDia:ref, rotulo:"Volume útil do Sistema Cantareira (%)", maxVao:3, tol:1, faixas: ref >= VIG_CAN ? FAIXAS_OPERACAO_CAN : null});
 }
 function diaCan(ref){
   const mmdd = ref.slice(5)==="02-29" ? "02-28" : ref.slice(5), a1 = +ref.slice(0,4), dados = [];
@@ -4549,12 +4589,14 @@ function paginaSistemaOS(sis){
       <h2 id="t-s-ano"><small>2</small>Ao longo do ano</h2>
       <p class="sub">Volume (%) de cada reservatório dia a dia, nos cinco anos até a data de referência${soNiv.length ? "; no Lago Paranoá, a cota (m)" : ""}.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div id="s-ano-graf"></div>
+      ${comoLer("<b>Um gráfico por reservatório.</b> Cada reservatório tem o seu gráfico, com a mesma leitura.", ler("anos"), ler("cinco"), ler("cursor"))}
     </section>
     <section class="cartao secao" id="s-dia" aria-labelledby="t-s-dia">
       ${barraBaixar([["baixar-sis-dia-csv", "CSV", "Baixar os dados dos gráficos em CSV"], ["baixar-sis-dia", "PNG", "Baixar os gráficos como imagem"]])}
       <h2 id="t-s-dia"><small>3</small>Mesmo dia em outros anos</h2>
       <p class="sub">O valor de cada reservatório no dia da data de referência, em cada um dos cinco anos até ela.</p>
       <div id="s-dia-graf"></div>
+      ${comoLer(ler("dia"), soNiv.length ? "<b>Escala.</b> No volume em %, o eixo vertical vai de 0 a 100%; na cota, não começa em zero, para que as diferenças entre os anos fiquem visíveis." : "<b>Escala.</b> O eixo vertical vai de 0 a 100%.")}
     </section>
     <p class="nota">Fontes: ${esc(OS.fontes.coletor)}. Volume em % calculado pelo SAR: volume ÷ capacidade do cadastro. Crítica das cotas antes de exibir (erro grosseiro, pico de um dia e degrau que volta, como no Nordeste): ${L.map(x => `${nomeRes(x.F)} ${fint(x.F.desc[0])}`).join(", ")} leituras descartadas na série inteira; o volume do mesmo dia sai junto.</p>`;
   $$(".indice a").forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
@@ -4577,10 +4619,10 @@ function paginaSistemaOS(sis){
     L.forEach(({F}) => {
       const campo = soNivelF(F) ? "cota" : "pct", u = soNivelF(F) ? "m" : "%";
       const g1 = document.createElement("div"); g1.className = "graf"; hostA.append(g1);
-      graficoCalendario(g1, ate(pontosCal(F, campo, a1-4)), {rotCSV:nomeRes(F), anos, anoAtual:a1, dec: u==="m" ? 2 : 1, unidade:u, pct: u==="%", marcaDia:ref, altura:230, maxVao:3, tol:2,
+      graficoCalendario(g1, ate(pontosCal(F, campo, a1-4)), {rotCSV:nomeRes(F), anos, anoAtual:a1, dec: u==="m" ? 2 : 1, unidade:u, pct: u==="%", marcaDia:ref, altura:"apoio", maxVao:3, tol:2,
         rotulo:`${nomeRes(F)} · ${u==="%" ? "volume (%)" : "cota (m), só nível"}`});
       const g2 = document.createElement("div"); g2.className = "graf"; hostD.append(g2);
-      graficoBarrasAnos(g2, mesmoDiaF(F, campo, ref).filter(d => d.a > a1 - 5 && d.a <= a1), {rotCSV:nomeRes(F), anoAtual:+ref.slice(0,4), dec: u==="m" ? 2 : 1, unidade:u, pct: u==="%", relativo: u==="m", altura:210,
+      graficoBarrasAnos(g2, mesmoDiaF(F, campo, ref).filter(d => d.a > a1 - 5 && d.a <= a1), {rotCSV:nomeRes(F), anoAtual:+ref.slice(0,4), dec: u==="m" ? 2 : 1, unidade:u, pct: u==="%", relativo: u==="m", altura:"apoio",
         rotulo:`${nomeRes(F)} em ${dBR(ref).slice(0,5)} de cada ano (${u==="%" ? "volume, %" : "cota, m"})`, legenda: u==="%" ? "Volume" : "Cota"});
     });
   };
@@ -4633,20 +4675,23 @@ function paginaFichaOS(cod){
       <div class="controles painel"><fieldset class="largo"><legend>Período</legend><span id="fo-presets" class="presets"></span><span class="datas"><label>de <input type="date" id="fo-de"></label><label>até <input type="date" id="fo-ate"></label></span></fieldset></div>
       <div class="graf" id="fo-g1"></div><div class="graf" id="fo-g2"></div><div class="legenda" id="fo-leg3" style="margin-top:18px"></div><div class="graf" id="fo-g3" style="margin-top:4px"></div>
       <p class="nota" id="fo-resumo" style="margin:12px 0 0"></p>
+      ${comoLer(niv ? "<b>Valores.</b> Com o cursor sobre o gráfico, o balão mostra a cota do dia." : "<b>Eixo do tempo.</b> O volume e o nível compartilham o eixo do tempo: com o cursor sobre um deles, a mesma data é marcada nos dois, e o balão mostra os valores. O volume é apresentado de 0 a 100%.",
+        can ? "<b>Vazões.</b> As vazões do reservatório ficam em gráfico próprio, abaixo, para que nenhum gráfico tenha dois eixos verticais." : "")}
     </section>
     <section class="cartao secao" id="fo-dia" aria-labelledby="t-fo-dia">
       ${barraBaixar([["baixar-fo-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-fo-dia", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-fo-dia"><small>3</small>Mesmo dia em outros anos</h2>
       <p class="sub">${niv ? "Cota" : "Volume (%)"} no dia da data de referência, em cada ano da série diária.</p>
       <div class="graf" id="fo-g-dia"></div>
+      ${comoLer(ler("dia"), niv ? "<b>Escala.</b> Na cota, o eixo vertical não começa em zero, para que as diferenças entre os anos fiquem visíveis." : "<b>Escala.</b> O eixo vertical vai de 0 a 100%.")}
     </section>
     <section class="cartao secao" id="fo-ano" aria-labelledby="t-fo-ano">
       ${barraBaixar([["baixar-fo-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-fo-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-fo-ano"><small>4</small>Ano contra anos anteriores</h2>
       <p class="sub">A série diária de cada ano sobreposta no mesmo calendário, até a data de referência.<span class="dica">Selecione os anos a comparar, até ${MAX_ANOS} simultaneamente; posicione o cursor sobre o gráfico para ler o mesmo dia em cada ano.</span></p>
-      ${saibaAnos()}
       <div class="controles"><fieldset class="anos"><legend>Anos <span class="nota" id="fo-nota-anos"></span></legend><span id="fo-chips"></span></fieldset></div>
       <div class="graf" id="fo-g-ano"></div>
+      ${comoLer(ler("anos"), ler("selecao"), ler("cursor"))}
     </section>
     <p class="nota">Fontes: ${esc(can ? OS.fontes.sabesp : OS.fontes.coletor)}${can ? `; ${esc(OS.fontes.resolucao)}` : ""}. ${niv ? "" : can ? "Volume em % sobre o volume útil operacional do reservatório no quadro da resolução, como informado pela SABESP. " : "Volume em % calculado pelo SAR: volume ÷ capacidade do cadastro. "}Crítica das cotas antes de exibir (erro grosseiro, pico de um dia e degrau que volta, como no Nordeste): ${qtd(F.desc[0], "leitura descartada", "leituras descartadas")} na série inteira; o volume do mesmo dia sai junto.</p>`;
   $$(".indice a").forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
@@ -4685,10 +4730,10 @@ function paginaFichaOS(cod){
     let de = $("#fo-de").value || F.de, ate = $("#fo-ate").value || ult; if (de > ate) [de, ate] = [ate, de];
     const t0 = Date.parse(de + "T00:00:00Z"), t1 = Date.parse(ate + "T00:00:00Z"), sync = {};
     const S = pontosF(F, niv ? ["cota"] : ["pct","cota"], de, ate);
-    if (niv){ graficoLinhas($("#fo-g1"), S, [{k:"cota", r:"Cota", cor:"#17868F", u:"m", dec:2}], {base:"dia", unidade:"m", altura:230, sync, t0, t1, rotulo:"Cota (m)"}); $("#fo-g2").innerHTML = ""; }
+    if (niv){ graficoLinhas($("#fo-g1"), S, [{k:"cota", r:"Cota", cor:"#17868F", u:"m", dec:2}], {base:"dia", unidade:"m", altura:"principal", sync, t0, t1, rotulo:"Cota (m)"}); $("#fo-g2").innerHTML = ""; }
     else {
-      graficoLinhas($("#fo-g1"), S, [{k:"pct", r:"Volume", cor:"#1C3782", u:"%", dec:1}], {base:"dia", unidade:"%", altura:200, sync, t0, t1, escala:[0,100], rotulo:"Volume (%)"});
-      graficoLinhas($("#fo-g2"), S, [{k:"cota", r:"Nível", cor:"#17868F", u:"m", dec:2}], {base:"dia", unidade:"m", altura:170, sync, t0, t1, rotulo:"Nível (m)"});
+      graficoLinhas($("#fo-g1"), S, [{k:"pct", r:"Volume", cor:"#1C3782", u:"%", dec:1}], {base:"dia", unidade:"%", altura:"principal", sync, t0, t1, escala:[0,100], rotulo:"Volume (%)"});
+      graficoLinhas($("#fo-g2"), S, [{k:"cota", r:"Nível", cor:"#17868F", u:"m", dec:2}], {base:"dia", unidade:"m", altura:"apoio", sync, t0, t1, rotulo:"Nível (m)"});
     }
     if (can){
       const d0 = de < CAN.det_de ? CAN.det_de : de, V = [];
@@ -4698,7 +4743,7 @@ function paginaFichaOS(cod){
         {k:"sai", r:`Envia (${liga.sai.map(k => NOME_VAZ[k]).join(" + ")})`, cor:"#1C3782", u:"m³/s", dec:1}, {k:"jus", r:"Para jusante", cor:"#17868F", u:"m³/s", dec:2, tracejado:true}];
       $("#fo-leg3").innerHTML = SV.map(s => `<span><svg width="22" height="8" aria-hidden="true"><line x1="0" x2="22" y1="4" y2="4" stroke="${s.cor}" stroke-width="2"${s.tracejado ? ' stroke-dasharray="5 4"' : ""}/></svg>${esc(s.r)}</span>`).join("");
       graficoLinhas($("#fo-g3"), V, SV,
-        {base:"dia", unidade:"m³/s", altura:200, sync:{}, t0: Date.parse(d0 + "T00:00:00Z"), t1, rotulo:"Vazões do reservatório (m³/s)"});
+        {base:"dia", unidade:"m³/s", altura:"apoio", sync:{}, t0: Date.parse(d0 + "T00:00:00Z"), t1, rotulo:"Vazões do reservatório (m³/s)"});
     } else { $("#fo-g3").innerHTML = ""; $("#fo-leg3").innerHTML = ""; }
     const n = S.filter(o => o.cota!=null).length;
     $("#fo-resumo").textContent = `${fint(n)} dias com ${niv ? "cota" : "nível"} de ${dBR(de)} a ${dBR(ate)}.`;
@@ -5309,7 +5354,7 @@ function seletorAdm(host, filtro, aoEscolher){
 }
 // gráfico de linha simples da tela administrativa: séries [{pts:[[x, y]], cor, tracejada}] e pontos marcados
 function linhaAdm(host, series, marcas, rotX){
-  const W = Math.max(320, host.clientWidth || 700), H = 190, m = {e:52, d:12, t:10, b:24};
+  const W = Math.max(320, host.clientWidth || 700), H = alturaGraf("apoio", W), m = {e:52, d:12, t:10, b:24};
   const P = series.flatMap(s => s.pts).filter(p => p[1] != null);
   if (P.length < 2){ host.innerHTML = '<p class="nota">Sem dados para o gráfico neste período.</p>'; return; }
   const x0 = Math.min(...P.map(p => p[0])), x1 = Math.max(...P.map(p => p[0])), ya = Math.min(...P.map(p => p[1])), yb = Math.max(...P.map(p => p[1])), fol = (yb - ya)*0.08 || 1;
@@ -5724,7 +5769,7 @@ function textosDe(doc){
   doc.querySelectorAll("#titulo-pag p.lead, #conteudo p, #conteudo p.sub > span.dica").forEach(el => {
     if (el.closest(TX_FORA) || el.querySelector("button,input,select")) return;
     const sec = el.closest("section[id]"), intro = el.closest(".intro"), saiba = el.closest("details.saiba");
-    const tipo = el.matches("span.dica") ? "instrução" : el.matches("#titulo-pag p.lead, .lead-hero") ? "subtítulo" : saiba ? "saiba mais" : intro ? "apresentação" :
+    const tipo = el.matches("span.dica") ? "instrução" : el.matches("#titulo-pag p.lead, .lead-hero") ? "subtítulo" : saiba ? (saiba.classList.contains("como-ler") ? "como ler" : "saiba mais") : intro ? "apresentação" :
       el.matches("p.sub") ? "texto da seção" : el.matches("[class*='fontes']") ? "linha de fontes" : el.matches(".nota") ? "nota" : "texto";
     const html = tipo==="texto da seção" ? txSemDica(el) : el.innerHTML.trim(), t = txPlano(html); if (!t) return;
     const grupo = sec ? sec.id : intro ? "intro" : el.closest("#titulo-pag") ? "titulo" : "pagina", ck = grupo + "|" + tipo, n = cont[ck] = (cont[ck] ?? -1) + 1;
