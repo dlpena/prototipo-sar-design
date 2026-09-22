@@ -886,11 +886,7 @@ body.na-inicio main{padding-top:26px}
 .aviso-pub.atencao{background:var(--aviso-fundo);border-color:#F0D9A6;color:#5A4200}
 .aviso-pub.atencao b{color:#6A4A00}
 .adm-tab .aviso-pub{padding:6px 10px;font-size:13px}
-.rev-lista{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:0}
-.rev-lista li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;padding:10px 0;border-bottom:1px solid var(--linha);font-size:14px;color:var(--tinta-2);line-height:1.5}
-.rev-lista .q{font:600 13px var(--sans);color:var(--ana);font-variant-numeric:tabular-nums}
-.rev-lista .m{display:block;font-size:13px;color:var(--apagado)}
-@media (max-width:640px){.adm-tx{grid-template-columns:1fr}.rev-lista li{grid-template-columns:1fr;gap:2px}}
+@media (max-width:640px){.adm-tx{grid-template-columns:1fr}}
 #conteudo.admin td,#conteudo.admin th{white-space:normal}
 #conteudo.admin td.dt,#conteudo.admin td.num,#conteudo.admin .adm-sit{white-space:nowrap}
 /* celular: tabelas da administração em cartões (rótulo de cada célula vem do cabeçalho, em data-rotulo) */
@@ -2263,7 +2259,8 @@ function paginaFicha(){
     <section class="cartao secao" id="f-ano" aria-labelledby="t-ano">
       ${barraBaixar([["baixar-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-ano-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-ano"><small>4</small>Ano contra anos anteriores</h2>
-      <p class="sub">A série diária de cada ano sobreposta no mesmo calendário. O ano da data de referência fica em destaque, e a sua curva termina nela.<span class="dica">Selecione os anos a comparar, até ${MAX_ANOS} simultaneamente; posicione o cursor sobre o gráfico para ler o mesmo dia em cada ano.</span></p>
+      <p class="sub">A série diária de cada ano sobreposta no mesmo calendário, até a data de referência.<span class="dica">Selecione os anos a comparar, até ${MAX_ANOS} simultaneamente; posicione o cursor sobre o gráfico para ler o mesmo dia em cada ano.</span></p>
+      ${saibaAnos({faixas: FAIXAS_ANA[F.nome] ? "No volume útil, as faixas de operação da resolução aparecem ao fundo apenas quando a data de referência está dentro da vigência da resolução; com data anterior, o gráfico é apresentado sem elas." : ""})}
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-ano" aria-label="Variável">${["vu","cota"].map(k => `<option value="${k}">${VARS[k].r}${k==="vu" ? " (%)" : " (m)"}</option>`).join("")}</select></fieldset>
         <fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos"></span></legend><span id="anos-chips"></span></fieldset></div>
       <div class="graf" id="g-ano"></div>
@@ -2555,6 +2552,14 @@ function reguaFicha(nome, vu, dia){
   return `<div class="regua-faixas" aria-hidden="true">${FX.slice().reverse().map(f => { const de = Math.max(0, f.de), ate = Math.min(100, f.ate); return `<span style="width:${ate-de}%;background:${f.cor}" title="${f.rot}"></span>`; }).join("")}</div>
     <div class="regua-rot">${cortes.map(v => `<b style="left:${v}%">${v}</b>`).join("")}${marca}</div>
     <p class="regua-nota">Faixas de operação de ${caso(nome)} (${RA.art} da ${RA.ato})${RA.periodos ? `, no ${RA.periodos.find(p => p.meses.includes(+dia.slice(5,7))).rot}` : ""}, como referência. ${notaVigencia(RA, dia, "as faixas")}${RA.obs ? " " + RA.obs : ""}</p>`;
+}
+// "Como ler este gráfico" do ano contra anos anteriores: explicação recolhida, sem nova observação (Diego, 22/09/2026)
+function saibaAnos(o = {}){
+  return `<details class="saiba"><summary>Como ler este gráfico</summary><div class="saiba-corpo">
+    <p><b>Data de referência.</b> Cada ano ocupa o mesmo calendário, de janeiro a dezembro. O ano da data de referência fica em destaque, e a sua curva termina na data, marcada pela linha tracejada vermelha. Ao abrir a página, e sempre que a data de referência passa para outro ano, ficam selecionados os cinco anos até o dela.</p>
+    ${o.leituras ? `<p><b>Leituras.</b> Cada ponto corresponde a uma leitura, na data em que foi feita; intervalos de mais de ${o.leituras} dias sem leitura interrompem a curva.</p>` : ""}
+    ${o.faixas ? `<p><b>Faixas de operação.</b> ${o.faixas} O botão do ano encerrado antes do início da vigência tem contorno tracejado.</p>` : ""}
+  </div></details>`;
 }
 // legenda e nota das faixas (ou dos estágios) abaixo do gráfico ano contra anos
 function notaFaixasAno(nome){
@@ -3900,7 +3905,8 @@ function paginaFichaNE(cod){
     <section class="cartao secao" id="fn-ano" aria-labelledby="t-fn-ano">
       ${barraBaixar([["baixar-f-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-f-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-fn-ano"><small>4</small>Ano contra anos anteriores</h2>
-      <p class="sub">As leituras de cada ano sobrepostas no mesmo calendário, nas datas reais.<span class="dica">Clique nos anos para incluir ou tirar, até ${MAX_ANOS} ao mesmo tempo.</span></p>
+      <p class="sub">As leituras de cada ano sobrepostas no mesmo calendário, nas datas reais, até a data de referência.<span class="dica">Selecione os anos a comparar, até ${MAX_ANOS} simultaneamente; posicione o cursor sobre o gráfico para ler o mesmo dia em cada ano.</span></p>
+      ${saibaAnos({leituras: VAO_MAX})}
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-ano-f" aria-label="Variável">${varsComp.map(opcao).join("")}</select></fieldset>
         <fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos-f"></span></legend><span id="anos-chips-f"></span></fieldset></div>
       <div class="graf" id="g-f-ano"></div>
@@ -4025,13 +4031,13 @@ function paginaFichaNE(cod){
   }
 
   // 4. ano contra anos anteriores
-  let anosSel = new Set();
+  let anosSel = new Set(), anoChips = null;   // anoChips: ano da data de referência em que a seleção foi montada
   const anosDe = k => [...new Set(serieDe(k).filter(o => o[k]!=null).map(o => +o.iso.slice(0,4)))].sort();
   const atualizarChips = () => { const n = anosSel.size, cheio = n >= MAX_ANOS;
     $$("#anos-chips-f .chip-ano").forEach(b => { const on = anosSel.has(+b.dataset.a); b.classList.toggle("on", on); b.disabled = !on && cheio; });
     $("#nota-anos-f").textContent = `${n} de ${MAX_ANOS}`; };
   function montarChips(){
-    const A = anosDe($("#var-ano-f").value), ref = +dataRef.slice(0,4);
+    const A = anosDe($("#var-ano-f").value), ref = +dataRef.slice(0,4); anoChips = ref;
     anosSel = new Set(A.filter(a => a <= ref).slice(-5)); if (!anosSel.size) anosSel = new Set(A.slice(-5));
     $("#anos-chips-f").innerHTML = A.map(a => `<button type="button" class="chip-ano" data-a="${a}">${a}</button>`).join("");
     $$("#anos-chips-f .chip-ano").forEach(b => b.onclick = () => {
@@ -4043,7 +4049,7 @@ function paginaFichaNE(cod){
   }
   function anoAnos(){
     const k = $("#var-ano-f").value, V = VNE[k], pontos = {};
-    serieDe(k).forEach(o => { if (o[k]!=null) pontos[o.iso] = o[k]; });
+    serieDe(k).forEach(o => { if (o[k]!=null && o.iso <= dataRef) pontos[o.iso] = o[k]; });   // a curva termina na data de referência
     graficoCalendario($("#g-f-ano"), pontos, {anos:[...anosSel].sort(), anoAtual:+dataRef.slice(0,4), dec:V.dec, unidade:V.u, pct:k==="pct",
       marcaDia:dataRef, rotulo:`${rotVar(k)} (${V.u})`, maxVao:VAO_MAX});
   }
@@ -4056,7 +4062,7 @@ function paginaFichaNE(cod){
     `no volume, ${qtd(Dc.volume.length, "descartada", "descartadas")}` +
     `${soNivel ? `; no nível, ${qtd(F.nivel.descartes.length, "descartada", "descartadas")}` : ""}. Vizinhos no mapa: ${esc(NEd.fontes.medicoes)}.`;
 
-  const aplicar = () => { situacao(); mapaVizinhos(); desenhar(); mesmoDia(); anoAnos(); };
+  const aplicar = () => { situacao(); mapaVizinhos(); desenhar(); mesmoDia(); if (anoChips !== +dataRef.slice(0,4)) montarChips(); anoAnos(); };
   ligarSeletor("data-f", aplicar, inicio, NEd.serie_ate);
   situacao(); aplicarPreset(presets[1][1]); mesmoDia(); montarChips(); anoAnos();
 
@@ -4207,7 +4213,8 @@ function paginaCantareira(){
     <section class="cartao secao" id="c-ano" aria-labelledby="t-c-ano">
       ${barraBaixar([["baixar-can-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-can-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-c-ano"><small>4</small>Ao longo do ano</h2>
-      <p class="sub">Volume útil do sistema (%) dia a dia, cada ano no mesmo calendário, até a data de referência (o último ponto da curva). Ao fundo, as faixas de operação pelo volume útil acumulado, conforme o art. 4º da Resolução Conjunta ANA/DAEE nº 925/2017.<span class="dica">Selecione os anos a comparar, até ${MAX_ANOS} simultaneamente; posicione o cursor sobre o gráfico para ler o mesmo dia em cada ano.</span></p>
+      <p class="sub">Volume útil do sistema (%) dia a dia, cada ano no mesmo calendário, até a data de referência. Ao fundo, as faixas de operação pelo volume útil acumulado, conforme o art. 4º da Resolução Conjunta ANA/DAEE nº 925/2017.<span class="dica">Selecione os anos a comparar, até ${MAX_ANOS} simultaneamente; posicione o cursor sobre o gráfico para ler o mesmo dia em cada ano.</span></p>
+      ${saibaAnos({faixas: "As faixas aparecem ao fundo apenas quando a data de referência está dentro da vigência da resolução; com data anterior, o gráfico é apresentado sem elas."})}
       <div class="controles"><fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos-can"></span></legend><span id="anos-chips-can"></span></fieldset></div>
       <div class="graf" id="g-can-ano"></div>
       ${legendaFaixasCan()}
@@ -4636,7 +4643,8 @@ function paginaFichaOS(cod){
     <section class="cartao secao" id="fo-ano" aria-labelledby="t-fo-ano">
       ${barraBaixar([["baixar-fo-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-fo-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-fo-ano"><small>4</small>Ano contra anos anteriores</h2>
-      <p class="sub">A série diária de cada ano sobreposta no mesmo calendário. O ano corrente fica em destaque.<span class="dica">Clique nos anos para incluir ou tirar, até ${MAX_ANOS} ao mesmo tempo.</span></p>
+      <p class="sub">A série diária de cada ano sobreposta no mesmo calendário, até a data de referência.<span class="dica">Selecione os anos a comparar, até ${MAX_ANOS} simultaneamente; posicione o cursor sobre o gráfico para ler o mesmo dia em cada ano.</span></p>
+      ${saibaAnos()}
       <div class="controles"><fieldset class="anos"><legend>Anos <span class="nota" id="fo-nota-anos"></span></legend><span id="fo-chips"></span></fieldset></div>
       <div class="graf" id="fo-g-ano"></div>
     </section>
@@ -4702,14 +4710,17 @@ function paginaFichaOS(cod){
   }
   // 4. ano contra anos anteriores
   const a1 = +ult.slice(0,4), todosAnos = []; for (let a = +F.de.slice(0,4); a <= a1; a++) todosAnos.push(a);
-  let escolhidos = new Set(todosAnos.slice(-5));
+  let escolhidos = null, anoEsc = null;   // padrão: os cinco anos até o da data de referência, refeito quando ela muda de ano
   function anos(){
-    $("#fo-chips").innerHTML = todosAnos.slice().reverse().map(a => `<button type="button" class="chip-ano${escolhidos.has(a) ? " on" : ""}" data-a="${a}"${!escolhidos.has(a) && escolhidos.size >= MAX_ANOS ? " disabled" : ""}>${a}</button>`).join("");
+    const aR = +refOS.slice(0,4), visiveis = todosAnos.filter(a => a <= aR);
+    if (anoEsc !== aR){ escolhidos = new Set(visiveis.slice(-5)); anoEsc = aR; }
+    $("#fo-chips").innerHTML = visiveis.slice().reverse().map(a => `<button type="button" class="chip-ano${escolhidos.has(a) ? " on" : ""}" data-a="${a}"${!escolhidos.has(a) && escolhidos.size >= MAX_ANOS ? " disabled" : ""}>${a}</button>`).join("");
     $("#fo-nota-anos").textContent = `(${escolhidos.size} de até ${MAX_ANOS})`;
     $$("#fo-chips .chip-ano").forEach(b => b.onclick = () => { const a = +b.dataset.a; if (escolhidos.has(a)) escolhidos.delete(a); else if (escolhidos.size < MAX_ANOS) escolhidos.add(a); anos(); });
     const sel = [...escolhidos].sort();
     if (!sel.length){ $("#fo-g-ano").innerHTML = '<p class="nota" style="padding:14px 0">Escolha ao menos um ano.</p>'; return; }
-    graficoCalendario($("#fo-g-ano"), pontosCal(F, campo, sel[0]), {anos:sel, anoAtual:a1, dec: niv ? 2 : 1, unidade: niv ? "m" : "%", pct: !niv, marcaDia:refOS, maxVao:3, tol:2, rotulo:`${nome} · ${rot}`});
+    const pts = Object.fromEntries(Object.entries(pontosCal(F, campo, sel[0])).filter(([iso]) => iso <= refOS));   // a curva termina na data de referência
+    graficoCalendario($("#fo-g-ano"), pts, {anos:sel, anoAtual:aR, dec: niv ? 2 : 1, unidade: niv ? "m" : "%", pct: !niv, marcaDia:refOS, maxVao:3, tol:2, rotulo:`${nome} · ${rot}`});
   }
   const tudo = () => { situacao(); mesmoDia(); anos(); };
   ligarDataOS("dia-fos", F.de, ult, tudo);
@@ -5191,7 +5202,6 @@ function paginaDados(){
       `Série: só as leituras aceitas pela crítica. Regras de cota: erro grosseiro, pico de um dia e degrau que volta (descritas nas páginas de estado do Nordeste); o volume do mesmo dia sai junto com a cota descartada.`,
       `Nordeste e Semiárido: data da leitura real, sem preenchimento nem interpolação. Reservatório sem curva cota-volume validada vem com a cota e sem volume.`,
       ...(st.base==="hora" ? [`Base horária: dados abertos do ONS (Dados Hidráulicos por Reservatório – Base horária), não consistidos pelo ONS: são de responsabilidade dos agentes de geração, podem ter lacunas e ser alterados. A afluência horária é calculada por balanço e oscila, com negativos e picos que não são vazão real.`] : []),
-      ...revisoesLeiaMe(S),
       ``, `Fontes: ${D.fontes.medicoes}; ${NEd.fontes.medicoes}; ${NEd.nivel ? NEd.nivel.fonte : ""}; ${OS ? OS.fontes.sabesp + "; " + OS.fontes.coletor : ""}.`,
       ``, `Consulta equivalente na API pública (endereço ilustrativo; API a ser criada): ${urlAPI()}`, ``, INICIO_PROTO].join("\r\n"); };
   $("#p-baixar").onclick = async () => {
@@ -5231,7 +5241,7 @@ const ADM_GRUPOS = [["Acompanhamento", [["", "Integrações"], ["cobertura", "Co
   ["Publicação", [["publicacao", "Avisos e textos"], ["parametros", "Parâmetros"]]],
   ["Controle", [["aprovacoes", "Aprovações"], ["trilha", "Trilha de auditoria"]]]];
 const ADM_TELAS = ADM_GRUPOS.flatMap(g => g[1]);
-// revisão da série publicada: aparece na ficha pública do reservatório e no leia-me da área de dados
+// correção da série publicada: fica no registro interno da área administrativa (a seção pública "Revisões da série" saiu, 22/09/2026)
 function revisaoAdm(e, texto, motivo){ if (e && e.id) ADM.revisoes.unshift({id:e.id, nome:e.nome, cod:e.codigo, quando:hojeBR(), texto, motivo}); }
 const agoraAdm = () => { const d = new Date(); return `${hojeBR()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
 const numBR = s => { const x = String(s).trim().replace(/\./g, "").replace(",", "."); return x==="" || isNaN(x) ? null : Number(x); };
@@ -5683,7 +5693,7 @@ function admTrilha(){
 }
 
 /* ---------------- área administrativa, segunda rodada (Diego, 19/09/2026): cobertura, valores suspeitos, inclusão,
-   códigos das fontes, agrupamentos, avisos e textos, parâmetros, e o histórico de revisões na ficha pública */
+   códigos das fontes, agrupamentos, avisos e textos, parâmetros */
 // correspondência de códigos das fontes do NE: Verificação NE SAR (CORSH, ago/2026), extraída em 12/09/2026
 const DEPARA_NE = {"_meta": {"origem": "notebook_funceme_aesa_apac_unificado.ipynb (Verificação NE SAR, ago/2026)", "extraido_em": "2026-09-12", "res_id": "código do reservatório em syndb_coletorReservatorio.dbo.reservatorio (faixa 12xxx = sistema NE)", "validacao": "AESA: cota interpolada na cotavolume reproduz o volume (razão 1,00); APAC: capacidade implícita, razões 0,82-1,06 ('NILO COELHO (TERRA NOVA)' refutado e removido)"}, "funceme_id_para_res_id": {"2661": 12540, "2462": 12001, "2350": 12002, "78": 12003, "1": 12004, "2197": 12005, "32": 12006, "2481": 12008, "2047": 12009, "2473": 12010, "2286": 12011, "2399": 12012, "2428": 12013, "2295": 12014, "2471": 12015, "2347": 12016, "2390": 12017, "2414": 12018, "45": 12019, "2027": 12020, "2391": 12021, "2043": 12022, "112": 12023, "2034": 12024, "2203": 12025, "2041": 12026, "234": 12027, "2003": 12028, "2467": 12029, "31": 12030, "2345": 12031, "2317": 12032, "240": 12033, "83": 12034, "2270": 12035, "47": 12036, "49": 12037, "2209": 12038, "2": 12039, "2033": 12040, "2322": 12041, "2324": 12042, "163": 12043, "2411": 12044, "2353": 12045, "2226": 12046, "2292": 12047, "173": 12048, "2427": 12049, "2367": 12050, "2396": 12051, "177": 12052, "2264": 12053, "2493": 12054, "2372": 12055, "2337": 12056, "2340": 12057, "2406": 12058, "2310": 12059, "2233": 12060, "2332": 12061, "2403": 12062, "64": 12063, "2460": 12064, "2424": 12065, "2435": 12066, "2237": 12067, "2387": 12068, "2299": 12069, "2449": 12070, "2363": 12071, "2364": 12072, "125": 12073, "2335": 12074, "2210": 12075, "2349": 12076, "170": 12077, "2311": 12078, "2240": 12079, "2200": 12080, "2479": 12081, "2323": 12082, "2327": 12083, "2344": 12084, "2242": 12085, "2312": 12086, "2362": 12087, "2413": 12088, "2393": 12089, "2436": 12090, "2206": 12091, "2001": 12092, "2420": 12093, "2395": 12094, "2253": 12095, "74": 12096, "2266": 12097, "127": 12098, "33": 12099, "2211": 12100, "2205": 12101, "2400": 12102, "2276": 12103, "2022": 12104, "65": 12105, "2477": 12106, "236": 12107, "2445": 12108, "53": 12109, "2214": 12110, "2381": 12111, "194": 12112, "97": 12113, "2241": 12114, "223": 12115, "158": 12116, "3": 12117, "4": 12118, "2052": 12119, "2283": 12120, "2026": 12121, "2351": 12122, "2333": 12123, "2275": 12124, "2302": 12125, "84": 12126, "2035": 12127, "2265": 12128, "2049": 12129, "2476": 12130, "2004": 12131, "133": 12132, "2213": 12133, "2202": 12134, "2466": 12135, "2054": 12136, "2301": 12137, "2014": 12138, "2267": 12139, "2440": 12140, "2474": 12141, "34": 12142, "2490": 12143, "2257": 12145, "2451": 12146, "2438": 12147, "197": 12148, "2380": 12149, "2008": 12150, "178": 12151, "60": 12152, "134": 12153, "2009": 12154, "2439": 12155, "2309": 12156, "2369": 12157, "2375": 12158, "5": 12159, "30": 12160, "2282": 12161, "2307": 12162, "2461": 12163, "2468": 12164, "2212": 12165, "2196": 12166, "2346": 12167, "2320": 12168, "2384": 12169, "2368": 12170, "2341": 12171, "2195": 12172, "2228": 12173, "2433": 12174, "2407": 12175, "2053": 12176, "239": 12177, "59": 12178, "2219": 12179, "2405": 12180, "6": 12181, "2281": 12182, "2459": 12183, "172": 12184, "2492": 12185, "119": 12186, "51": 12187, "72": 12188, "2031": 12189, "77": 12190, "2271": 12191, "2023": 12192, "2305": 12193, "169": 12194, "95": 12195, "2288": 12196, "7": 12197, "1123": 12198, "2289": 12199, "2478": 12200, "2379": 12201, "36": 12202, "2204": 12203, "2013": 12204, "2389": 12205, "2269": 12206, "2365": 12207, "2315": 12208, "2410": 12209, "2419": 12210, "2360": 12211, "2316": 12212, "2036": 12213, "2037": 12214, "2470": 12215, "2431": 12216, "244": 12217, "180": 12218, "69": 12219, "52": 12220, "2007": 12221, "2306": 12222, "2415": 12223, "2002": 12224, "135": 12225, "2227": 12226, "2254": 12227, "2329": 12228, "2285": 12229, "171": 12230, "2201": 12231, "1120": 12232, "2397": 12233, "2263": 12234, "121": 12235, "2443": 12236, "2394": 12237, "2038": 12238, "2039": 12239, "28": 12240, "2223": 12241, "2326": 12242, "2383": 12243, "189": 12244, "2422": 12245, "2199": 12246, "2354": 12247, "2417": 12248, "2421": 12249, "2293": 12250, "2252": 12251, "2472": 12252, "2331": 12253, "63": 12254, "2277": 12255, "2348": 12256, "2442": 12257, "2030": 12258, "199": 12259, "164": 12260, "2491": 12261, "2338": 12262, "2017": 12263, "235": 12264, "2455": 12265, "2402": 12266, "201": 12267, "8": 12268, "2012": 12269, "2465": 12270, "2434": 12271, "2278": 12272, "2321": 12273, "126": 12274, "2303": 12275, "2376": 12276, "2426": 12277, "2298": 12278, "2051": 12279, "1119": 12280, "161": 12281, "2448": 12282, "2319": 12283, "2025": 12284, "2221": 12285, "2318": 12286, "61": 12287, "2432": 12288, "168": 12289, "2279": 12290, "2357": 12291, "2401": 12292, "26": 12293, "2300": 12294, "2385": 12295, "2297": 12296, "155": 12297, "2258": 12298, "9": 12299, "2287": 12300, "80": 12301, "88": 12302, "2011": 12303, "2021": 12304, "2382": 12305, "2370": 12306, "2260": 12307, "89": 12308, "2010": 12309, "2452": 12310, "2430": 12311, "2425": 12312, "56": 12313, "10": 12314, "2342": 12315, "2464": 12316, "2358": 12317, "148": 12318, "2392": 12319, "2024": 12320, "2409": 12321, "2044": 12322, "11": 12323, "179": 12324, "12": 12325, "192": 12326, "2398": 12327, "2412": 12328, "2458": 12329, "2235": 12330, "2314": 12331, "2048": 12332, "2050": 12333, "167": 12334, "2220": 12335, "2374": 12336, "2262": 12337, "2480": 12338, "2251": 12339, "2423": 12340, "27": 12341, "2019": 12342, "67": 12343, "2386": 12345, "2352": 12346, "2245": 12347, "90": 12348, "2215": 12349, "2408": 12350, "2248": 12351, "13": 12352, "2020": 12353, "2045": 12354, "82": 12355, "2361": 12356, "2291": 12357, "14": 12358, "62": 12359, "79": 12360, "2230": 12361, "2046": 12362, "68": 12363, "15": 12364, "16": 12365, "2355": 12366, "54": 12367, "2006": 12368, "117": 12369, "2457": 12370, "186": 12371, "2255": 12372, "2018": 12373, "17": 12375, "2225": 12376, "2250": 12377, "2475": 12378, "2429": 12379, "174": 12380, "2456": 12381, "2042": 12382, "2330": 12383, "181": 12384, "2284": 12385, "2441": 12386, "2198": 12387, "2356": 12388, "18": 12389, "2339": 12390, "2404": 12391, "2454": 12392, "2418": 12393, "2040": 12394, "2218": 12395, "2238": 12396, "166": 12397, "55": 12398, "2274": 12399, "2222": 12400, "233": 12401, "2446": 12402, "50": 12403, "19": 12404, "141": 12405, "2249": 12406, "190": 12407, "2261": 12408, "2208": 12409, "2005": 12410, "2032": 12411, "39": 12412, "2290": 12414, "85": 12415, "2334": 12416, "2296": 12417, "185": 12418, "2304": 12419, "2229": 12420, "20": 12421, "2247": 12422, "21": 12423, "2236": 12424, "2308": 12425, "81": 12426, "99": 12427, "2280": 12428, "2234": 12429, "2239": 12430, "2325": 12431, "2336": 12432, "2328": 12433, "2259": 12435, "2016": 12436, "2373": 12437, "2273": 12438, "2388": 12439, "159": 12440, "22": 12441, "2216": 12443, "2453": 12444, "160": 12445, "66": 12446, "2207": 12447, "2313": 12448, "2378": 12449, "2217": 12450, "2232": 12451, "2366": 12452, "254": 12453, "75": 12454, "2246": 12455, "2244": 12456, "92": 12457, "2463": 12458, "23": 12459, "111": 12460, "132": 12461, "2231": 12462, "2447": 12463, "2416": 12464, "96": 12465, "129": 12466, "2015": 12467, "2028": 12468, "2469": 12469, "24": 12470, "122": 12471, "2029": 12472, "58": 12473, "162": 12474, "191": 12475, "2444": 12476, "2450": 12477, "2371": 12478, "2268": 12479, "110": 12480, "2294": 12481, "70": 12482, "25": 12483, "2377": 12484, "2224": 12485, "2343": 12486, "2243": 12487, "2256": 12488, "130": 12489, "2359": 12490, "2437": 12492, "211": 12497, "202": 12523, "217": 12524, "220": 12525, "215": 12526, "44": 12527, "208": 12528, "212": 12529, "210": 12530, "205": 12531, "216": 12532, "213": 12533, "147": 12534, "1124": 12535, "206": 12536}, "aesa_nome_para_res_id": {"Cachoeira dos Cegos": 12080, "Jenipapeiro (Buiú)": 12231, "Capoeira": 12101, "Baião": 12038, "Carneiro": 12110, "Soledade": 12443, "Tapera": 12450, "Mucutu": 12285, "Santo Antônio": 12400, "Escondido": 12173, "Bom Jesus II": 12060, "Serra Branca II": 12429, "Catolé I": 12114, "Cacimba de Várzea": 12085, "Vazante": 12487, "Tavares II": 12456, "Poleiros": 12351, "Curimataú": 12145, "Olivedos": 12298, "Jatobá II": 12227, "Serrote": 12435, "Paraíso (Luiz Oliveira)": 12307, "São Francisco II": 12408, "Pirpirituba": 12337, "Bichinho": 12053, "Cochos": 12128, "Frutuoso II": 12191, "Santa Rosa": 12399, "Caraibeiras": 12103, "Livramento (Russos)": 12255, "Serra Branca I": 12428, "Felismina Queiroz": 12182, "Chã dos Pereiras": 12120, "Jenipapeiro": 12229, "Sabonete": 12385, "Albino": 12011, "Ouro Velho": 12300, "Gavião": 12196, "Glória": 12199, "Prata II": 12357, "São José II": 12414, "Bastiana": 12047, "Riacho Verde": 12493, "Lagoa do Matias": 12250, "Algodão": 12014, "São José III": 12417, "Brejinho": 12069, "Covão": 12137, "Manguape": 12539, "Chupadouro II": 12125, "Massaranduba": 12275, "Jangada": 12222, "Emídio": 12162, "São Sebastião": 12425, "Duas Estradas": 12156, "Cafundó": 12086, "Suspiro": 12448, "Pimenta": 12331}, "apac_nome_para_res_id": {"SERRO AZUL": 12538, "SACO II": 12388, "SACO I": 12537, "PAO DE ACUCAR": 12306, "BOTAFOGO": 12068, "VARZEA DO UNA": 12484, "UTINGA": 12478, "PALMEIRINHA/PEDRAFINA": 12305, "IPANEMINHA": 12212, "JUA": 12242, "SICUPEMA": 12437, "BITA": 12055, "DUAS SERRAS": 12157}};
 // textos editáveis: o padrão vem do próprio código das páginas ({janela_ne} = parâmetro da janela do NE)
@@ -5704,7 +5714,7 @@ const PAGS_TX = [
   {k:"dados", r:"Área de dados", ir:"dados", casa:h => h==="dados"},
   {k:"api", r:"API pública", ir:"api", casa:h => h==="api"}];
 // fora da edição de texto: tabelas, mapas, legendas, controles, carimbo, avisos e códigos
-const TX_FORA = "table,.leaflet-container,.carimbo,.baixar,svg,.legenda,.aviso-pub,.avisos-pub,nav,label,.pedido,.adm-form,.mf,.chips-filtro,.api-box,.previa-box,#rev-serie,.trilha";
+const TX_FORA = "table,.leaflet-container,.carimbo,.baixar,svg,.legenda,.aviso-pub,.avisos-pub,nav,label,.pedido,.adm-form,.mf,.chips-filtro,.api-box,.previa-box,.trilha";
 const txSemDica = el => { const c = el.cloneNode(true); c.querySelectorAll(".dica").forEach(d => d.remove()); return c.innerHTML.trim(); };
 const txPlano = h => { const d = document.createElement("div"); d.innerHTML = h; return d.textContent.replace(/\s+/g, " ").trim(); };
 const txNorm = h => { const d = document.createElement("div"); d.innerHTML = h; return d.innerHTML.trim(); };
@@ -6443,7 +6453,7 @@ function admParametros(){
     if (Math.abs(v - parAdm(p.k)) < 1e-9) delete pend[p.k]; else pend[p.k] = v; i.parentElement.classList.toggle("mudou", p.k in pend); barra(); });
 }
 
-/* ---------------- páginas públicas: avisos, textos e revisões da série */
+/* ---------------- páginas públicas: avisos e textos */
 function fichaDe(e){
   if (!e) return null;
   if (e.src==="sin" && String(e.codigo)===String(D.ficha.codigo)) return "ficha/FURNAS";
@@ -6465,15 +6475,6 @@ function extrasPublicos(h){
   if (A.length){ const box = document.createElement("div"); box.className = "avisos-pub";
     box.innerHTML = A.map(a => `<div class="aviso-pub ${a.tipo}" role="note"><b>${a.tipo==="atencao" ? "Atenção." : "Aviso."}</b> ${esc(a.txt)}</div>`).join("");
     const c = $("#conteudo"), ac = $(".acesso-adm", c); if (ac) ac.after(box); else c.prepend(box); }
-  if (e){ const R = ADM.revisoes.filter(r => r.id === e.id), n = $$("#conteudo section.secao h2 small").length + 1, ind = $("#conteudo nav.indice");
-    const sec = document.createElement("section"); sec.className = "cartao secao"; sec.id = "rev-serie"; sec.setAttribute("aria-labelledby", "t-rev-serie");
-    sec.innerHTML = `<h2 id="t-rev-serie"><small>${n}</small>Revisões da série</h2>
-      <p class="sub">Correções feitas pela ANA depois da publicação: quando, o que mudou e por quê. A mesma lista vai no leia-me dos arquivos da área de dados.</p>
-      ${R.length ? `<ul class="rev-lista">${R.map(r => `<li><span class="q">${esc(r.quando)}</span><span>${esc(r.texto)}.<span class="m">Motivo: ${esc(r.motivo)}</span></span></li>`).join("")}</ul>`
-        : '<p class="nota">Nenhuma revisão registrada desde a publicação.</p>'}
-      <p class="nota">No protótipo, a lista mostra as correções feitas nesta sessão na área administrativa; os gráficos e as tabelas desta página não são refeitos com elas.</p>`;
-    $("#conteudo").append(sec);
-    if (ind) ind.insertAdjacentHTML("beforeend", `<a href="#${esc(h)}" data-alvo="rev-serie">Revisões da série</a>`); }
 }
 // celular: cada célula das tabelas da administração leva o nome da coluna (vira cartão no CSS)
 function rotulaTabelasAdm(raiz){
@@ -6482,9 +6483,6 @@ function rotulaTabelasAdm(raiz){
 }
 new MutationObserver(() => { const c = document.getElementById("conteudo"); if (c.classList.contains("admin")) rotulaTabelasAdm(c); })
   .observe(document.getElementById("conteudo"), {childList:true, subtree:true});
-function revisoesLeiaMe(S){ const ids = new Set(S.map(e => e.id)), R = ADM.revisoes.filter(r => ids.has(r.id));
-  return R.length ? [``, `Revisões da série depois da publicação (${R.length}):`, ...R.map(r => `- ${r.quando} · ${r.nome}${r.cod ? " (código " + r.cod + ")" : ""}: ${r.texto}. Motivo: ${r.motivo}.`),
-    `No protótipo, as revisões são listadas, mas os valores deste arquivo não as incorporam.`] : [``, `Revisões da série depois da publicação: nenhuma para os reservatórios selecionados.`]; }
 
 /*__ADMIN_JS_FIM__*/
 /* título de gráfico que não cabe na largura (celular): quebra em linhas e o resto do desenho desce (19/09/2026) */
