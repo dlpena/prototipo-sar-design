@@ -275,6 +275,13 @@ main>section+section,main>.secao+.secao{margin-top:22px}
 .comparacoes li span{color:var(--tinta-2)}
 .comparacoes li b{font-weight:700}
 .comparacoes li span small{display:block;font-size:12px;color:var(--apagado);margin-top:2px}
+.regua-faixas{position:relative;height:12px;border-radius:2px;overflow:hidden;display:flex;margin:16px 0 4px;max-width:360px}
+.regua-faixas span{height:100%}
+.regua-rot{position:relative;height:16px;max-width:360px;font-size:11px;color:var(--apagado)}
+.regua-rot b{position:absolute;top:0;transform:translateX(-50%);font-weight:400}
+.regua-marca{position:absolute;top:-19px;width:3px;height:18px;background:var(--tinta);border-radius:1px;transform:translateX(-50%)}
+.secao:has(> .equiv) .regua-rot{color:#C5D2EA}
+.secao:has(> .equiv) .regua-marca{background:#FFFFFF;box-shadow:0 0 0 1px #13286B}
 .equiv .def{font-size:12.5px;color:var(--apagado);margin:12px 0 0;line-height:1.45;max-width:60ch}
 .data-ref{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tinta-2)}
 .data-ref input{font:inherit;color:var(--tinta);border:1px solid var(--linha-forte);border-radius:3px;padding:4px 8px;background:#fff}
@@ -4060,6 +4067,9 @@ function paginaCantareira(){
         <div class="lado">
           <div class="valor num" id="c-valor"></div>
           <div class="quando" id="c-quando"></div>
+          <div class="regua-faixas" aria-hidden="true">${FAIXAS_OPERACAO_CAN.slice().reverse().map(f => { const de = Math.max(0, f.de), ate = Math.min(100, f.ate); return `<span style="width:${ate-de}%;background:${f.cor}" title="${f.rot}"></span>`; }).join("")}</div>
+          <div class="regua-rot" id="c-regua"></div>
+          <p class="def">Posição do volume útil de <span id="c-regua-dia"></span> nas faixas de operação do art. 4º da resolução (cores como no gráfico Ao longo do ano). A faixa em vigor é estabelecida mensalmente pela ANA e pelo DAEE, até o último dia útil do mês anterior, e as faixas 4 e 5 podem ser estabelecidas a qualquer momento (art. 6º); por isso, pode diferir da indicada pelo volume do dia.</p>
         </div>
         <ul class="comparacoes" id="c-comp"></ul>
       </div>
@@ -4132,6 +4142,9 @@ function situacaoCan(ref, p0, f0){
   const ant = `${+ref.slice(0,4)-1}${ref.slice(4)}`;
   $("#c-valor").innerHTML = `${fmt(p0,1)}<small>%</small>`;
   $("#c-quando").textContent = `volume útil do sistema em ${dBR(ref)} · ${fmt(vol,1)} de ${fmt(CAN.vu,2)} hm³`;
+  $("#c-regua").innerHTML = [0,20,30,40,60,100].map(v => `<b style="left:${v}%">${v}</b>`).join("") +
+    (p0!=null ? `<span class="regua-marca" style="left:${Math.max(0, Math.min(100, p0))}%" title="${fmt(p0,1)}% em ${dBR(ref)}"></span>` : "");
+  $("#c-regua-dia").textContent = dBR(ref);
   $("#c-comp").innerHTML = `<li><span>Em 7 dias</span><b class="num">${dif(p0, pctCan(isoMais(ref,-7)))}</b></li>
     <li><span>Em 30 dias</span><b class="num">${dif(p0, pctCan(isoMais(ref,-30)))}</b></li>
     <li><span>Mesmo dia de ${ant.slice(0,4)}<small>${dif(p0, pctCan(ant))}</small></span><b class="num">${fmt(pctCan(ant),1)}%</b></li>
