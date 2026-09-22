@@ -2813,6 +2813,12 @@ function graficoCalendario(host, pontos, o){
   const X = i => m.l + i*(W-m.l-m.r)/364, Y = v => m.t + (hi-v)/(hi-lo)*(H-m.t-m.b);
   const cor = a => a===o.anoAtual ? "#1C3782" : a===o.anoAtual-1 ? "#4A7FB0" : "#B9C7D8";
   const svg = svgEl("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":o.rotulo});
+  (o.faixas || []).forEach((f, k) => {             // faixas de referência ao fundo (ex.: faixas de operação do Cantareira)
+    const y0 = Y(Math.min(hi, f.ate)), y1 = Y(Math.max(lo, f.de));
+    svg.append(svgEl("rect",{x:m.l, y:y0, width:W-m.l-m.r, height:y1-y0, fill: k % 2 ? "#FFFFFF" : "#EEF3F9"}));
+    f._t = {x:m.l+6, y:(y0+y1)/2+4, rot:f.rot};   // rótulo escrito depois das curvas, com halo branco, para não sumir sob elas
+    if (f.de > lo) svg.append(svgEl("line",{x1:m.l, x2:W-m.r, y1:y1, y2:y1, stroke:"#C6D1DE", "stroke-width":1, "stroke-dasharray":"5 4"}));
+  });
   const eixo = svgEl("g",{class:"eixo"}), passoY = niceStep((hi-lo)/5);
   for (let v = Math.ceil(lo/passoY)*passoY; v <= hi; v += passoY){
     eixo.append(svgEl("line",{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:"#E3EAF2"}));
@@ -2843,6 +2849,9 @@ function graficoCalendario(host, pontos, o){
     const fim = pts[pts.length-1];
     fins.push({a, x:X(fim[0]), y:Y(fim[1])});
   });
+  (o.faixas || []).forEach(f => { if (!f._t) return;
+    const t = svgEl("text",{x:f._t.x, y:f._t.y, "font-size":10.5, "font-family":"Arial", fill:"#5B6B80", stroke:"#FFFFFF", "stroke-width":3, "paint-order":"stroke", "stroke-linejoin":"round"});
+    t.textContent = f._t.rot; svg.append(t); });
   if (!o.semRotulos) rotulosPonta(svg, fins, cor, o.anoAtual, H - m.b - 4);
   const cruz = svgEl("line",{y1:m.t,y2:H-m.b,stroke:"#C6D1DE",visibility:"hidden"}); svg.append(cruz);
   const alvo = svgEl("rect",{x:m.l,y:0,width:W-m.l-m.r,height:H,fill:"transparent"}); svg.append(alvo);
@@ -4072,8 +4081,9 @@ function paginaCantareira(){
     <section class="cartao secao" id="c-ano" aria-labelledby="t-c-ano">
       ${barraBaixar([["baixar-can-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-can-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-c-ano"><small>4</small>Ao longo do ano</h2>
-      <p class="sub">Volume útil do sistema (%) dia a dia, nos cinco anos até a data de referência (o último ponto da curva).<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
+      <p class="sub">Volume útil do sistema (%) dia a dia, nos cinco anos até a data de referência (o último ponto da curva). Ao fundo, as faixas de operação pelo volume útil acumulado, conforme o art. 4º da Resolução Conjunta ANA/DAEE nº 925/2017: 1 Normal (60% ou mais), 2 Atenção (40% a 60%), 3 Alerta (30% a 40%), 4 Restrição (20% a 30%) e 5 Especial (abaixo de 20%).<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div class="graf" id="g-can-ano"></div>
+      <p class="nota" style="margin:8px 0 0">As faixas são referência. A faixa em vigor em cada mês é a fixada pela ANA e pelo DAEE (art. 6º da resolução) e pode diferir da indicada pelo volume do dia.</p>
     </section>
     <section class="cartao secao" id="c-dia" aria-labelledby="t-c-dia">
       ${barraBaixar([["baixar-can-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-can-dia", "PNG", "Baixar o gráfico como imagem"]])}
@@ -4259,11 +4269,14 @@ function balancoCanV(ref, R, V){
   txt(8, yl + 26, "Valores em m³/s, média do dia.", {cor:AP, a:"start"});
   return svg;
 }
+// faixas de operação pelo volume útil acumulado (Resolução Conjunta ANA/DAEE nº 925/2017, art. 4º): só referência no gráfico;
+// a faixa vigente é a fixada mensalmente pela ANA e pelo DAEE (art. 6º) e não é calculada pela página
+const FAIXAS_OPERACAO_CAN = [{de:60, ate:1e9, rot:"1 Normal"}, {de:40, ate:60, rot:"2 Atenção"}, {de:30, ate:40, rot:"3 Alerta"}, {de:20, ate:30, rot:"4 Restrição"}, {de:-1e9, ate:20, rot:"5 Especial"}];
 function anoCan(ref){
   const a1 = +ref.slice(0,4), anos = []; for (let a = a1 - 4; a <= a1; a++) anos.push(a);
   const pts = {}; const i0 = diaEntre(`${a1-4}-01-01`, CAN.de), i1 = Math.min(CAN.pct.length - 1, diaEntre(ref, CAN.de));
   for (let i = Math.max(0, i0); i <= i1; i++) pts[isoMais(CAN.de, i)] = CAN.pct[i];
-  graficoCalendario($("#g-can-ano"), pts, {colCSV:"volume_util_pct", anos, anoAtual:a1, dec:1, unidade:"%", pct:true, marcaDia:ref, rotulo:"Volume útil do Sistema Cantareira (%)", maxVao:3, tol:1});
+  graficoCalendario($("#g-can-ano"), pts, {colCSV:"volume_util_pct", anos, anoAtual:a1, dec:1, unidade:"%", pct:true, marcaDia:ref, rotulo:"Volume útil do Sistema Cantareira (%)", maxVao:3, tol:1, faixas:FAIXAS_OPERACAO_CAN});
 }
 function diaCan(ref){
   const mmdd = ref.slice(5)==="02-29" ? "02-28" : ref.slice(5), a1 = +ref.slice(0,4), dados = [];
