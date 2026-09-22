@@ -460,6 +460,7 @@ body.na-inicio #conteudo{padding-top:22px}
 #mapa-ce,#mapa-uf{height:560px;border:1px solid var(--linha);border-radius:4px;position:relative;z-index:0;isolation:isolate}
 .bola{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin-right:7px;border:1px solid rgba(255,255,255,.9)}
 .legenda .bola{margin-right:6px}
+.legenda .area{display:inline-block;width:16px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:6px}
 td .dias{display:block;font-size:11.5px;color:var(--apagado)}
 td .obs{display:block;font-size:11.5px;color:var(--apagado);margin-left:16px}
 td .dias.velho{color:#B45309;font-weight:700}
@@ -2815,9 +2816,9 @@ function graficoCalendario(host, pontos, o){
   const svg = svgEl("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":o.rotulo});
   (o.faixas || []).forEach((f, k) => {             // faixas de referência ao fundo (ex.: faixas de operação do Cantareira)
     const y0 = Y(Math.min(hi, f.ate)), y1 = Y(Math.max(lo, f.de));
-    svg.append(svgEl("rect",{x:m.l, y:y0, width:W-m.l-m.r, height:y1-y0, fill: k % 2 ? "#FFFFFF" : "#EEF3F9"}));
-    f._t = {x:m.l+6, y:(y0+y1)/2+4, rot:f.rot};   // rótulo escrito depois das curvas, com halo branco, para não sumir sob elas
-    if (f.de > lo) svg.append(svgEl("line",{x1:m.l, x2:W-m.r, y1:y1, y2:y1, stroke:"#C6D1DE", "stroke-width":1, "stroke-dasharray":"5 4"}));
+    svg.append(svgEl("rect",{x:m.l, y:y0, width:W-m.l-m.r, height:y1-y0, fill: f.cor ? tintaFaixa(f) : k % 2 ? "#FFFFFF" : "#EEF3F9"}));
+    if (!f.cor) f._t = {x:m.l+6, y:(y0+y1)/2+4, rot:f.rot};   // sem cor: rótulo no gráfico, depois das curvas, com halo
+    if (f.de > lo) (o._limites = o._limites || []).push(svgEl("line",{x1:m.l, x2:W-m.r, y1:y1, y2:y1, stroke:f.cor || "#C6D1DE", "stroke-width":1, "stroke-dasharray":"5 4", opacity:.8}));
   });
   const eixo = svgEl("g",{class:"eixo"}), passoY = niceStep((hi-lo)/5);
   for (let v = Math.ceil(lo/passoY)*passoY; v <= hi; v += passoY){
@@ -2827,6 +2828,7 @@ function graficoCalendario(host, pontos, o){
   MESES.forEach((mm,q) => { const tx = svgEl("text",{x:X(idx(`2025-${String(q+1).padStart(2,"0")}-15`)),y:H-8,"text-anchor":"middle"}); tx.textContent = W < 480 && q % 2 ? "" : mm; eixo.append(tx); });
   const rot = svgEl("text",{x:m.l, y:16, "font-size":13.5, fill:"#1C3782", "font-weight":700, "font-family":"Arial"}); rot.textContent = o.rotulo; eixo.append(rot);
   svg.append(eixo);
+  (o._limites || []).forEach(l => svg.append(l)); o._limites = null;   // limites das faixas por cima da grade
   (o.linhas || []).forEach(l => {                 // limites horizontais (ex.: faixas de operação do Cantareira)
     svg.append(svgEl("line",{x1:m.l, x2:W-m.r, y1:Y(l.v), y2:Y(l.v), stroke:l.cor, "stroke-width":1, "stroke-dasharray":"5 4", opacity:.9}));
   });
@@ -4081,8 +4083,9 @@ function paginaCantareira(){
     <section class="cartao secao" id="c-ano" aria-labelledby="t-c-ano">
       ${barraBaixar([["baixar-can-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-can-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-c-ano"><small>4</small>Ao longo do ano</h2>
-      <p class="sub">Volume útil do sistema (%) dia a dia, nos cinco anos até a data de referência (o último ponto da curva). Ao fundo, as faixas de operação pelo volume útil acumulado, conforme o art. 4º da Resolução Conjunta ANA/DAEE nº 925/2017: 1 Normal (60% ou mais), 2 Atenção (40% a 60%), 3 Alerta (30% a 40%), 4 Restrição (20% a 30%) e 5 Especial (abaixo de 20%).<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
+      <p class="sub">Volume útil do sistema (%) dia a dia, nos cinco anos até a data de referência (o último ponto da curva). Ao fundo, as faixas de operação pelo volume útil acumulado, conforme o art. 4º da Resolução Conjunta ANA/DAEE nº 925/2017.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div class="graf" id="g-can-ano"></div>
+      ${legendaFaixasCan()}
       <p class="nota" style="margin:8px 0 0">As faixas são referência. A faixa em vigor em cada mês é a fixada pela ANA e pelo DAEE (art. 6º da resolução) e pode diferir da indicada pelo volume do dia.</p>
     </section>
     <section class="cartao secao" id="c-dia" aria-labelledby="t-c-dia">
@@ -4112,7 +4115,7 @@ function paginaCantareira(){
   redesenharOS = desenhar;
   desenhar();
   $("#baixar-bal-png").onclick = () => baixarPNG([$("#c-balanco svg")], `sar_cantareira_balanco_${refOS}.png`, `Sistema Cantareira · balanço de vazões em ${dBR(refOS)} (m³/s)`, []);
-  $("#baixar-can-ano").onclick = () => baixarPNG([$("#g-can-ano svg")], "sar_cantareira_ao_longo_do_ano.png", `Sistema Cantareira · volume útil ao longo do ano · até ${dBR(refOS)}`, []);
+  $("#baixar-can-ano").onclick = () => baixarPNG([$("#g-can-ano svg")], "sar_cantareira_ao_longo_do_ano.png", `Sistema Cantareira · volume útil ao longo do ano · até ${dBR(refOS)}`, [...LEG_ANOS(+refOS.slice(0,4)), ...FAIXAS_OPERACAO_CAN.map(f => ({r:f.rot, cor:tintaFaixa(f), area:true}))]);
   $("#baixar-can-dia").onclick = () => baixarPNG([$("#g-can-dia svg")], `sar_cantareira_mesmo_dia_${refOS}.png`, `Sistema Cantareira · volume útil em ${dBR(refOS).slice(0,5)} de cada ano`, []);
   $("#baixar-can-mes").onclick = () => baixarPNG([$("#g-can-chuva svg"), $("#g-can-qnat svg")], `sar_cantareira_chuva_afluencia_${refOS}.png`, `Sistema Cantareira · chuva e vazão natural contra a média · até ${dBR(refOS)}`, []);
   $("#baixar-can-csv").onclick = () => salvarCSV(["reservatorio","codigo","data","nivel_m","volume_util_hm3","volume_util_pct","afluente_natural_m3s","para_jusante_m3s"],
@@ -4271,7 +4274,13 @@ function balancoCanV(ref, R, V){
 }
 // faixas de operação pelo volume útil acumulado (Resolução Conjunta ANA/DAEE nº 925/2017, art. 4º): só referência no gráfico;
 // a faixa vigente é a fixada mensalmente pela ANA e pelo DAEE (art. 6º) e não é calculada pela página
-const FAIXAS_OPERACAO_CAN = [{de:60, ate:1e9, rot:"1 Normal"}, {de:40, ate:60, rot:"2 Atenção"}, {de:30, ate:40, rot:"3 Alerta"}, {de:20, ate:30, rot:"4 Restrição"}, {de:-1e9, ate:20, rot:"5 Especial"}];
+const FAIXAS_OPERACAO_CAN = [
+  {de:60, ate:1e9, rot:"Faixa 1 · Normal (60% ou mais)", cor:"#1B7F3B"}, {de:40, ate:60, rot:"Faixa 2 · Atenção (40% a 60%)", cor:"#D4A800"},
+  {de:30, ate:40, rot:"Faixa 3 · Alerta (30% a 40%)", cor:"#E07B00"}, {de:20, ate:30, rot:"Faixa 4 · Restrição (20% a 30%)", cor:"#C0392B"},
+  {de:-1e9, ate:20, rot:"Faixa 5 · Especial (abaixo de 20%)", cor:"#7A1F1F"}];
+const OPAC_FAIXA = .16;
+const tintaFaixa = f => { const n = parseInt(f.cor.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${OPAC_FAIXA})`; };
+const legendaFaixasCan = () => `<div class="legenda" style="margin-top:8px">${FAIXAS_OPERACAO_CAN.map(f => `<span><i class="area" style="background:${tintaFaixa(f)};box-shadow:inset 0 0 0 1px ${f.cor}"></i>${f.rot}</span>`).join("")}</div>`;
 function anoCan(ref){
   const a1 = +ref.slice(0,4), anos = []; for (let a = a1 - 4; a <= a1; a++) anos.push(a);
   const pts = {}; const i0 = diaEntre(`${a1-4}-01-01`, CAN.de), i1 = Math.min(CAN.pct.length - 1, diaEntre(ref, CAN.de));
