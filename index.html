@@ -520,6 +520,8 @@ h1 .simb{margin-right:10px;vertical-align:-2px}
 .chip-ano{all:unset;cursor:pointer;padding:2px 8px;border-radius:10px;border:1px solid var(--linha);color:var(--apagado);font-size:12px;margin:2px 2px 2px 0}
 .chip-ano.on{background:var(--ana);border-color:var(--ana);color:#fff}
 .chip-ano:disabled{cursor:not-allowed;opacity:.45}
+.chip-ano.antes{border-style:dashed;border-color:var(--linha-forte)}
+.chip-ano.antes.on{border-color:#FFFFFF}
 .controles .anos legend .nota{font-weight:400;text-transform:none;letter-spacing:0}
 .graf{position:relative}
 .graf svg{display:block;width:100%;height:auto}
@@ -2171,6 +2173,11 @@ window.addEventListener("resize", () => {
 /* ============================================================ ficha da usina do SIN (Furnas embutida; as demais sob demanda) */
 // usinas com ficha no protótipo: Furnas (embutida) e as de fichas/<codigo>.json (usinas com condições de operação em resolução da ANA)
 const FICHAS_SIN = [{nome:D.ficha.nome, codigo:D.ficha.codigo, bacia:D.ficha.bacia, arquivo:null}, ...(D.fichas_idx || [])];
+// botão de ano: anos terminados antes da vigência da resolução ficam com contorno tracejado e o motivo no título
+function chipAno(a, on, RA){
+  const antes = RA && RA.desde && `${a}-12-31` < RA.desde;
+  return `<button type="button" class="chip-ano${on ? " on" : ""}${antes ? " antes" : ""}" data-a="${a}"${antes ? ` title="Anterior à vigência da resolução (desde ${dBR(RA.desde)}): as faixas não se aplicavam"` : ""}>${a}</button>`;
+}
 const slugFicha = n => n.normalize("NFD").replace(/\p{M}/gu, "").toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "");
 const fichaDoNome = nome => FICHAS_SIN.find(f => f.nome===nome);
 const hashFicha = nome => "ficha/" + slugFicha(nome);
@@ -2256,7 +2263,7 @@ function paginaFicha(){
     <section class="cartao secao" id="f-ano" aria-labelledby="t-ano">
       ${barraBaixar([["baixar-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-ano-png", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-ano"><small>4</small>Ano contra anos anteriores</h2>
-      <p class="sub">A série diária de cada ano sobreposta no mesmo calendário. O ano corrente fica em destaque.<span class="dica">Clique nos anos para incluir ou tirar, até ${MAX_ANOS} ao mesmo tempo.</span></p>
+      <p class="sub">A série diária de cada ano sobreposta no mesmo calendário. O ano da data de referência fica em destaque, e a sua curva termina nela.<span class="dica">Selecione os anos a comparar, até ${MAX_ANOS} simultaneamente; posicione o cursor sobre o gráfico para ler o mesmo dia em cada ano.</span></p>
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-ano" aria-label="Variável">${["vu","cota"].map(k => `<option value="${k}">${VARS[k].r}${k==="vu" ? " (%)" : " (m)"}</option>`).join("")}</select></fieldset>
         <fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos"></span></legend><span id="anos-chips"></span></fieldset></div>
       <div class="graf" id="g-ano"></div>
@@ -2291,7 +2298,7 @@ function paginaFicha(){
 
     $("#aviso-sit").textContent = temBacia ? "" : F.bacia==="GRANDE" ? `No mapa, as vizinhas seguem em ${dBR(D.data)}: no protótipo a série da bacia vai de ${dBR(SER_BACIA[0])} a ${dBR(D.data)}.` : `No mapa, as demais usinas da bacia seguem em ${dBR(D.data)}: no protótipo só a série desta usina está completa.`;
   }
-  $("#dia-sit").addEventListener("change", e => { const v = e.target.value; if (v && v >= e.target.min && v <= e.target.max){ situacao(v); graficoMesmoDia(); } });
+  $("#dia-sit").addEventListener("change", e => { const v = e.target.value; if (v && v >= e.target.min && v <= e.target.max){ situacao(v); graficoMesmoDia(); anosDaReferencia(v); graficoAnos(); } });
   $("#dia-sit-hoje").onclick = () => { const e = $("#dia-sit"); e.value = ult.data; e.dispatchEvent(new Event("change")); };
   situacao(ult.data);
 
@@ -2336,27 +2343,36 @@ function paginaFicha(){
 
   // 4. ano contra anos
   const anos = [...new Set(DI.map(o => +o.data.slice(0,4)))];
-  const anoAtual = +ult.data.slice(0,4);
-  fichaEstado.anosSel = new Set([anoAtual, anoAtual-1, anoAtual-2, anoAtual-3, anoAtual-4]);
-  $("#anos-chips").innerHTML = anos.map(a => `<button type="button" class="chip-ano${fichaEstado.anosSel.has(a) ? " on" : ""}" data-a="${a}">${a}</button>`).join("");
+  // os anos marcados acompanham a data de referência: ao mudar de ano, voltam a ser os cinco até ela (como no Cantareira)
+  function anosDaReferencia(iso){
+    const a = +iso.slice(0,4);
+    if (fichaEstado.anoRef === a) return;
+    fichaEstado.anoRef = a; fichaEstado.anosSel = new Set([a, a-1, a-2, a-3, a-4].filter(x => anos.includes(x)));
+    if (fichaEstado.montado) montarChips();
+  }
+  const montarChips = () => { $("#anos-chips").innerHTML = anos.map(a => chipAno(a, fichaEstado.anosSel.has(a), FAIXAS_ANA[FICHA.nome])).join(""); ligarChips(); };
+  fichaEstado.anoRef = null; fichaEstado.montado = false; anosDaReferencia($("#dia-sit").value || ult.data);
   // limite de anos: acima disso os rótulos das pontas se sobrepõem e o gráfico deixa de ser legível
   const atualizarChips = () => {
     const n = fichaEstado.anosSel.size, cheio = n >= MAX_ANOS;
     $$("#anos-chips .chip-ano").forEach(b => { const on = fichaEstado.anosSel.has(+b.dataset.a); b.classList.toggle("on", on); b.disabled = !on && cheio; });
     $("#nota-anos").textContent = `${n} de ${MAX_ANOS}`;
   };
-  $$("#anos-chips .chip-ano").forEach(b => b.onclick = () => {
-    const a = +b.dataset.a;
-    if (fichaEstado.anosSel.has(a)){
-      if (fichaEstado.anosSel.size === 1){ toast("Deixe ao menos um ano selecionado."); return; }
-      fichaEstado.anosSel.delete(a);
-    } else {
-      if (fichaEstado.anosSel.size >= MAX_ANOS){ toast(`Até ${MAX_ANOS} anos ao mesmo tempo: desmarque um para incluir outro.`); return; }
-      fichaEstado.anosSel.add(a);
-    }
-    atualizarChips(); graficoAnos();
-  });
-  atualizarChips();
+  function ligarChips(){
+    $$("#anos-chips .chip-ano").forEach(b => b.onclick = () => {
+      const a = +b.dataset.a;
+      if (fichaEstado.anosSel.has(a)){
+        if (fichaEstado.anosSel.size === 1){ toast("Deixe ao menos um ano selecionado."); return; }
+        fichaEstado.anosSel.delete(a);
+      } else {
+        if (fichaEstado.anosSel.size >= MAX_ANOS){ toast(`Até ${MAX_ANOS} anos ao mesmo tempo: desmarque um para incluir outro.`); return; }
+        fichaEstado.anosSel.add(a);
+      }
+      atualizarChips(); graficoAnos();
+    });
+    atualizarChips();
+  }
+  fichaEstado.montado = true; montarChips();
   $("#var-ano").onchange = graficoAnos;
   $("#baixar-ano-png").onclick = () => baixarPNG([$("#g-ano svg")], `sar_${arq}_ano_contra_anos.png`, `${caso(F.nome)} · ${VARS[$("#var-ano").value].r} ao longo do ano`, [...LEG_ANOS(+fichaEstado.ult.data.slice(0,4), "ano corrente"),
     ...($("#var-ano").value==="vu" && FAIXAS_ANA[FICHA.nome] ? faixasLegenda(FAIXAS_ANA[FICHA.nome]).map(f => ({r:f.rot, cor:f.fundo, area:true})) : [])]);
@@ -2549,11 +2565,12 @@ function notaFaixasAno(nome){
 }
 // 4. linhas por ano no mesmo calendário
 function graficoAnos(){
-  const host = $("#g-ano"), DI = fichaEstado.DI, k = $("#var-ano").value, V = VARS[k], anoAtual = +fichaEstado.ult.data.slice(0,4);
+  const host = $("#g-ano"), DI = fichaEstado.DI, k = $("#var-ano").value, V = VARS[k];
+  const ref = ($("#dia-sit") || {}).value || fichaEstado.ult.data, anoAtual = +ref.slice(0,4);   // o gráfico segue a data de referência
   const anos = [...fichaEstado.anosSel].sort();
   const idx = iso => Math.round((Date.UTC(2025, +iso.slice(5,7)-1, +iso.slice(8,10)) - Date.UTC(2025,0,1))/864e5);
   const serie = {}; anos.forEach(a => serie[a] = Array(365).fill(null));
-  DI.forEach(o => { const a = +o.data.slice(0,4); if (serie[a] && o.data.slice(5)!=="02-29" && o[k]!=null) serie[a][idx(o.data)] = o[k]; });
+  DI.forEach(o => { const a = +o.data.slice(0,4); if (serie[a] && o.data.slice(5)!=="02-29" && o[k]!=null && o.data <= ref) serie[a][idx(o.data)] = o[k]; });
   guardaCSV(host, ["data", V.r.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").replace(/\W+/g, "_") + "_" + (COL_UNID[V.u] || "").split("_").pop()],
     DI.filter(o => anos.includes(+o.data.slice(0,4)) && o[k]!=null).map(o => [dBR(o.data), o[k]]));
   host.innerHTML = "";
@@ -2565,7 +2582,8 @@ function graficoAnos(){
   const X = i => m.l + i*(W-m.l-m.r)/364, Y = v => m.t + (hi-v)/(hi-lo)*(H-m.t-m.b);
   const cor = a => a===anoAtual ? "#1C3782" : a===anoAtual-1 ? "#4A7FB0" : "#B9C7D8";
   const svg = svgEl("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":`${V.r} ao longo do ano, ${anos.join(", ")}`});
-  const RA = k==="vu" ? FAIXAS_ANA[FICHA.nome] : null, limites = [];   // faixas ou limites da resolução, só no volume útil
+  // faixas só no volume útil e só quando a data de referência está na vigência da resolução
+  const RAu = k==="vu" ? FAIXAS_ANA[FICHA.nome] : null, RA = RAu && (!RAu.desde || ref >= RAu.desde) ? RAu : null, limites = [];
   if ($("#f-ano-faixas")) $("#f-ano-faixas").hidden = !RA;
   // faixas ao fundo, mês a mês (em Serra da Mesa mudam com o período); limites tracejados por cima da grade
   if (RA) for (let q = 0; q < 12; q++){
@@ -2587,6 +2605,12 @@ function graficoAnos(){
     svg.append(svgEl("path",{d, fill:"none", stroke:cor(a), "stroke-width": a===anoAtual ? 3 : a===anoAtual-1 ? 2 : 1.3, "stroke-linejoin":"round"}));
     if (fim!=null) fins.push({a, x:X(fim), y:Y(serie[a][fim])});
   });
+  if (anos.includes(anoAtual)){   // tracejado da data de referência, como nos demais gráficos por ano
+    const xd = X(idx(ref.slice(5)==="02-29" ? ref.slice(0,8) + "28" : ref));
+    svg.append(svgEl("line",{x1:xd, x2:xd, y1:m.t, y2:H-m.b, stroke:"#C0392B", "stroke-width":1, "stroke-dasharray":"3 3", opacity:.7}));
+    const md = svgEl("text",{x:xd, y:m.t-6, "text-anchor":"middle", "font-size":10.5, "font-family":"Arial", fill:"#C0392B"});
+    md.textContent = "data de referência"; svg.append(md);
+  }
   rotulosPonta(svg, fins, cor, anoAtual, H - m.b - 4);
   const cruz = svgEl("line",{y1:m.t,y2:H-m.b,stroke:"#C6D1DE",visibility:"hidden"}); svg.append(cruz);
   const alvo = svgEl("rect",{x:m.l,y:0,width:W-m.l-m.r,height:H,fill:"transparent"}); svg.append(alvo);
@@ -4183,7 +4207,7 @@ function paginaCantareira(){
     <section class="cartao secao" id="c-ano" aria-labelledby="t-c-ano">
       ${barraBaixar([["baixar-can-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-can-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-c-ano"><small>4</small>Ao longo do ano</h2>
-      <p class="sub">Volume útil do sistema (%) dia a dia, cada ano no mesmo calendário, até a data de referência (o último ponto da curva). Ao fundo, as faixas de operação pelo volume útil acumulado, conforme o art. 4º da Resolução Conjunta ANA/DAEE nº 925/2017.<span class="dica">Clique nos anos para incluir ou tirar, até ${MAX_ANOS} ao mesmo tempo; passe o mouse para comparar o mesmo dia.</span></p>
+      <p class="sub">Volume útil do sistema (%) dia a dia, cada ano no mesmo calendário, até a data de referência (o último ponto da curva). Ao fundo, as faixas de operação pelo volume útil acumulado, conforme o art. 4º da Resolução Conjunta ANA/DAEE nº 925/2017.<span class="dica">Selecione os anos a comparar, até ${MAX_ANOS} simultaneamente; posicione o cursor sobre o gráfico para ler o mesmo dia em cada ano.</span></p>
       <div class="controles"><fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos-can"></span></legend><span id="anos-chips-can"></span></fieldset></div>
       <div class="graf" id="g-can-ano"></div>
       ${legendaFaixasCan()}
@@ -4394,7 +4418,7 @@ function anoCan(ref){
   if (!anosCan || anoRefCan !== a1){ anosCan = new Set([a1-4, a1-3, a1-2, a1-1, a1].filter(a => a >= a0)); anoRefCan = a1; }
   const todos = []; for (let a = a0; a <= a1; a++) todos.push(a);
   [...anosCan].forEach(a => { if (a > a1) anosCan.delete(a); });
-  $("#anos-chips-can").innerHTML = todos.map(a => `<button type="button" class="chip-ano${anosCan.has(a) ? " on" : ""}" data-a="${a}">${a}</button>`).join("");
+  $("#anos-chips-can").innerHTML = todos.map(a => chipAno(a, anosCan.has(a), {desde:VIG_CAN})).join("");
   const n = anosCan.size, cheio = n >= MAX_ANOS;
   $$("#anos-chips-can .chip-ano").forEach(b => { b.disabled = !anosCan.has(+b.dataset.a) && cheio;
     b.onclick = () => { const a = +b.dataset.a;
@@ -4405,7 +4429,7 @@ function anoCan(ref){
   const anos = [...anosCan].sort((a,b) => a-b);
   const pts = {}; const i0 = diaEntre(`${anos[0]}-01-01`, CAN.de), i1 = Math.min(CAN.pct.length - 1, diaEntre(ref, CAN.de));
   for (let i = Math.max(0, i0); i <= i1; i++) pts[isoMais(CAN.de, i)] = CAN.pct[i];
-  graficoCalendario($("#g-can-ano"), pts, {colCSV:"volume_util_pct", anos, anoAtual:a1, dec:1, unidade:"%", pct:true, marcaDia:ref, rotulo:"Volume útil do Sistema Cantareira (%)", maxVao:3, tol:1, faixas:FAIXAS_OPERACAO_CAN, altura:380});
+  graficoCalendario($("#g-can-ano"), pts, {colCSV:"volume_util_pct", anos, anoAtual:a1, dec:1, unidade:"%", pct:true, marcaDia:ref, rotulo:"Volume útil do Sistema Cantareira (%)", maxVao:3, tol:1, faixas: ref >= VIG_CAN ? FAIXAS_OPERACAO_CAN : null, altura:380});
 }
 function diaCan(ref){
   const mmdd = ref.slice(5)==="02-29" ? "02-28" : ref.slice(5), a1 = +ref.slice(0,4), dados = [];
