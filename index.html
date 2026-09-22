@@ -4901,8 +4901,7 @@ function paginaAPI(){
     {p:"/variaveis", r:"Variáveis", d:"O catálogo de variáveis: nome da coluna, nome, unidade, definição, módulos em que existe e se há base horária. É o mesmo dicionário da área de dados.", q:[]},
     {p:"/series", r:"Séries", d:"A série de um ou mais reservatórios, no formato longo: uma linha por reservatório, data e variável.", q:[]},
     {p:"/agregados", r:"Agregados", d:"As séries que as páginas publicam como número do conjunto: reservatório equivalente do SIN (volume útil, em %); volume acumulado do Nordeste e Semiárido e de cada estado (direto e curva encadeada, com o número de reservatórios e a capacidade equivalente de cada data); volume útil do Sistema Cantareira.",
-      q:[["indicador","sin_equivalente, ne_acumulado ou cantareira"],["uf","estado, no volume acumulado (sem uf, o Nordeste)"],["inicio","data inicial"],["fim","data final"],["formato","json ou csv"]]},
-    {p:"/revisoes", r:"Revisões", d:"As correções feitas pela área técnica na série publicada: reservatório, variável, data do dado, valor anterior, valor novo, data da correção e motivo.", q:[["reservatorios","códigos separados por vírgula"],["desde","correções feitas a partir desta data"]]}];
+      q:[["indicador","sin_equivalente, ne_acumulado ou cantareira"],["uf","estado, no volume acumulado (sem uf, o Nordeste)"],["inicio","data inicial"],["fim","data final"],["formato","json ou csv"]]}];
   const PARS = [
     ["reservatorios", "Códigos dos reservatórios, separados por vírgula (os mesmos da ficha e da área de dados).", "19004,12112", "obrigatório"],
     ["variaveis", "Nomes das colunas do catálogo, separados por vírgula.", "cota_m,volume_util_pct", "todas as que cada reservatório tem"],
