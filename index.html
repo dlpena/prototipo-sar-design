@@ -2907,7 +2907,7 @@ function graficoCalendario(host, pontos, o){
   const vals = anos.flatMap(a => serie[a].filter(v => v!=null));
   if (!vals.length){ host.innerHTML = '<p class="nota" style="padding:14px 0">Sem série no período.</p>'; return; }
   let lo = Math.min(...vals), hi = Math.max(...vals);
-  if (o.pct){ lo = 0; hi = Math.max(100, hi); } else { const p = (hi-lo)*.06||1; lo -= p; hi += p; }
+  if (o.pct){ lo = Math.min(0, Math.floor(lo/10)*10); hi = Math.max(100, hi); } else { const p = (hi-lo)*.06||1; lo -= p; hi += p; }   // % abaixo de zero (Cantareira na reserva técnica, 2014-2015) abre o eixo
   const X = i => m.l + i*(W-m.l-m.r)/364, Y = v => m.t + (hi-v)/(hi-lo)*(H-m.t-m.b);
   const cor = a => a===o.anoAtual ? "#1C3782" : a===o.anoAtual-1 ? "#4A7FB0" : "#B9C7D8";
   const svg = svgEl("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":o.rotulo});
@@ -4183,7 +4183,8 @@ function paginaCantareira(){
     <section class="cartao secao" id="c-ano" aria-labelledby="t-c-ano">
       ${barraBaixar([["baixar-can-ano-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-can-ano", "PNG", "Baixar o gráfico como imagem"]])}
       <h2 id="t-c-ano"><small>4</small>Ao longo do ano</h2>
-      <p class="sub">Volume útil do sistema (%) dia a dia, nos cinco anos até a data de referência (o último ponto da curva). Ao fundo, as faixas de operação pelo volume útil acumulado, conforme o art. 4º da Resolução Conjunta ANA/DAEE nº 925/2017.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
+      <p class="sub">Volume útil do sistema (%) dia a dia, cada ano no mesmo calendário, até a data de referência (o último ponto da curva). Ao fundo, as faixas de operação pelo volume útil acumulado, conforme o art. 4º da Resolução Conjunta ANA/DAEE nº 925/2017.<span class="dica">Clique nos anos para incluir ou tirar, até ${MAX_ANOS} ao mesmo tempo; passe o mouse para comparar o mesmo dia.</span></p>
+      <div class="controles"><fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos-can"></span></legend><span id="anos-chips-can"></span></fieldset></div>
       <div class="graf" id="g-can-ano"></div>
       ${legendaFaixasCan()}
       <p class="nota" style="margin:8px 0 0">As faixas são referência e valem a partir de 30/05/2017, início da vigência da resolução (art. 9º). A faixa em vigor é estabelecida mensalmente pela ANA e pelo DAEE, até o último dia útil do mês anterior, e as faixas 4 e 5 podem ser estabelecidas a qualquer momento (art. 6º da resolução); por isso, pode diferir da indicada pelo volume do dia.</p>
@@ -4387,11 +4388,24 @@ const FAIXAS_OPERACAO_CAN = [
 // da faixa a 16% de opacidade ficava entre 1,8 e 4,5, e Atenção, Alerta, Restrição e Especial se confundiam)
 const tintaFaixa = f => f.fundo || f.cor;
 const legendaFaixasCan = () => `<div class="legenda" style="margin-top:8px">${FAIXAS_OPERACAO_CAN.map(f => `<span><i class="area" style="background:${tintaFaixa(f)};box-shadow:inset 0 0 0 1px ${f.cor}"></i>${f.rot}</span>`).join("")}</div>`;
+let anosCan = null, anoRefCan = null;   // anos marcados no gráfico ao longo do ano (padrão: os cinco até a data de referência)
 function anoCan(ref){
-  const a1 = +ref.slice(0,4), anos = []; for (let a = a1 - 4; a <= a1; a++) anos.push(a);
-  const pts = {}; const i0 = diaEntre(`${a1-4}-01-01`, CAN.de), i1 = Math.min(CAN.pct.length - 1, diaEntre(ref, CAN.de));
+  const a1 = +ref.slice(0,4), a0 = +CAN.de.slice(0,4);
+  if (!anosCan || anoRefCan !== a1){ anosCan = new Set([a1-4, a1-3, a1-2, a1-1, a1].filter(a => a >= a0)); anoRefCan = a1; }
+  const todos = []; for (let a = a0; a <= a1; a++) todos.push(a);
+  [...anosCan].forEach(a => { if (a > a1) anosCan.delete(a); });
+  $("#anos-chips-can").innerHTML = todos.map(a => `<button type="button" class="chip-ano${anosCan.has(a) ? " on" : ""}" data-a="${a}">${a}</button>`).join("");
+  const n = anosCan.size, cheio = n >= MAX_ANOS;
+  $$("#anos-chips-can .chip-ano").forEach(b => { b.disabled = !anosCan.has(+b.dataset.a) && cheio;
+    b.onclick = () => { const a = +b.dataset.a;
+      if (anosCan.has(a)){ if (anosCan.size === 1){ toast("Deixe ao menos um ano selecionado."); return; } anosCan.delete(a); }
+      else { if (anosCan.size >= MAX_ANOS){ toast(`Até ${MAX_ANOS} anos ao mesmo tempo: desmarque um para incluir outro.`); return; } anosCan.add(a); }
+      anoCan(ref); }; });
+  $("#nota-anos-can").textContent = `${n} de ${MAX_ANOS}`;
+  const anos = [...anosCan].sort((a,b) => a-b);
+  const pts = {}; const i0 = diaEntre(`${anos[0]}-01-01`, CAN.de), i1 = Math.min(CAN.pct.length - 1, diaEntre(ref, CAN.de));
   for (let i = Math.max(0, i0); i <= i1; i++) pts[isoMais(CAN.de, i)] = CAN.pct[i];
-  graficoCalendario($("#g-can-ano"), pts, {colCSV:"volume_util_pct", anos, anoAtual:a1, dec:1, unidade:"%", pct:true, marcaDia:ref, rotulo:"Volume útil do Sistema Cantareira (%)", maxVao:3, tol:1, faixas:FAIXAS_OPERACAO_CAN});
+  graficoCalendario($("#g-can-ano"), pts, {colCSV:"volume_util_pct", anos, anoAtual:a1, dec:1, unidade:"%", pct:true, marcaDia:ref, rotulo:"Volume útil do Sistema Cantareira (%)", maxVao:3, tol:1, faixas:FAIXAS_OPERACAO_CAN, altura:380});
 }
 function diaCan(ref){
   const mmdd = ref.slice(5)==="02-29" ? "02-28" : ref.slice(5), a1 = +ref.slice(0,4), dados = [];
