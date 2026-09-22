@@ -4275,11 +4275,12 @@ function balancoCanV(ref, R, V){
 // faixas de operação pelo volume útil acumulado (Resolução Conjunta ANA/DAEE nº 925/2017, art. 4º): só referência no gráfico;
 // a faixa vigente é a fixada mensalmente pela ANA e pelo DAEE (art. 6º) e não é calculada pela página
 const FAIXAS_OPERACAO_CAN = [
-  {de:60, ate:1e9, rot:"Faixa 1 · Normal (60% ou mais)", cor:"#1B7F3B"}, {de:40, ate:60, rot:"Faixa 2 · Atenção (40% a 60%)", cor:"#D4A800"},
-  {de:30, ate:40, rot:"Faixa 3 · Alerta (30% a 40%)", cor:"#E07B00"}, {de:20, ate:30, rot:"Faixa 4 · Restrição (20% a 30%)", cor:"#C0392B"},
-  {de:-1e9, ate:20, rot:"Faixa 5 · Especial (abaixo de 20%)", cor:"#7A1F1F"}];
-const OPAC_FAIXA = .16;
-const tintaFaixa = f => { const n = parseInt(f.cor.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${OPAC_FAIXA})`; };
+  {de:60, ate:1e9, rot:"Faixa 1 · Normal (60% ou mais)", cor:"#1B7F3B", fundo:"#CFE8D5"}, {de:40, ate:60, rot:"Faixa 2 · Atenção (40% a 60%)", cor:"#D4A800", fundo:"#FFF0A8"},
+  {de:30, ate:40, rot:"Faixa 3 · Alerta (30% a 40%)", cor:"#E07B00", fundo:"#FFC98A"}, {de:20, ate:30, rot:"Faixa 4 · Restrição (20% a 30%)", cor:"#C0392B", fundo:"#F2A09A"},
+  {de:-1e9, ate:20, rot:"Faixa 5 · Especial (abaixo de 20%)", cor:"#7A1F1F", fundo:"#C98585"}];
+// fundos claros escolhidos para se distinguirem entre si (diferença OKLab de 8,8 a 11,5 entre faixas vizinhas; com a cor
+// da faixa a 16% de opacidade ficava entre 1,8 e 4,5, e Atenção, Alerta, Restrição e Especial se confundiam)
+const tintaFaixa = f => f.fundo || f.cor;
 const legendaFaixasCan = () => `<div class="legenda" style="margin-top:8px">${FAIXAS_OPERACAO_CAN.map(f => `<span><i class="area" style="background:${tintaFaixa(f)};box-shadow:inset 0 0 0 1px ${f.cor}"></i>${f.rot}</span>`).join("")}</div>`;
 function anoCan(ref){
   const a1 = +ref.slice(0,4), anos = []; for (let a = a1 - 4; a <= a1; a++) anos.push(a);
