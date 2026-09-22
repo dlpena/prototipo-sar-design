@@ -281,6 +281,7 @@ main>section+section,main>.secao+.secao{margin-top:22px}
 .regua-rot b{position:absolute;top:0;transform:translateX(-50%);font-weight:400}
 .regua-marca{position:absolute;top:-19px;width:3px;height:18px;background:var(--tinta);border-radius:1px;transform:translateX(-50%)}
 .secao:has(> .equiv) .regua-rot{color:#C5D2EA}
+.regua-nota{font-size:12px;color:var(--apagado);margin:6px 0 0;line-height:1.45}
 .secao:has(> .equiv) .regua-marca{background:#FFFFFF;box-shadow:0 0 0 1px #13286B}
 .equiv .def{font-size:12.5px;color:var(--apagado);margin:12px 0 0;line-height:1.45;max-width:60ch}
 .data-ref{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tinta-2)}
@@ -2242,6 +2243,8 @@ function paginaFicha(){
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-ano" aria-label="Variável">${["vu","cota"].map(k => `<option value="${k}">${VARS[k].r}${k==="vu" ? " (%)" : " (m)"}</option>`).join("")}</select></fieldset>
         <fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos"></span></legend><span id="anos-chips"></span></fieldset></div>
       <div class="graf" id="g-ano"></div>
+      ${FAIXAS_ANA[F.nome] ? `<div id="f-ano-faixas"><div class="legenda" style="margin-top:8px">${FAIXAS_ANA[F.nome].faixas.map(f => `<span><i class="area" style="background:${f.fundo};box-shadow:inset 0 0 0 1px ${f.cor}"></i>${f.rot}</span>`).join("")}</div>
+      <p class="nota" style="margin:8px 0 0">No volume útil, ao fundo, as faixas de operação de ${caso(F.nome)} (${FAIXAS_ANA[F.nome].art} da ${FAIXAS_ANA[F.nome].ato}), como referência. ${FAIXAS_ANA[F.nome].vig}</p></div>` : ""}
     </section>`;
   $$(".indice a").forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
 
@@ -2260,7 +2263,7 @@ function paginaFicha(){
     const media = (k, n) => { const v = DI.slice(Math.max(0, i0-n+1), i0+1).map(x => x[k]).filter(x => x!=null); return v.length ? v.reduce((a,b) => a+b, 0)/v.length : null; };
     $("#valores-ficha").innerHTML = `
       <div class="v principal"><div class="r">Volume útil</div><div class="n num">${fmt(o.vu,1)}<small>%</small></div>
-        <div class="c"><span>há 7 dias <b class="num">${delta("vu", a7, 1)}</b></span><span>há 30 dias <b class="num">${delta("vu", a30, 1)}</b></span><span>mesmo dia de ${+dia.slice(0,4)-1} <b class="num">${anoPassado && anoPassado.vu!=null ? fmt(anoPassado.vu,1)+"%" : "–"}</b></span></div></div>
+        <div class="c"><span>há 7 dias <b class="num">${delta("vu", a7, 1)}</b></span><span>há 30 dias <b class="num">${delta("vu", a30, 1)}</b></span><span>mesmo dia de ${+dia.slice(0,4)-1} <b class="num">${anoPassado && anoPassado.vu!=null ? fmt(anoPassado.vu,1)+"%" : "–"}</b></span></div>${reguaFicha(F.nome, o.vu, dia)}</div>
       <div class="v"><div class="r">Nível</div><div class="n num">${fmt(o.cota,2)}<small>m</small></div><div class="c"><span>há 7 dias <b class="num">${delta("cota", a7, 2)} m</b></span></div></div>
       <div class="v"><div class="r">Afluente</div><div class="n num">${fint(o.afl)}<small>m³/s</small></div><div class="c"><span>média de 7 dias <b class="num">${fint(media("afl",7))}</b></span></div></div>
       <div class="v"><div class="r">Defluente</div><div class="n num">${fint(o.defl)}<small>m³/s</small></div><div class="c"><span>média de 7 dias <b class="num">${fint(media("defl",7))}</b></span></div></div>
@@ -2269,6 +2272,7 @@ function paginaFicha(){
     // o mapa da cascata só tem série das vizinhas no período coletado para a bacia
     const temBacia = SER_BACIA.includes(dia);
     mapaF.atualizar(temBacia ? dia : D.data);
+
     $("#aviso-sit").textContent = temBacia ? "" : `No mapa, as vizinhas seguem em ${dBR(D.data)}: no protótipo a série da bacia vai de ${dBR(SER_BACIA[0])} a ${dBR(D.data)}.`;
   }
   $("#dia-sit").addEventListener("change", e => { const v = e.target.value; if (v && v >= e.target.min && v <= e.target.max){ situacao(v); graficoMesmoDia(); } });
@@ -2338,7 +2342,8 @@ function paginaFicha(){
   });
   atualizarChips();
   $("#var-ano").onchange = graficoAnos;
-  $("#baixar-ano-png").onclick = () => baixarPNG([$("#g-ano svg")], `sar_furnas_ano_contra_anos.png`, `Furnas · ${VARS[$("#var-ano").value].r} ao longo do ano`, LEG_ANOS(+fichaEstado.ult.data.slice(0,4), "ano corrente"));
+  $("#baixar-ano-png").onclick = () => baixarPNG([$("#g-ano svg")], `sar_furnas_ano_contra_anos.png`, `Furnas · ${VARS[$("#var-ano").value].r} ao longo do ano`, [...LEG_ANOS(+fichaEstado.ult.data.slice(0,4), "ano corrente"),
+    ...($("#var-ano").value==="vu" && FAIXAS_ANA[D.ficha.nome] ? FAIXAS_ANA[D.ficha.nome].faixas.map(f => ({r:f.rot, cor:f.fundo, area:true})) : [])]);
   graficoAnos();
 }
 function redesenharFicha(){ if (!fichaEstado) return; desenharGraficos(); graficoMesmoDia(); graficoAnos(); }
@@ -2469,6 +2474,22 @@ function graficoMesmoDia(){
   host.append(svg, tip);
 }
 
+// faixas de operação definidas por resolução da ANA, por usina (só referência na ficha; a faixa vigente é a do ato)
+const FAIXAS_ANA = (() => {
+  const f3 = (n, a) => [{de:n, ate:1e9, rot:`Operação Normal (${n}% ou mais)`, cor:"#1B7F3B", fundo:"#CFE8D5"},
+    {de:a, ate:n, rot:`Operação de Atenção (${a}% a ${n}%)`, cor:"#D4A800", fundo:"#FFF0A8"},
+    {de:-1e9, ate:a, rot:`Operação de Restrição (abaixo de ${a}%)`, cor:"#C0392B", fundo:"#F2A09A"}];
+  const ato = "Resolução ANA nº 193, de 10 de maio de 2024", vig = "A faixa em vigor é definida mensalmente, a partir da situação do reservatório observada no primeiro dia do mês (art. 10); por isso, pode diferir da indicada pelo volume do dia.";
+  return {FURNAS: {ato, art:"art. 3º", vig, faixas: f3(50, 20)}, "M. MORAES": {ato, art:"art. 6º", vig, faixas: f3(70, 30)}};
+})();
+// régua das faixas de operação no cartão do volume útil da ficha (só usinas com faixas em resolução da ANA)
+function reguaFicha(nome, vu, dia){
+  const RA = FAIXAS_ANA[nome]; if (!RA) return "";
+  const cortes = [0, ...RA.faixas.map(f => f.de).filter(v => v > 0).sort((a,b) => a-b), 100];
+  return `<div class="regua-faixas" aria-hidden="true">${RA.faixas.slice().reverse().map(f => { const de = Math.max(0, f.de), ate = Math.min(100, f.ate); return `<span style="width:${ate-de}%;background:${f.cor}" title="${f.rot}"></span>`; }).join("")}</div>
+    <div class="regua-rot">${cortes.map(v => `<b style="left:${v}%">${v}</b>`).join("")}${vu!=null ? `<span class="regua-marca" style="left:${Math.max(0, Math.min(100, vu))}%" title="${fmt(vu,1)}% em ${dBR(dia)}"></span>` : ""}</div>
+    <p class="regua-nota">Faixas de operação de ${caso(nome)} (${RA.art} da ${RA.ato}), como referência. ${RA.vig}</p>`;
+}
 // 4. linhas por ano no mesmo calendário
 function graficoAnos(){
   const host = $("#g-ano"), DI = fichaEstado.DI, k = $("#var-ano").value, V = VARS[k], anoAtual = +fichaEstado.ult.data.slice(0,4);
@@ -2487,11 +2508,16 @@ function graficoAnos(){
   const X = i => m.l + i*(W-m.l-m.r)/364, Y = v => m.t + (hi-v)/(hi-lo)*(H-m.t-m.b);
   const cor = a => a===anoAtual ? "#1C3782" : a===anoAtual-1 ? "#4A7FB0" : "#B9C7D8";
   const svg = svgEl("svg",{viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":`${V.r} ao longo do ano, ${anos.join(", ")}`});
+  const RA = k==="vu" ? FAIXAS_ANA[D.ficha.nome] : null, limites = [];   // faixas de operação da resolução, só no volume útil
+  if ($("#f-ano-faixas")) $("#f-ano-faixas").hidden = !RA;
+  (RA ? RA.faixas : []).forEach(f => { const y0 = Y(Math.min(hi, f.ate)), y1 = Y(Math.max(lo, f.de));
+    svg.append(svgEl("rect",{x:m.l, y:y0, width:W-m.l-m.r, height:y1-y0, fill:f.fundo}));
+    if (f.de > lo) limites.push(svgEl("line",{x1:m.l, x2:W-m.r, y1:y1, y2:y1, stroke:f.cor, "stroke-width":1, "stroke-dasharray":"5 4", opacity:.8})); });
   const eixo = svgEl("g",{class:"eixo"}); const passoY = niceStep((hi-lo)/5);
   for (let v = Math.ceil(lo/passoY)*passoY; v <= hi; v += passoY){ eixo.append(svgEl("line",{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:"#E3EAF2"})); const tx = svgEl("text",{x:m.l-8,y:Y(v)+4,"text-anchor":"end"}); tx.textContent = fmt(Math.abs(v) < 1e-9 ? 0 : v, passoY < 1 ? 2 : 0); eixo.append(tx); }
   MESES.forEach((mm,q) => { const tx = svgEl("text",{x:X(idx(`2025-${String(q+1).padStart(2,"0")}-15`)),y:H-8,"text-anchor":"middle"}); tx.textContent = W < 480 && q % 2 ? "" : mm; eixo.append(tx); });
   const rot = svgEl("text",{x:m.l, y:10, "font-size":11.5, fill:"#3D4B5C", "font-weight":700}); rot.textContent = `${V.r} (${V.u})`; rot.setAttribute("y",16); rot.setAttribute("font-size",13.5); rot.setAttribute("fill","#1C3782"); eixo.append(rot);
-  svg.append(eixo);
+  svg.append(eixo); limites.forEach(l => svg.append(l));
   const ordem = anos.slice().sort((a,b) => (a===anoAtual) - (b===anoAtual) || (a===anoAtual-1) - (b===anoAtual-1));
   const fins = [];
   ordem.forEach(a => {
