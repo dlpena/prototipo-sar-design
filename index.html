@@ -2244,7 +2244,7 @@ function paginaFicha(){
         <fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos"></span></legend><span id="anos-chips"></span></fieldset></div>
       <div class="graf" id="g-ano"></div>
       ${FAIXAS_ANA[F.nome] ? `<div id="f-ano-faixas"><div class="legenda" style="margin-top:8px">${FAIXAS_ANA[F.nome].faixas.map(f => `<span><i class="area" style="background:${f.fundo};box-shadow:inset 0 0 0 1px ${f.cor}"></i>${f.rot}</span>`).join("")}</div>
-      <p class="nota" style="margin:8px 0 0">No volume útil, ao fundo, as faixas de operação de ${caso(F.nome)} (${FAIXAS_ANA[F.nome].art} da ${FAIXAS_ANA[F.nome].ato}), como referência. ${FAIXAS_ANA[F.nome].vig}</p></div>` : ""}
+      <p class="nota" style="margin:8px 0 0">No volume útil, ao fundo, as faixas de operação de ${caso(F.nome)} (${FAIXAS_ANA[F.nome].art} da ${FAIXAS_ANA[F.nome].ato}), como referência. Valem a partir de ${dBR(FAIXAS_ANA[F.nome].desde)}, início da vigência da resolução (${FAIXAS_ANA[F.nome].artVig}); antes dessa data não se aplicavam. ${FAIXAS_ANA[F.nome].vig}</p></div>` : ""}
     </section>`;
   $$(".indice a").forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById(a.dataset.alvo).scrollIntoView({behavior:"smooth", block:"start"}); });
 
@@ -2480,7 +2480,8 @@ const FAIXAS_ANA = (() => {
     {de:a, ate:n, rot:`Operação de Atenção (${a}% a ${n}%)`, cor:"#D4A800", fundo:"#FFF0A8"},
     {de:-1e9, ate:a, rot:`Operação de Restrição (abaixo de ${a}%)`, cor:"#C0392B", fundo:"#F2A09A"}];
   const ato = "Resolução ANA nº 193, de 10 de maio de 2024", vig = "A faixa em vigor é definida mensalmente, a partir da situação do reservatório observada no primeiro dia do mês (art. 10); por isso, pode diferir da indicada pelo volume do dia.";
-  return {FURNAS: {ato, art:"art. 3º", vig, faixas: f3(50, 20)}, "M. MORAES": {ato, art:"art. 6º", vig, faixas: f3(70, 30)}};
+  const desde = "2024-12-02", artVig = "art. 22";   // Res. ANA nº 193/2024, art. 22
+  return {FURNAS: {ato, art:"art. 3º", vig, desde, artVig, faixas: f3(50, 20)}, "M. MORAES": {ato, art:"art. 6º", vig, desde, artVig, faixas: f3(70, 30)}};
 })();
 // régua das faixas de operação no cartão do volume útil da ficha (só usinas com faixas em resolução da ANA)
 function reguaFicha(nome, vu, dia){
@@ -2488,7 +2489,7 @@ function reguaFicha(nome, vu, dia){
   const cortes = [0, ...RA.faixas.map(f => f.de).filter(v => v > 0).sort((a,b) => a-b), 100];
   return `<div class="regua-faixas" aria-hidden="true">${RA.faixas.slice().reverse().map(f => { const de = Math.max(0, f.de), ate = Math.min(100, f.ate); return `<span style="width:${ate-de}%;background:${f.cor}" title="${f.rot}"></span>`; }).join("")}</div>
     <div class="regua-rot">${cortes.map(v => `<b style="left:${v}%">${v}</b>`).join("")}${vu!=null ? `<span class="regua-marca" style="left:${Math.max(0, Math.min(100, vu))}%" title="${fmt(vu,1)}% em ${dBR(dia)}"></span>` : ""}</div>
-    <p class="regua-nota">Faixas de operação de ${caso(nome)} (${RA.art} da ${RA.ato}), como referência. ${RA.vig}</p>`;
+    <p class="regua-nota">Faixas de operação de ${caso(nome)} (${RA.art} da ${RA.ato}), como referência. ${dia < RA.desde ? `Em ${dBR(dia)} a resolução ainda não vigorava (vigência a partir de ${dBR(RA.desde)}, ${RA.artVig}): as faixas não se aplicavam nessa data.` : `As faixas valem a partir de ${dBR(RA.desde)}, início da vigência da resolução (${RA.artVig}). ${RA.vig}`}</p>`;
 }
 // 4. linhas por ano no mesmo calendário
 function graficoAnos(){
@@ -4095,7 +4096,7 @@ function paginaCantareira(){
           <div class="quando" id="c-quando"></div>
           <div class="regua-faixas" aria-hidden="true">${FAIXAS_OPERACAO_CAN.slice().reverse().map(f => { const de = Math.max(0, f.de), ate = Math.min(100, f.ate); return `<span style="width:${ate-de}%;background:${f.cor}" title="${f.rot}"></span>`; }).join("")}</div>
           <div class="regua-rot" id="c-regua"></div>
-          <p class="def">Posição do volume útil de <span id="c-regua-dia"></span> nas faixas de operação do art. 4º da resolução (cores como no gráfico Ao longo do ano). A faixa em vigor é estabelecida mensalmente pela ANA e pelo DAEE, até o último dia útil do mês anterior, e as faixas 4 e 5 podem ser estabelecidas a qualquer momento (art. 6º); por isso, pode diferir da indicada pelo volume do dia.</p>
+          <p class="def">Posição do volume útil de <span id="c-regua-dia"></span> nas faixas de operação do art. 4º da resolução (cores como no gráfico Ao longo do ano). <span id="c-regua-vig"></span></p>
         </div>
         <ul class="comparacoes" id="c-comp"></ul>
       </div>
@@ -4122,7 +4123,7 @@ function paginaCantareira(){
       <p class="sub">Volume útil do sistema (%) dia a dia, nos cinco anos até a data de referência (o último ponto da curva). Ao fundo, as faixas de operação pelo volume útil acumulado, conforme o art. 4º da Resolução Conjunta ANA/DAEE nº 925/2017.<span class="dica">Passe o mouse para comparar o mesmo dia nos cinco anos.</span></p>
       <div class="graf" id="g-can-ano"></div>
       ${legendaFaixasCan()}
-      <p class="nota" style="margin:8px 0 0">As faixas são referência. A faixa em vigor é estabelecida mensalmente pela ANA e pelo DAEE, até o último dia útil do mês anterior, e as faixas 4 e 5 podem ser estabelecidas a qualquer momento (art. 6º da resolução); por isso, pode diferir da indicada pelo volume do dia.</p>
+      <p class="nota" style="margin:8px 0 0">As faixas são referência e valem a partir de 30/05/2017, início da vigência da resolução (art. 9º). A faixa em vigor é estabelecida mensalmente pela ANA e pelo DAEE, até o último dia útil do mês anterior, e as faixas 4 e 5 podem ser estabelecidas a qualquer momento (art. 6º da resolução); por isso, pode diferir da indicada pelo volume do dia.</p>
     </section>
     <section class="cartao secao" id="c-dia" aria-labelledby="t-c-dia">
       ${barraBaixar([["baixar-can-dia-csv", "CSV", "Baixar os dados do gráfico em CSV"], ["baixar-can-dia", "PNG", "Baixar o gráfico como imagem"]])}
@@ -4171,6 +4172,7 @@ function situacaoCan(ref, p0, f0){
   $("#c-regua").innerHTML = [0,20,30,40,60,100].map(v => `<b style="left:${v}%">${v}</b>`).join("") +
     (p0!=null ? `<span class="regua-marca" style="left:${Math.max(0, Math.min(100, p0))}%" title="${fmt(p0,1)}% em ${dBR(ref)}"></span>` : "");
   $("#c-regua-dia").textContent = dBR(ref);
+  $("#c-regua-vig").textContent = ref < VIG_CAN ? `Em ${dBR(ref)} a resolução ainda não vigorava (vigência a partir de ${dBR(VIG_CAN)}, art. 9º): as faixas não se aplicavam nessa data.` : `As faixas valem a partir de ${dBR(VIG_CAN)}, início da vigência da resolução (art. 9º). A faixa em vigor é estabelecida mensalmente pela ANA e pelo DAEE, até o último dia útil do mês anterior, e as faixas 4 e 5 podem ser estabelecidas a qualquer momento (art. 6º); por isso, pode diferir da indicada pelo volume do dia.`;
   $("#c-comp").innerHTML = `<li><span>Em 7 dias</span><b class="num">${dif(p0, pctCan(isoMais(ref,-7)))}</b></li>
     <li><span>Em 30 dias</span><b class="num">${dif(p0, pctCan(isoMais(ref,-30)))}</b></li>
     <li><span>Mesmo dia de ${ant.slice(0,4)}<small>${dif(p0, pctCan(ant))}</small></span><b class="num">${fmt(pctCan(ant),1)}%</b></li>
@@ -4313,6 +4315,7 @@ function balancoCanV(ref, R, V){
 }
 // faixas de operação pelo volume útil acumulado (Resolução Conjunta ANA/DAEE nº 925/2017, art. 4º): só referência no gráfico;
 // a faixa vigente é a fixada mensalmente pela ANA e pelo DAEE (art. 6º) e não é calculada pela página
+const VIG_CAN = "2017-05-30";   // Res. Conjunta ANA/DAEE nº 925/2017, art. 9º: vigência na publicação (DOU de 30/05/2017)
 const FAIXAS_OPERACAO_CAN = [
   {de:60, ate:1e9, rot:"Faixa 1 · Normal (60% ou mais)", cor:"#1B7F3B", fundo:"#CFE8D5"}, {de:40, ate:60, rot:"Faixa 2 · Atenção (40% a 60%)", cor:"#D4A800", fundo:"#FFF0A8"},
   {de:30, ate:40, rot:"Faixa 3 · Alerta (30% a 40%)", cor:"#E07B00", fundo:"#FFC98A"}, {de:20, ate:30, rot:"Faixa 4 · Restrição (20% a 30%)", cor:"#C0392B", fundo:"#F2A09A"},
