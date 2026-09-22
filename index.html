@@ -1969,7 +1969,9 @@ function minigraficos(lista, v){
     const x = i => m + i * (W - 2*m) / (s.length - 1), y = val => hi > lo ? H - m - (val - lo) * k : H / 2;
     const d = s.map((val, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(val).toFixed(1)}`).join("");
     const dec = v==="cota" ? 2 : v==="vu" ? 1 : 0;
-    host.innerHTML = `<svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${d}" fill="none" stroke="#1C3782" stroke-width="1.4" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><circle cx="${x(s.length-1).toFixed(1)}" cy="${y(s[s.length-1]).toFixed(1)}" r="2.2" fill="#1C3782"/></svg>`;
+    // a linha estica na largura da célula (SVG interno sem proporção fixa); o ponto do último dado fica no SVG externo, em
+    // pixels, com x em %, para continuar redondo em qualquer largura
+    host.innerHTML = `<svg width="100%" height="${H}" aria-hidden="true"><svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="#1C3782" stroke-width="1.4" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg><circle cx="${(100 * x(s.length-1) / W).toFixed(2)}%" cy="${y(s[s.length-1]).toFixed(1)}" r="2.2" fill="#1C3782"/></svg>`;
     host.title = `${ate[0].data.slice(8,10)}/${ate[0].data.slice(5,7)} a ${dBR(r.dia)}: mínimo ${fmt(lo,dec)}, máximo ${fmt(hi,dec)} ${UNID_MINI[v]}`;
   });
 }
