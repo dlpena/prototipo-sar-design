@@ -2309,9 +2309,10 @@ th.ord-desc::after {
   content: " ▼";
   font-size: 9px;
 }
-/* a tabela dos estados pede 665 px: só acima de 1320 px as duas colunas cabem sem rolagem lateral;
-   abaixo disso mapa em cima e tabela embaixo, do jeito que o Diego preferiu na página da bacia */
-@media (max-width: 1320px) {
+/* a tabela dos estados pede cerca de 705 px com as oito colunas (23/09/2026: só com nível e sem leitura): só acima de
+   1600 px as duas colunas cabem sem rolagem lateral; abaixo disso mapa em cima e tabela embaixo, do jeito que o Diego
+   preferiu na página da bacia */
+@media (max-width: 1600px) {
   .grade-ne {
     grid-template-columns: 1fr;
   }
@@ -2324,7 +2325,7 @@ th.ord-desc::after {
 /* lado a lado, a tabela dá a altura da linha e o mapa se ajusta ao que sobra (Diego, 22/09/2026: em telas largas o mapa
    crescia com a coluna e ficava mais alto que a tabela). A coluna do mapa não conta para a altura da linha (height:0)
    e ocupa a altura toda dela (min-height:100%); o desenho cabe no espaço, centrado. */
-@media (min-width: 1321px) {
+@media (min-width: 1601px) {
   .grade-ne > .col-mapa-ne {
     align-self: stretch;
     height: 0;
@@ -2929,7 +2930,8 @@ footer b {
   #tab-uf-niv th:first-child {
     width: 36%;
   }
-  #tab-estados :is(th, td):nth-child(5) {
+  /* celular: sem capacidade e volume em hm³ (ficam no CSV e no PDF) */
+  #tab-estados :is(th, td):is(:nth-child(6), :nth-child(7)) {
     display: none;
   }
   #g-tab table :is(th, td):is(:nth-child(4), :nth-child(5), :nth-child(8)) {
@@ -6569,22 +6571,7 @@ function graficoMonitoramento(host, hist, rotulo, op = {}) {
 function graficoMensalMLT(host, dados, o) {
   host.innerHTML = "";
   const temFaixa = dados.some(d => d.min != null);
-  guardaCSV(
-    host,
-    [
-      "mes",
-      ...(o.csv || ["valor", "media_longo_termo"]),
-      ...(o.csvDias ? ["dias_com_dado"] : []),
-      ...(temFaixa ? o.csvFaixa || ["minima", "ano_minima", "maxima", "ano_maxima"] : [])
-    ],
-    dados.map(d => [
-      d.rot,
-      d.v,
-      d.mlt,
-      ...(o.csvDias ? [d.dias ?? null] : []),
-      ...(temFaixa ? [d.min, d.anoMin, d.max, d.anoMax] : [])
-    ])
-  );
+  csvMensal(host, dados, o, temFaixa);
   // o.cheia: sozinho na largura da seção, com a altura dos gráficos de barras; sem ela, 560 px, lado a lado
   const W = o.cheia || (host.clientWidth && host.clientWidth < 480) ? Math.max(300, host.clientWidth) : 560,
     // com a faixa mínima–máxima, a altura dos gráficos principais: a escala vai até a máxima
@@ -6660,20 +6647,7 @@ function graficoMensalMLT(host, dados, o) {
     marca.setAttribute("x", m.l + faixa * i);
     marca.setAttribute("visibility", "visible");
     cam.innerHTML = "";
-    const u = o.unidade === "%" ? "%" : " " + o.unidade,
-      itens = [];
-    if (d.v != null)
-      itens.push({
-        nome: d.parcial && d.dias ? `${o.nomeV} (${d.dias} d)` : o.nomeV,
-        valor: fmt(d.v, o.dec) + u,
-        y: Y(d.v),
-        estilo: "v"
-      });
-    if (d.mlt != null) itens.push({ nome: "MLT", valor: fmt(d.mlt, o.dec) + u, y: Y(d.mlt), estilo: "mlt" });
-    if (d.max != null)
-      itens.push({ nome: `máx. ${d.anoMax}`, valor: fmt(d.max, o.dec) + u, y: Y(d.max), estilo: "faixa" });
-    if (d.min != null)
-      itens.push({ nome: `mín. ${d.anoMin}`, valor: fmt(d.min, o.dec) + u, y: Y(d.min), estilo: "faixa" });
+    const itens = itensCursorMensal(d, o, Y);
     separaEtiquetas(itens, m.t - 6, Y(0) - 8);
     const larg = Math.max(...itens.map(e => e.valor.length * 6.6 + 12 + e.nome.length * 6.2 + 18)),
       lado = X(i) - larg < m.l ? 1 : -1,
@@ -6751,6 +6725,36 @@ function faixaMinMax(svg, pts) {
   };
   pts.forEach(p => (p ? trecho.push(p) : fecha()));
   fecha();
+}
+// CSV do gráfico mensal: mês, valor, MLT e, conforme o caso, dias com dado e mínima e máxima com o ano
+function csvMensal(host, dados, o, temFaixa) {
+  guardaCSV(
+    host,
+    [
+      "mes",
+      ...(o.csv || ["valor", "media_longo_termo"]),
+      ...(o.csvDias ? ["dias_com_dado"] : []),
+      ...(temFaixa ? o.csvFaixa || ["minima", "ano_minima", "maxima", "ano_maxima"] : [])
+    ],
+    dados.map(d => [
+      d.rot,
+      d.v,
+      d.mlt,
+      ...(o.csvDias ? [d.dias ?? null] : []),
+      ...(temFaixa ? [d.min, d.anoMin, d.max, d.anoMax] : [])
+    ])
+  );
+}
+// etiquetas do cursor de um mês do gráfico mensal: valor do mês, MLT e, com a faixa, máxima e mínima com o ano
+function itensCursorMensal(d, o, Y) {
+  const u = o.unidade === "%" ? "%" : " " + o.unidade,
+    item = (nome, v, estilo) => ({ nome, valor: fmt(v, o.dec) + u, y: Y(v), estilo });
+  return [
+    d.v != null && item(d.parcial && d.dias ? `${o.nomeV} (${d.dias} d)` : o.nomeV, d.v, "v"),
+    d.mlt != null && item("MLT", d.mlt, "mlt"),
+    d.max != null && item(`máx. ${d.anoMax}`, d.max, "faixa"),
+    d.min != null && item(`mín. ${d.anoMin}`, d.min, "faixa")
+  ].filter(Boolean);
 }
 // afasta as etiquetas do cursor para que não se sobreponham (22 px entre elas), dentro de [topo, base]
 function separaEtiquetas(itens, topo, base) {
@@ -9590,12 +9594,12 @@ function paginaNE() {
         ["baixar-ne-pdf", "PDF", "Baixar a tabela dos estados em PDF"]
       ])}
       <h2 id="t-n-estados"><small>1</small>Estados</h2>
-      <p class="sub">Volume acumulado de cada estado na data de referência.<span class="dica">Passe o mouse no mapa ou na tabela para ligar um ao outro; clique para abrir o estado.</span></p>
+      <p class="sub">Volume acumulado de cada estado na data de referência. Com volume, só com nível e sem leitura somam os acompanhados; capacidade e volume reúnem só os reservatórios com volume medido.<span class="dica">Passe o mouse no mapa ou na tabela para ligar um ao outro; clique para abrir o estado.</span></p>
       <div class="grade-ne">
         <div class="col-mapa-ne">${legendaEscalaUF()}<div id="mapa-ne" style="position:relative"></div><p class="nota" style="margin:10px 0 0">A hachura marca o Semiárido, na delimitação do INSA. Em Minas Gerais o módulo acompanha só os reservatórios situados nele; nos nove estados do Nordeste, o estado todo. A delimitação alcança ainda parte do Espírito Santo, que não faz parte do módulo e não aparece no mapa.</p></div>
         <div class="tab-box"><table id="tab-estados">
-          <thead><tr><th data-ord="estado">Estado</th><th class="r" data-ord="n" data-tipo="num">Reser&shy;va&shy;tórios</th><th class="r" data-ord="com_dado" data-tipo="num">Com volume</th><th class="r" data-ord="capacidade_com_dado_hm3" data-tipo="num">Capa&shy;cidade</th><th class="r" data-ord="volume_hm3" data-tipo="num">Volume</th><th class="r" data-ord="volume_pct" data-tipo="num">Volume</th></tr>
-          <tr class="unid"><th></th><th class="r">acompa&shy;nhados</th><th class="r">na janela de ${NEd.limiar_dias} dias</th><th class="r">equiva&shy;lente, hm³</th><th class="r">hm³</th><th class="r">%</th></tr></thead>
+          <thead><tr><th data-ord="estado">Estado</th><th class="r" data-ord="n" data-tipo="num">Reser&shy;va&shy;tórios</th><th class="r" data-ord="com_dado" data-tipo="num">Com volume</th><th class="r" data-ord="nivel" data-tipo="num">Só com nível</th><th class="r" data-ord="sem_info" data-tipo="num">Sem leitura</th><th class="r" data-ord="capacidade_com_dado_hm3" data-tipo="num">Capa&shy;cidade</th><th class="r" data-ord="volume_hm3" data-tipo="num">Volume</th><th class="r" data-ord="volume_pct" data-tipo="num">Volume</th></tr>
+          <tr class="unid"><th></th><th class="r">acompa&shy;nhados</th><th class="r">na janela de ${NEd.limiar_dias} dias</th><th class="r">com leitura na janela</th><th class="r">na janela</th><th class="r">equiva&shy;lente, hm³</th><th class="r">hm³</th><th class="r">%</th></tr></thead>
           <tbody id="corpo-estados"></tbody>
           <tfoot id="pe-estados"></tfoot>
         </table></div>
@@ -9666,13 +9670,9 @@ function paginaNE() {
       const tr = document.createElement("tr");
       tr.dataset.uf = e.uf;
       tr.tabIndex = 0;
-      const obs = [
-        e.uf === "MG" ? "só o semiárido" : "",
-        e.nivel_n ? `${e.nivel_n} só com nível` : "",
-        e.n ? "" : "nenhum reservatório acompanhado"
-      ].filter(Boolean);
+      const obs = [e.uf === "MG" ? "só o semiárido" : "", e.n ? "" : "nenhum reservatório acompanhado"].filter(Boolean);
       tr.innerHTML = `<td><i class="bola" style="background:${corUF(e.volume_pct)}"></i><span class="nm">${e.estado}</span>${obs.map(o => `<small class="obs">${o}</small>`).join("")}</td>
-        <td class="r num">${fint(e.n)}</td><td class="r num">${fint(e.com_dado)}</td><td class="r num">${e.capacidade_com_dado_hm3 ? fint(e.capacidade_com_dado_hm3) : "–"}</td><td class="r num">${e.volume_hm3 ? fint(e.volume_hm3) : "–"}</td><td class="r num">${e.volume_pct == null ? "–" : fmt(e.volume_pct, 1)}</td>`;
+        <td class="r num">${fint(e.n)}</td><td class="r num">${fint(e.com_dado)}</td><td class="r num">${fint(e.nivel)}</td><td class="r num">${fint(e.sem_info)}</td><td class="r num">${e.capacidade_com_dado_hm3 ? fint(e.capacidade_com_dado_hm3) : "–"}</td><td class="r num">${e.volume_hm3 ? fint(e.volume_hm3) : "–"}</td><td class="r num">${e.volume_pct == null ? "–" : fmt(e.volume_pct, 1)}</td>`;
       tr.addEventListener("pointerenter", () => acenderUF(e.uf));
       tr.addEventListener("pointerleave", () => acenderUF(null));
       tr.addEventListener("click", () => abrirEstado(e.uf));
@@ -9704,7 +9704,7 @@ function paginaNE() {
     );
     desenhar();
     $("#pe-estados").innerHTML =
-      `<tr><th>Nordeste</th><th class="r num">${fint(tot.n)}</th><th class="r num">${fint(tot.com_dado)}</th><th class="r num">${fint(tot.capacidade_com_dado_hm3)}</th><th class="r num">${fint(tot.volume_hm3)}</th><th class="r num">${fmt(tot.volume_pct, 1)}</th></tr>`;
+      `<tr><th>Nordeste</th><th class="r num">${fint(tot.n)}</th><th class="r num">${fint(tot.com_dado)}</th><th class="r num">${fint(tot.nivel)}</th><th class="r num">${fint(tot.sem_info)}</th><th class="r num">${fint(tot.capacidade_com_dado_hm3)}</th><th class="r num">${fint(tot.volume_hm3)}</th><th class="r num">${fmt(tot.volume_pct, 1)}</th></tr>`;
     mapaUF.atualizar();
 
     $("#vol-sub").textContent =
