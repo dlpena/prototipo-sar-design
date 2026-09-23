@@ -8550,7 +8550,7 @@ function paginaFicha() {
       ${comoLer(
         ler("mensal"),
         "<b>Vazão natural.</b> A vazão que chegaria à usina sem o efeito dos reservatórios e dos usos a montante. O valor do mês é a média da vazão natural diária da base diária desta ficha.",
-        `<b>Média de longo termo.</b> Média de cada mês de ${D.vazao_natural_mlt.periodo[0]} a ${D.vazao_natural_mlt.periodo[1]} na série de vazões médias mensais do ONS, no posto de vazões naturais da usina (${esc(VN.posto)}). A série do ONS é consistida e pode diferir da vazão natural diária de operação em alguns meses.`,
+        `<b>Média de longo termo.</b> Média de cada mês de ${D.vazao_natural_mlt.periodo[0]} a ${D.vazao_natural_mlt.periodo[1]} na série de vazões médias mensais do ONS para a usina. A série do ONS é consistida e pode diferir da vazão natural diária de operação em alguns meses.`,
         `<b>Mínima e máxima.</b> A faixa ao fundo vai da menor à maior vazão média de cada mês na mesma série; com o cursor, as duas aparecem com o ano em que ocorreram. O mês abaixo da mínima ou acima da máxima é apontado na nota abaixo do gráfico. A escala vertical vai até a máxima, e por isso as barras dos meses secos ficam baixas.`
       )}
     </section>`
@@ -8741,7 +8741,7 @@ function paginaFicha() {
         `${caso(F.nome)} · vazão natural mensal contra a média de longo termo · até ${dBR($("#dia-sit").value)}`,
         [],
         {
-          fonte: `Fonte: vazão natural diária, SAR/ANA (Dados históricos SIN); média de longo termo, mínima e máxima, ${D.vazao_natural_mlt.fonte}, vazão natural no posto ${VN.posto}.`
+          fonte: `Fonte: vazão natural diária, SAR/ANA (Dados históricos SIN); média de longo termo, mínima e máxima, ${D.vazao_natural_mlt.fonte}.`
         }
       );
   }
@@ -8755,7 +8755,7 @@ function redesenharFicha() {
   graficoNatural();
 }
 // vazão natural média de cada mês (média dos dias com dado da base diária), 12 meses até a data de referência, contra a
-// MLT, a mínima e a máxima do mês no posto da usina na série de vazões médias mensais do ONS (D.vazao_natural_mlt)
+// MLT, a mínima e a máxima do mês da usina na série de vazões médias mensais do ONS (D.vazao_natural_mlt)
 function graficoNatural() {
   const VN = D.vazao_natural_mlt.usinas[FICHA.nome];
   if (!VN || !$("#g-nat")) return;
@@ -8806,7 +8806,7 @@ function graficoNatural() {
   $("#nat-nota").textContent =
     `No mês da data de referência, até ${dBR(ref)}: ${fint(u.v)} m³/s, ${u.v == null ? "–" : fmt((u.v / u.mlt) * 100, 0) + "%"} da média de longo termo do mês (${fint(u.mlt)} m³/s). ` +
     (fora.length ? `Fora da faixa de ${P[0]} a ${P[1]}: ${fora.join("; ")}. ` : "") +
-    `Fonte: vazão natural diária, SAR/ANA (Dados históricos SIN); média de longo termo, mínima e máxima, ${D.vazao_natural_mlt.fonte}, vazão natural no posto ${VN.posto}.`;
+    `Fonte: vazão natural diária, SAR/ANA (Dados históricos SIN); média de longo termo, mínima e máxima, ${D.vazao_natural_mlt.fonte}.`;
 }
 
 function recorte() {
