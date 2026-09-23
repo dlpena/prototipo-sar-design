@@ -4987,6 +4987,24 @@ const FAIXAS_OPERACAO_CAN = [
   { de: 20, ate: 30, rot: "Faixa 4 · Restrição (20% a 30%)", cor: "#C0392B", fundo: "#F2A09A" },
   { de: -1e9, ate: 20, rot: "Faixa 5 · Especial (abaixo de 20%)", cor: "#7A1F1F", fundo: "#C98585" }
 ];
+
+/* Nordeste e Semiárido, série do volume acumulado (Anexo I, 4, "Série do volume acumulado"; Diego, 23/09/2026): o gráfico
+   ao longo do ano tem um ponto por mês, contado para trás a partir da data de referência. mesAnterior(iso): o mesmo dia
+   do mês anterior; se o mês anterior não tem esse dia, o último dia dele (igual a mes_anterior, preparar_serie_ne.py). */
+function mesAnterior(iso) {
+  let a = +iso.slice(0, 4),
+    m = +iso.slice(5, 7) - 1;
+  if (!m) {
+    a--;
+    m = 12;
+  }
+  const ult = new Date(Date.UTC(a, m, 0)).getUTCDate();
+  return `${a}-${String(m).padStart(2, "0")}-${String(Math.min(+iso.slice(8, 10), ult)).padStart(2, "0")}`;
+}
+// dois pontos mensais seguidos são ligados, salvo quando os reservatórios que entraram ou saíram da medição entre eles
+// somam mais que o limiar (em % da média das duas capacidades equivalentes; parâmetro da área administrativa). troca
+// nula (falta um dos dois conjuntos) não interrompe: o vão entre os pontos já separa a linha
+const pontoLigado = (troca, limiar) => troca == null || troca <= limiar;
 /* ============================================================ exportação: PNG dos gráficos e do diagrama, PDF das tabelas */
 const CDN_JSPDF = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
 const CDN_AUTOTABLE = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js";
@@ -10423,18 +10441,7 @@ function serieNa(g, iso) {
   if (!S || k < 0 || k >= S.pct.length || S.pct[k] == null) return null;
   return { v: S.pct[k], n: S.n[k], cap: S.cap[k], troca: S.troca[k] };
 }
-// o mesmo dia do mês anterior; se o mês anterior não tem esse dia, o último dia dele (igual a preparar_serie_ne.py)
-function mesAnterior(iso) {
-  let a = +iso.slice(0, 4),
-    m = +iso.slice(5, 7) - 1;
-  if (!m) {
-    a--;
-    m = 12;
-  }
-  const ult = new Date(Date.UTC(a, m, 0)).getUTCDate();
-  return `${a}-${String(m).padStart(2, "0")}-${String(Math.min(+iso.slice(8, 10), ult)).padStart(2, "0")}`;
-}
-// atual: o valor da página na data de referência ({v, n, cap}), para o último ponto ser o número da página
+// pontos mensais (mesAnterior e pontoLigado em regras.js); atual: o valor da página na data de referência ({v, n, cap}), para o último ponto ser o número da página
 function pontosMensais(g, ref, anoMin, atual) {
   const pts = {},
     info = {},
@@ -10445,7 +10452,7 @@ function pontosMensais(g, ref, anoMin, atual) {
     if (!y) continue;
     pts[iso] = y.v;
     info[iso] = y;
-    if (y.troca != null && y.troca > SD.limiar_troca_pct) quebras.push(iso);
+    if (!pontoLigado(y.troca, SD.limiar_troca_pct)) quebras.push(iso);
   }
   return { pts, info, quebras };
 }
