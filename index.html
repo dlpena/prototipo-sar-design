@@ -43,6 +43,9 @@
   --graf-verde: #0a9396;
   --graf-bronze: #b7793a;
   --graf-bronze-escuro: #8f5b22;
+  /* rios nos mapas com mapa-base (bacia e ficha): sobre o mapa e sobre o satélite */
+  --mapa-rio: #5f8fc0;
+  --mapa-rio-satelite: #8fc4f2;
   --sans: Arial, "Liberation Sans", Helvetica, sans-serif; /* família institucional (manual, p. 10) */
   --narrow: "Arial Narrow", "Liberation Sans Narrow", "Roboto Condensed", Arial, sans-serif;
   --cond: "Arial Narrow", "Liberation Sans Narrow", "Roboto Condensed", Arial, sans-serif;
@@ -4690,9 +4693,25 @@ const COR = (() => {
     nivel: v("--graf-nivel"),
     verde: v("--graf-verde"),
     bronze: v("--graf-bronze"),
-    bronzeEscuro: v("--graf-bronze-escuro")
+    bronzeEscuro: v("--graf-bronze-escuro"),
+    rio: v("--mapa-rio"),
+    rioSatelite: v("--mapa-rio-satelite")
   };
 })();
+// texto sem acento e em minúsculas: para comparar códigos e nomes (identidade), sem mexer na pontuação
+const semAc = s =>
+  String(s ?? "")
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase();
+// texto de busca (o digitado e o índice passam pela mesma função): sem acento, em minúsculas, sem apóstrofo e sem ponto
+// ("Mãe D'Água" -> "mae dagua", "M. Moraes" -> "m moraes") e com a demais pontuação trocada por espaço
+// ("Jaguari-Jacareí" -> "jaguari jacarei"); a busca exige que cada palavra digitada apareça no índice
+const normalizaBusca = s =>
+  semAc(s)
+    .replace(/['’`´.]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 // dias do mês "aaaa-mm"
 const diasNoMes = mes => new Date(Date.UTC(+mes.slice(0, 4), +mes.slice(5, 7), 0)).getUTCDate();
 // os n meses ("aaaa-mm") até o da data iso, do mais antigo ao da data: janela dos gráficos mensais
@@ -8061,7 +8080,7 @@ function mapaGrande(host, G) {
   // hidrografia recortada à bacia (SNIRH + rios do cadastro ONS), mesma camada do mapa do SIN
   const rios = L.geoJSON(
     { type: "Feature", geometry: { type: "MultiLineString", coordinates: D.geo.rios_grande } },
-    { style: { color: "#5F8FC0", weight: 1.6, opacity: 0.95 }, interactive: false }
+    { style: { color: COR.rio, weight: 1.6, opacity: 0.95 }, interactive: false }
   ).addTo(mapa);
   bacia.bringToFront();
   mapa.fitBounds(bacia.getBounds(), { padding: [10, 10] });
@@ -8069,7 +8088,7 @@ function mapaGrande(host, G) {
     const sat = e.name === "Satélite";
     bacia.setStyle(estilo(sat));
     ufs.setStyle({ color: sat ? COR.branco : "#666" });
-    rios.setStyle({ color: sat ? "#8FC4F2" : "#5F8FC0" });
+    rios.setStyle({ color: sat ? COR.rioSatelite : COR.rio });
     host.classList.toggle("sat", sat);
     bacia.bringToFront();
   });
@@ -9045,13 +9064,13 @@ function mapaFicha(host, F) {
   const rios = grande
     ? L.geoJSON(
         { type: "Feature", geometry: { type: "MultiLineString", coordinates: D.geo.rios_grande } },
-        { style: { color: "#5F8FC0", weight: 1.4, opacity: 0.95 }, interactive: false }
+        { style: { color: COR.rio, weight: 1.4, opacity: 0.95 }, interactive: false }
       ).addTo(mapa)
     : null;
   mapa.on("baselayerchange", e => {
     const sat = e.name === "Satélite";
     if (bacia) bacia.setStyle({ color: sat ? COR.branco : COR.ana });
-    if (rios) rios.setStyle({ color: sat ? "#8FC4F2" : "#5F8FC0" });
+    if (rios) rios.setStyle({ color: sat ? COR.rioSatelite : COR.rio });
     host.classList.toggle("sat", sat);
   });
   // usinas: no Grande, as da cascata com série; nas demais bacias, as usinas da bacia no dado mais recente
@@ -9118,7 +9137,6 @@ const NE_UFS = new Set(["AL", "BA", "CE", "MA", "MG", "PB", "PE", "PI", "RN", "S
   OUTROS_UFS = new Set(["SP", "DF", "MG"]);
 const COR_MOD = { SIN: COR.ana, NE: COR.verde, OUTROS: COR.bronze }; // marinho, verde-azulado e bronze: três matizes distintos e harmônicos, conferidos no validador de paleta (19/09/2026) // três cores bem distintas; laranja só como marca de dado, como nas linhas dos gráficos
 // parágrafos do SAR atual com enumerações "(i) ...; (ii) ...; e (iii) ..." viram parágrafo de abertura + lista
-const semAcento = s => String(s).normalize("NFD").replace(/\p{M}/gu, "").toUpperCase();
 function miniMapa(tipo) {
   const S = D.sin,
     W = S.w,
@@ -9295,7 +9313,7 @@ function montarBusca() {
     e,
     r: e.r,
     mod: ROT_MOD_I[e.mod],
-    chave: semAcento(e.busca),
+    chave: normalizaBusca(e.busca),
     det: `${e.bacia ? e.bacia + " · " : ""}${e.municipio ? e.municipio + ", " : ""}${e.uf}${e.codigo ? " · código " + e.codigo : ""}${e.tipo === "só nível" ? " · só nível" : ""}${e.retirado ? " · retirado do acompanhamento" : ""}`
   }));
   const q = $("#q"),
@@ -9325,14 +9343,14 @@ function montarBusca() {
       );
   };
   const buscar = () => {
-    const termos = semAcento(q.value).split(/\s+/).filter(Boolean);
+    const termos = normalizaBusca(q.value).split(/\s+/).filter(Boolean);
     if (!termos.length) {
       box.hidden = true;
       return;
     }
     // relevância: nome começa com o termo > nome contém o termo > termo em outro campo (estado, bacia, município)
     const nota = it => {
-      const n = semAcento(it.nome);
+      const n = normalizaBusca(it.nome);
       return termos.reduce((a, tm) => a + (n.startsWith(tm) ? 3 : n.includes(tm) ? 2 : 1), 0);
     };
     const todos = indice
@@ -11629,12 +11647,14 @@ function paginaOutros() {
   });
 }
 /* ---------- página do Sistema Cantareira ---------- */
-// cores do balanço de vazões (paleta de dados, usada nos dois desenhos do balanço): marinho dos reservatórios, azul da
-// vazão natural, bronze da transferência do Paraíba do Sul, verde-azulado da descarga para jusante, cinza dos rótulos,
-// da terra e das ligações sem vazão no dia
+// cores do balanço de vazões (paleta de dados, usada nos dois desenhos do balanço): marinho dos reservatórios, azul-médio
+// da vazão natural (a mesma cor do "Afluente natural" na ficha do reservatório; o azul dos links, --ana-medio, não é
+// usado para não parecer clicável), bronze da transferência do Paraíba do Sul, verde-azulado da descarga para jusante,
+// cinza dos rótulos, da terra e das ligações sem vazão no dia. Os números ficam em cor de texto; a cor da vazão só no
+// contorno da etiqueta, na linha e na seta.
 const PAL_BALANCO = {
   MAR: COR.ana,
-  NAT: "#0B72C2",
+  NAT: COR.azulMedio,
   TRF: COR.bronzeEscuro,
   JUS: "#07777A",
   AP: COR.apagado,
@@ -11981,7 +12001,7 @@ function balancoCan(ref, f0) {
         "stroke-width": 1.5
       })
     );
-    txt(x, y + 5, s, { fs: 14, cor: c, b: true });
+    txt(x, y + 5, s, { fs: 14, cor: v > 0 ? COR.tinta : AP, b: true });
   };
   const ordem = ["JaguariJacarei", "Cachoeira", "Atibainha", "PaivaCastro"],
     tuneis = ["T7", "T6", "T5"];
@@ -12079,7 +12099,7 @@ function balancoCan(ref, f0) {
     txt(cm, y0 + 40, r.nome, { fs: 14, cor: MAR, b: true });
     const n = txt(cm, y0 + 72, p == null ? "–" : fmt(p, 1), { fs: 25, b: true });
     if (p != null) {
-      const s = svgEl("tspan", { "font-size": 14, fill: NAT, dx: 2 });
+      const s = svgEl("tspan", { "font-size": 14, fill: COR.vivo, dx: 2 }); // símbolo %, como no valor principal
       s.textContent = "%";
       n.append(s);
     }
@@ -12236,7 +12256,7 @@ function balancoCanV(ref, R, V) {
         "stroke-width": 1.5
       })
     );
-    txt(tx, y + 4.5, s, { fs: 12.5, cor: c, b: true });
+    txt(tx, y + 4.5, s, { fs: 12.5, cor: v > 0 ? COR.tinta : AP, b: true });
   };
   const ordem = ["JaguariJacarei", "Cachoeira", "Atibainha", "PaivaCastro"],
     tuneis = ["T7", "T6", "T5"];
@@ -12320,7 +12340,7 @@ function balancoCanV(ref, R, V) {
     txt(x - 6, y0 - 6, r.nome, { fs: 12, cor: MAR, b: true, a: "start" });
     const n = txt(cm, y0 + 54, p == null ? "–" : fmt(p, 1), { fs: 22, b: true });
     if (p != null) {
-      const s = svgEl("tspan", { "font-size": 12.5, fill: NAT, dx: 2 });
+      const s = svgEl("tspan", { "font-size": 12.5, fill: COR.vivo, dx: 2 }); // símbolo %, como no valor principal
       s.textContent = "%";
       n.append(s);
     }
@@ -13194,11 +13214,6 @@ const MAPA_SIN = {
   nat: "vazao_natural_m3s",
   vu: "volume_util_pct"
 };
-const semAc = s =>
-  String(s || "")
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .toLowerCase();
 let ENT_D = null;
 function entidadesDados() {
   if (ENT_D) return ENT_D;
@@ -13309,8 +13324,8 @@ function entidadesDados() {
   UFN.DF = "Distrito Federal";
   UFN.SP = UFN.SP || "São Paulo";
   L.forEach(e => {
-    e.nomeB = semAc(e.nome);
-    e.busca = semAc(
+    e.nomeB = normalizaBusca(e.nome);
+    e.busca = normalizaBusca(
       `${e.nome} ${e.codigo} ${e.municipio} ${e.uf} ${UFN[e.uf] || ""} ${e.bacia} ${ROT_MOD[e.mod]} ${e.mod === "OUTROS" ? "Outros Sistemas Hídricos " + (NOME_SIS[e.sis] || "") : ""}`
     );
   });
@@ -13603,7 +13618,7 @@ function paginaDados() {
 
   // ---------- 1. seleção
   const filtrados = () => {
-    const termos = semAc(st.txt).split(/\s+/).filter(Boolean); // várias palavras: todas têm de bater
+    const termos = normalizaBusca(st.txt).split(/\s+/).filter(Boolean); // várias palavras: todas têm de bater
     return ENT.filter(
       e =>
         (!st.soSel || st.sel.has(e.id)) &&
@@ -13630,8 +13645,8 @@ function paginaDados() {
   };
   const listaFiltro = k => {
     const host = $(`#mf-${k}`),
-      q = semAc(host.querySelector(".mf-busca").value).trim();
-    const O = opcoesDe(k).filter(o => !q || semAc(rotOpc(k, o.v)).includes(q));
+      q = normalizaBusca(host.querySelector(".mf-busca").value);
+    const O = opcoesDe(k).filter(o => !q || normalizaBusca(rotOpc(k, o.v)).includes(q));
     host.querySelector(".mf-lista").innerHTML = O.length
       ? O.map(
           o =>
@@ -14706,7 +14721,7 @@ function seletorAdm(host, filtro, aoEscolher) {
     const q = $("input", host),
       box = $(".adm-sel-res", host);
     q.oninput = () => {
-      const termos = semAc(q.value).split(/\s+/).filter(Boolean);
+      const termos = normalizaBusca(q.value).split(/\s+/).filter(Boolean);
       if (!termos.length) {
         box.hidden = true;
         return;
@@ -15819,9 +15834,11 @@ function admTrilha() {
       <div class="busca-dados"><input type="search" id="t-busca" placeholder="Filtrar por reservatório, operação, pessoa ou motivo" aria-label="Filtrar o registro das ações" autocomplete="off"></div>
       <div id="t-lista"></div></section>`;
   const filtrada = () => {
-    const tm = semAc($("#t-busca").value).split(/\s+/).filter(Boolean);
+    const tm = normalizaBusca($("#t-busca").value).split(/\s+/).filter(Boolean);
     return ADM.trilha.filter(x =>
-      tm.every(t => semAc(`${x.op} ${x.res} ${x.cod} ${x.quem} ${x.motivo} ${x.detalhe} ${x.situacao}`).includes(t))
+      tm.every(t =>
+        normalizaBusca(`${x.op} ${x.res} ${x.cod} ${x.quem} ${x.motivo} ${x.detalhe} ${x.situacao}`).includes(t)
+      )
     );
   };
   function lista() {
@@ -16258,7 +16275,7 @@ function escolherRes(host, filtro, atual, aoEscolher, ph) {
   const q = $("input", host),
     box = $(".adm-sel-res", host);
   q.oninput = () => {
-    const termos = semAc(q.value).split(/\s+/).filter(Boolean);
+    const termos = normalizaBusca(q.value).split(/\s+/).filter(Boolean);
     if (!termos.length) {
       box.hidden = true;
       return;
@@ -16449,7 +16466,7 @@ function admCobertura() {
       <p class="sub">Conferência do cadastro dos reservatórios acompanhados: o que falta ou se repete aparece aqui até ser corrigido em <a href="#admin/cadastro">Cadastro e curva</a>.</p>
       ${cadastroAdm(C)}</section>`;
   const filtrada = () => {
-    const tm = semAc(st.txt).split(/\s+/).filter(Boolean);
+    const tm = normalizaBusca(st.txt).split(/\s+/).filter(Boolean);
     return C.filter(
       c =>
         (!st.mod || c.e.mod === st.mod) &&
@@ -16748,12 +16765,12 @@ function admSuspeitos() {
   };
   const nomeK = k => nomeVar(CAT_VARS.find(v => v.k === k));
   const filtrada = () => {
-    const tm = semAc(st.txt).split(/\s+/).filter(Boolean);
+    const tm = normalizaBusca(st.txt).split(/\s+/).filter(Boolean);
     return S.filter(
       s =>
         (!st.regra || s.regra === st.regra) &&
         (!st.sit || (st.sit === "pend" ? !ADM.susp[s.id] : !!ADM.susp[s.id])) &&
-        tm.every(t => semAc(s.e.nome + " " + s.e.codigo + " " + s.e.uf).includes(t))
+        tm.every(t => normalizaBusca(s.e.nome + " " + s.e.codigo + " " + s.e.uf).includes(t))
     );
   };
   function lista() {
@@ -17299,7 +17316,7 @@ function admInclusao() {
   function checks() {
     const E = entidadesDados(),
       R = [],
-      nB = semAc(f.nome).trim(),
+      nB = normalizaBusca(f.nome),
       la = numBR(f.lat),
       lo = numBR(f.lon);
     const falta = [
@@ -17460,8 +17477,8 @@ function admInclusao() {
         coord: la != null && lo != null ? [la, lo] : null,
         r: { nome: g.nome.toUpperCase(), bacia: "" }
       };
-    e.nomeB = semAc(e.nome);
-    e.busca = semAc(`${e.nome} ${e.codigo} ${e.municipio} ${e.uf} ${e.bacia} ${ROT_MOD[e.mod]}`);
+    e.nomeB = normalizaBusca(e.nome);
+    e.busca = normalizaBusca(`${e.nome} ${e.codigo} ${e.municipio} ${e.uf} ${e.bacia} ${ROT_MOD[e.mod]}`);
     entidadesDados().push(e);
     COB = null;
     // SIN: a topologia da bacia passa a ter a usina, com o código provisório (as próximas inclusões já a veem)
@@ -17691,7 +17708,7 @@ function admCodigos() {
   function lista() {
     const L = avaliar(todas()),
       sem = cards(L),
-      tm = semAc(st.txt).split(/\s+/).filter(Boolean);
+      tm = normalizaBusca(st.txt).split(/\s+/).filter(Boolean);
     if (st.so === "sem") {
       const X = sem.filter(e => tm.every(t => e.busca.includes(t)));
       $("#co-n").textContent =
@@ -17715,7 +17732,7 @@ function admCodigos() {
         x =>
           (!st.fonte || x.fonte === st.fonte) &&
           (!st.so || (st.so === "prob" ? x.prob : x.sit)) &&
-          tm.every(t => semAc(`${x.cf} ${x.sar} ${x.e ? x.e.nome + " " + x.e.municipio : ""}`).includes(t))
+          tm.every(t => normalizaBusca(`${x.cf} ${x.sar} ${x.e ? x.e.nome + " " + x.e.municipio : ""}`).includes(t))
       );
       $("#co-n").textContent = `${fint(X.length)} ${X.length === 1 ? "correspondência" : "correspondências"}.`;
       $("#co-tab").innerHTML = X.length
