@@ -4638,8 +4638,8 @@ body.na-inicio main {
     <nav class="modulos" aria-label="Módulos do SAR">
       <button type="button" data-rota="inicio">Início</button>
       <button type="button" data-rota="sin">Sistema Interligado Nacional</button>
-      <button type="button" data-rota="ne">Nordeste e semiárido</button>
-      <button type="button" data-rota="outros">Outros sistemas hídricos</button>
+      <button type="button" data-rota="ne">Nordeste e Semiárido</button>
+      <button type="button" data-rota="outros">Outros Sistemas Hídricos</button>
       <button type="button" data-rota="dados" class="nav-dados">Dados</button>
       <button type="button" data-rota="admin" class="nav-admin">Administração</button>
     </nav>
@@ -4759,6 +4759,10 @@ function barraData(id, valor, min, max, dica) {
   return `<div class="barra-data"><label class="data-ref" for="${id}"><b>Data de referência</b></label><input type="date" id="${id}" value="${valor}" min="${min}" max="${max}" aria-label="Data de referência"><button class="hoje" id="${id}-hoje" title="Voltar para os dados mais recentes">Dados mais recentes</button><span class="dica">${dica}</span></div>`;
 }
 // liga o controle: a data fora do intervalo vai para o limite; o botão volta à data mais recente (recente)
+// data de referência do SIN: vale para as páginas do módulo (a do Nordeste é dataRef; a de Outros Sistemas, refOS) e
+// volta ao padrão ao sair do módulo (rotas.js); fora do intervalo da página, a página abre no dado mais recente
+let refSIN = null;
+const dataInicialSIN = (min, max) => (refSIN && refSIN >= min && refSIN <= max ? refSIN : max);
 function ligarData(id, min, max, aoMudar, recente = max) {
   const e = $("#" + id),
     ir = iso => {
@@ -4794,7 +4798,7 @@ function medicaoNaJanela(serie, alvo, lim, dia, tem = () => true) {
   return k0;
 }
 
-// Nordeste e Semiárido, faixa de volume do reservatório (Anexo I, 4): restrição abaixo de 20%, atenção de 20% a 50%,
+// Nordeste e Semiárido, faixa de volume do reservatório (Anexo I, 4): restrição abaixo de 20%, atenção de 20% a menos de 50%,
 // normal a partir de 50%; sem medição na janela, "sem"
 const faixaPct = p => (p == null ? "sem" : p < 20 ? "restricao" : p < 50 ? "atencao" : "normal");
 
@@ -5225,7 +5229,7 @@ function baixarCSVGrafico(hosts, nome, rotCol) {
 
 // tabela da tela em PDF, no desenho do PDF da bacia do SIN: título, subtítulo com a fonte, cabeçalho em duas linhas
 // (nome e unidade), primeira coluna em negrito, números à direita, minigráficos como imagem e linha de total
-async function pdfTabelaDOM(tabelas, nome, titulo, sub) {
+async function pdfTabelaDOM(tabelas, nome, titulo, sub, pe = []) {
   try {
     await carregarScript(CDN_JSPDF);
     await carregarScript(CDN_AUTOTABLE);
@@ -5277,8 +5281,7 @@ async function pdfTabelaDOM(tabelas, nome, titulo, sub) {
       imgs[i + "_" + j] = cv.toDataURL("image/png");
     }
   const doc = new window.jspdf.jsPDF({ orientation: "landscape", unit: "pt", format: "a4", compress: true });
-  const larg = doc.internal.pageSize.getWidth(),
-    alt = doc.internal.pageSize.getHeight();
+  const larg = doc.internal.pageSize.getWidth();
   doc.setFont("helvetica", "bold");
   doc.setFontSize(15);
   doc.setTextColor(...AZUL);
@@ -5295,7 +5298,7 @@ async function pdfTabelaDOM(tabelas, nome, titulo, sub) {
     rowPageBreak: "avoid",
     head: [ths.map(txtTh), un ? [...un.cells].map(c => limpa(c.textContent)) : ths.map(() => "")],
     body: linhas.map(tr => [...tr.cells].map((td, j) => (mini[j] ? "" : txtTd(td)))),
-    foot: pes.map(tr => [...tr.cells].map((td, j) => (mini[j] ? "" : txtTd(td)))),
+    foot: pes.map(tr => [...tr.cells].map((td, j) => (mini[j] ? "" : txtTd(td)))).concat(pe),
     showFoot: "lastPage",
     styles: {
       font: "helvetica",
@@ -5343,20 +5346,34 @@ async function pdfTabelaDOM(tabelas, nome, titulo, sub) {
       if (im) doc.addImage(im, "PNG", x + 6, y + (height - 19) / 2, Math.min(width - 12, 138), 19, undefined, "FAST");
     }
   });
-  doc.setFontSize(8);
-  doc.setTextColor(...CINZA);
-  doc.text(RODAPE, 40, alt - 22);
+  rodapePDF(doc);
   doc.save(nome);
   toast("PDF gerado. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)");
 }
-// PDF da tabela de uma seção: título e subtítulo saem da página e da seção
-const pdfSecao = (tabelas, nome) => {
+// rodapé em todas as páginas do PDF, com a numeração
+function rodapePDF(doc) {
+  const n = doc.internal.getNumberOfPages(),
+    larg = doc.internal.pageSize.getWidth(),
+    alt = doc.internal.pageSize.getHeight();
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(...CINZA);
+  for (let i = 1; i <= n; i++) {
+    doc.setPage(i);
+    doc.text(RODAPE, 40, alt - 22);
+    doc.text(`Página ${i} de ${n}`, larg - 40, alt - 22, { align: "right" });
+  }
+}
+// PDF da tabela de uma seção: título e subtítulo saem da página e da seção; a data de referência entra no título
+// quando a tabela depende dela; `pe` são linhas de total que ficam fora da tabela na tela
+const pdfSecao = (tabelas, nome, { data, pe } = {}) => {
   const t0 = tabelas.find(Boolean);
   return pdfTabelaDOM(
     tabelas,
     nome,
-    `${($("#titulo-pag h1") || {}).textContent || "SAR"} · ${tituloSecao(t0)}`,
-    textoSecao(t0)
+    `${($("#titulo-pag h1") || {}).textContent || "SAR"} · ${tituloSecao(t0)}${data ? " · " + dBR(data) : ""}`,
+    textoSecao(t0),
+    pe
   );
 };
 
@@ -5583,8 +5600,7 @@ async function pdfTabelaBacia(lista, kMini, rotMini) {
   const dia = lista[0].dia,
     minis = await minisPNG(lista);
   const doc = new window.jspdf.jsPDF({ orientation: "landscape", unit: "pt", format: "a4", compress: true });
-  const larg = doc.internal.pageSize.getWidth(),
-    alt = doc.internal.pageSize.getHeight();
+  const larg = doc.internal.pageSize.getWidth();
   const nRes = lista.filter(r => r.tipo !== "fio").length,
     nFio = lista.length - nRes;
   doc.setFont("helvetica", "bold");
@@ -5597,7 +5613,7 @@ async function pdfTabelaBacia(lista, kMini, rotMini) {
   doc.text(
     doc.splitTextToSize(
       `Base diária, de montante para jusante · ${nRes} usinas com reservatório e ${nFio} a fio d'água · minigráfico: 30 dias de ${rotMini} até ${dBR(dia)}.` +
-        ` Fontes: ${D.fontes.medicoes}; ${D.fontes.sar0}.`,
+        ` Fontes: ${D.fontes.medicoes}; ${D.fontes.sar0}. Gerado em ${hojeBR()}.`,
       larg - 80
     ),
     40,
@@ -5689,9 +5705,7 @@ async function pdfTabelaBacia(lista, kMini, rotMini) {
       }
     }
   });
-  doc.setFontSize(8);
-  doc.setTextColor(...CINZA);
-  doc.text(RODAPE, 40, alt - 22);
+  rodapePDF(doc);
   doc.save(`sar_grande_${dia}.pdf`);
   toast("PDF gerado. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)");
 }
@@ -6440,6 +6454,10 @@ function barrasFaixas(host, linhas) {
 }
 
 // açudes com medição em cada ano: volume no SAR e nível no HidroInfoAna
+const MESES_NOME = "janeiro fevereiro março abril maio junho julho agosto setembro outubro novembro dezembro".split(
+  " "
+);
+// op.ate: data do dado mais recente (o ano em curso aparece como "até" o mês dela)
 function graficoMonitoramento(host, hist, rotulo, op = {}) {
   host.innerHTML = "";
   const anos = Object.keys(hist)
@@ -6515,7 +6533,7 @@ function graficoMonitoramento(host, hist, rotulo, op = {}) {
     });
     alvo.addEventListener("pointerenter", () => {
       tip.innerHTML =
-        `<b>${a}${a === anos[anos.length - 1] ? " (até setembro)" : ""}</b>` +
+        `<b>${a}${a === anos[anos.length - 1] && op.ate ? ` (até ${MESES_NOME[+op.ate.slice(5, 7) - 1]})` : ""}</b>` +
         series
           .map(
             k =>
@@ -6735,9 +6753,9 @@ function paginaSIN() {
     </section>
 
     <section class="cartao secao" id="s-usinas" aria-labelledby="t-usinas">
-      <h2 id="t-usinas"><small>5</small>Mapa das usinas</h2>
-      <p class="sub">Localização das usinas, com os dados mais recentes.<span class="dica">Passe o mouse ou clique num símbolo para ler o valor; use as camadas para escolher o mapa-base e os grupos.</span></p>
       ${barraBaixar([["baixar-kmz", "KMZ", "Baixar as usinas visíveis em KMZ (Google Earth)"]])}
+      <h2 id="t-usinas"><small>5</small>Mapa das usinas</h2>
+      <p class="sub">Localização das usinas, com os dados mais recentes.<span class="dica">Passe o mouse sobre um símbolo para ler o valor e clique para abrir a ficha; use as camadas para escolher o mapa-base e os grupos.</span></p>
       <p class="resumo-filtros" id="resumo-filtros"></p>
       <div id="mapa-situacao"></div>
       <p class="nota" id="aviso-usinas-dia" style="margin:8px 0 0" hidden></p>
@@ -6805,9 +6823,12 @@ function paginaSIN() {
     av.textContent = `No mapa, as usinas seguem nos dados mais recentes, de ${dBR(D.data)}: no protótipo só o dia mais recente de cada usina está embutido.`;
   };
   ligarData("dia-sin", ini, ult, iso => {
+    refSIN = iso;
     if (S[iso] != null) render(iso);
   });
-  render(ult);
+  const d0 = dataInicialSIN(ini, ult);
+  $("#dia-sin").value = d0;
+  render(S[d0] != null ? d0 : ult);
   redesenharSIN = () => render(dia);
   mapaSIN($("#mapa-sin"));
   const basesBacias = () =>
@@ -6816,7 +6837,7 @@ function paginaSIN() {
       return {
         b,
         nome: NOME[b],
-        comRes: l.filter(r => r.tipo !== "fio" && r.vu != null).length,
+        comRes: l.filter(r => r.tipo !== "fio").length,
         nFio: l.filter(r => r.tipo === "fio").length
       };
     });
@@ -6826,7 +6847,12 @@ function paginaSIN() {
       basesBacias().map(x => [x.nome, x.comRes, x.nFio]),
       "sar_sin_bacias.csv"
     );
-  $("#baixar-bacias-pdf").onclick = () => pdfSecao([$("#tab-bacias"), $("#tab-bacias-2")], "sar_sin_bacias.pdf");
+  $("#baixar-bacias-pdf").onclick = () => {
+    const l = basesBacias();
+    pdfSecao([$("#tab-bacias"), $("#tab-bacias-2")], "sar_sin_bacias.pdf", {
+      pe: [[`Total: ${l.length} bacias`, l.reduce((a, x) => a + x.comRes, 0), l.reduce((a, x) => a + x.nFio, 0)]]
+    });
+  };
   $("#baixar-equiv-csv").onclick = () =>
     baixarCSVGrafico([$("#g-equiv")], `sar_sin_equivalente_ao_longo_do_ano_ate_${dia}.csv`);
   $("#baixar-barras-csv").onclick = () =>
@@ -6877,7 +6903,7 @@ function acender(b) {
   contornoAceso($(".sub-bacia.sin")?.ownerSVGElement, b && $(`.sub-bacia.sin[data-bacia="${b}"]`), ".rotulos");
   $$(".usina").forEach(u => u.classList.toggle("apagada", !!b && u.dataset.bacia !== b));
 
-  $$("#corpo-bacias tr").forEach(tr => tr.classList.toggle("acesa", tr.dataset.bacia === b));
+  $$("#corpo-bacias tr, #corpo-bacias-2 tr").forEach(tr => tr.classList.toggle("acesa", tr.dataset.bacia === b));
 }
 function abrirBacia(b) {
   if (b === "GRANDE") location.hash = "bacia/GRANDE";
@@ -7022,7 +7048,7 @@ function mapaLeaflet() {
     const m = L.marker([r.lat, r.lon], { icon: icone(tipo), zIndexOffset: tipo === "res" ? 500 : 0 })
       .bindTooltip(html, { direction: "top", offset: [0, -6], opacity: 1 })
       .bindPopup(html);
-    m.on("click", () => abrirBacia(r.bacia));
+    m.on("click", () => abrirFicha(r));
     grupos[tipo].addLayer(m);
     marcadores.push({ tipo, r });
   });
@@ -7091,7 +7117,7 @@ function listaBacias() {
     return {
       b,
       nome: NOME[b],
-      comRes: lista.filter(r => r.tipo !== "fio" && r.vu != null).length,
+      comRes: lista.filter(r => r.tipo !== "fio").length,
       nFio: lista.filter(r => r.tipo === "fio").length
     };
   });
@@ -7161,9 +7187,9 @@ function paginaGrande() {
       <a href="#bacia/GRANDE" data-alvo="g-mapa">Mapa</a><a href="#bacia/GRANDE" data-alvo="g-tab">Usinas</a><a href="#bacia/GRANDE" data-alvo="g-diag">Cascata</a>
     </nav>
     <section class="cartao secao" id="g-mapa" aria-labelledby="t-mapa-g">
+      ${barraBaixar([["baixar-kmz-bacia", "KMZ", "Baixar a bacia e as usinas em KMZ (Google Earth)"]])}
       <h2 id="t-mapa-g"><small>1</small>Mapa da bacia</h2>
       <p class="sub">Passe o mouse sobre uma usina para ler os valores do dia; clique para abrir a ficha. No controle de camadas: mapa ou satélite, contorno, hidrografia, divisão estadual e a chuva do MERGE (INPE) em 24 h, 7 ou 30 dias até a data de referência, provisória enquanto o INPE não regrava o arquivo do dia.</p>
-      ${barraBaixar([["baixar-kmz-bacia", "KMZ", "Baixar a bacia e as usinas em KMZ (Google Earth)"]])}
       <div class="legenda" style="margin-bottom:6px"><span>${simbolo("res", 14)}Com reservatório</span><span>${simbolo("fio", 14)}A fio d'água</span></div>
       <div id="mapa-grande" style="position:relative"></div>
     </section>
@@ -7206,7 +7232,10 @@ function paginaGrande() {
     const semDado = doDia.filter(r => r.cota == null).length;
     $("#aviso-dia").textContent = semDado ? `${semDado} usina(s) sem dado em ${dBR(dia)}.` : "";
   }
-  ligarData("dia-bacia", G.res[0].serie[0].data, D.data, render);
+  ligarData("dia-bacia", G.res[0].serie[0].data, D.data, iso => {
+    refSIN = iso;
+    render(iso);
+  });
   $("#var-mini").addEventListener("change", e => minigraficos(doDia, e.target.value));
   $("#baixar-csv").onclick = () => baixarCSV(doDia);
   $("#baixar-pdf").onclick = () =>
@@ -7216,14 +7245,22 @@ function paginaGrande() {
       [$("#diag-grande svg")],
       `sar_grande_cascata_${doDia[0].dia}.png`,
       `Bacia do Grande · cascata · ${dBR(doDia[0].dia)}`,
-      [
-        { r: "com reservatório (volume útil abaixo do nome)", simbolo: "res" },
-        { r: "a fio d'água", simbolo: "fio" },
-        { r: "número acima do símbolo: defluente do dia, em m³/s" }
-      ]
+      $("#diag-grande svg.vert")
+        ? [
+            { r: "com reservatório (volume útil ao lado do nome)", simbolo: "res" },
+            { r: "a fio d'água", simbolo: "fio" },
+            { r: "número ao lado do símbolo: defluente do dia, em m³/s" }
+          ]
+        : [
+            { r: "com reservatório (volume útil abaixo do nome)", simbolo: "res" },
+            { r: "a fio d'água", simbolo: "fio" },
+            { r: "número acima do símbolo: defluente do dia, em m³/s" }
+          ]
     );
   $("#baixar-kmz-bacia").onclick = () => baixarKMZ(doDia);
-  render(D.data);
+  const d0 = dataInicialSIN(G.res[0].serie[0].data, D.data);
+  $("#dia-bacia").value = d0;
+  render(d0);
 }
 // valores de uma usina num dia da série diária (sar0); sem registro, campos nulos
 function comDia(r, dia) {
@@ -7258,7 +7295,7 @@ function baixarCSV(lista) {
       "defluente_m3s",
       "turbinada_m3s",
       "vertida_m3s",
-      "nivel_m",
+      "cota_m",
       "volume_util_pct"
     ].join(";")
   ].concat(
@@ -7312,7 +7349,7 @@ async function baixarKMZ(lista) {
 }
 function destacaUsina(nome) {
   $$("[data-usina]").forEach(e => e.classList.toggle("acesa", e.dataset.usina === nome));
-  $$("#mapa-grande .usina, #diag-grande .no-diag").forEach(
+  $$("#mapa-grande .usina, #diag-grande .no-diag, #tab-grande tr").forEach(
     e => (e.style.opacity = !nome || e.dataset.usina === nome ? 1 : 0.3)
   );
 }
@@ -7988,7 +8025,7 @@ function paginaFicha() {
         <div class="carimbo"><span>Código SAR <b>${F.codigo}</b></span><span>Dados diários mais recentes <b>${dBR(ult.data)}</b></span><span>Base diária desde <b>${dBR(DI[0].data)}</b></span><span>Base horária desde <b>${fHora(HO[0].t)}</b>, última <b>${fHora(HO[HO.length - 1].t)}</b></span></div>
       </div>
     </div>
-    ${barraData("dia-sit", ult.data, DI[0].data, ult.data, "Base diária. Situação e mesmo dia em outros anos seguem esta data.")}`;
+    ${barraData("dia-sit", ult.data, DI[0].data, ult.data, "Base diária. Situação, mesmo dia em outros anos e ano contra anos anteriores seguem esta data.")}`;
   $("#conteudo").innerHTML = `
     <nav class="indice" aria-label="Seções da página">
       <a href="#${H}" data-alvo="f-sit">Situação</a><a href="#${H}" data-alvo="f-graf">Gráficos</a><a href="#${H}" data-alvo="f-dia">Mesmo dia em outros anos</a><a href="#${H}" data-alvo="f-ano">Ano contra anos anteriores</a>
@@ -8095,12 +8132,15 @@ function paginaFicha() {
         : `No mapa, as demais usinas da bacia seguem em ${dBR(D.data)}: no protótipo só a série desta usina está completa.`;
   }
   ligarData("dia-sit", DI[0].data, ult.data, iso => {
+    refSIN = iso;
     situacao(iso);
     graficoMesmoDia();
     anosDaReferencia(iso);
     graficoAnos();
   });
-  situacao(ult.data);
+  const d0 = dataInicialSIN(DI[0].data, ult.data);
+  $("#dia-sit").value = d0;
+  situacao(d0);
 
   // 2. gráficos
   fichaEstado = { DI, HO, ult };
@@ -8174,13 +8214,14 @@ function paginaFicha() {
   $("#var-dia").onchange = graficoMesmoDia;
   $("#baixar-dia-csv").onclick = () =>
     baixarCSVGrafico([$("#g-dia")], `sar_${arq}_mesmo_dia_${$("#dia-sit").value}.csv`);
-  $("#baixar-ano-csv").onclick = () => baixarCSVGrafico([$("#g-ano")], `sar_${arq}_ano_contra_anos.csv`);
+  $("#baixar-ano-csv").onclick = () =>
+    baixarCSVGrafico([$("#g-ano")], `sar_${arq}_ano_contra_anos_${$("#dia-sit").value}.csv`);
   $("#baixar-dia-png").onclick = () =>
     baixarPNG(
       [$("#g-dia svg")],
       `sar_${arq}_mesmo_dia_${$("#dia-sit").value}.png`,
       `${caso(F.nome)} · ${VARS[$("#var-dia").value].r} em ${dBR($("#dia-sit").value).slice(0, 5)} de cada ano`,
-      LEG_ANOS(+fichaEstado.ult.data.slice(0, 4), "ano corrente")
+      LEG_ANOS(+$("#dia-sit").value.slice(0, 4))
     );
   graficoMesmoDia();
 
@@ -8202,11 +8243,11 @@ function paginaFicha() {
   $("#baixar-ano-png").onclick = () =>
     baixarPNG(
       [$("#g-ano svg")],
-      `sar_${arq}_ano_contra_anos.png`,
+      `sar_${arq}_ano_contra_anos_${$("#dia-sit").value}.png`,
       `${caso(F.nome)} · ${VARS[$("#var-ano").value].r} ao longo do ano`,
       [
-        ...LEG_ANOS(+fichaEstado.ult.data.slice(0, 4), "ano corrente"),
-        ...($("#var-ano").value === "vu" && FAIXAS_ANA[FICHA.nome]
+        ...LEG_ANOS(+$("#dia-sit").value.slice(0, 4)),
+        ...($("#var-ano").value === "vu" && FAIXAS_ANA[FICHA.nome] && !$("#f-ano-faixas")?.hidden
           ? faixasLegenda(FAIXAS_ANA[FICHA.nome]).map(f => ({ r: f.rot, cor: f.fundo, area: true }))
           : [])
       ]
@@ -8268,7 +8309,7 @@ function baixarSerie() {
     turb: "turbinada_m3s",
     vert: "vertida_m3s",
     nat: "vazao_natural_m3s",
-    cota: "nivel_m",
+    cota: "cota_m",
     vu: "volume_util_pct"
   };
   const n = v => (v == null ? "" : String(v).replace(".", ","));
@@ -8793,8 +8834,8 @@ const ROT_FAIXA = k =>
     : k === "restricao"
       ? " (abaixo de 20%)"
       : k === "atencao"
-        ? " (20% a 50%)"
-        : " (acima de 50%)");
+        ? " (20% a menos de 50%)"
+        : " (50% ou mais)");
 const round1 = v => (v == null ? null : Math.round(v * 10) / 10);
 /* ---- data de referência: a medição mais próxima, até 30 dias antes ou depois (regra do portal) ----
    A série de cada reservatório está embutida (12 meses do SAR legado), então a regra roda aqui, para
@@ -9133,6 +9174,7 @@ function paginaNE() {
     $("#vol-nota").textContent =
       `${fint(tot.volume_hm3)} de ${fint(tot.capacidade_com_dado_hm3)} hm³ de capacidade equivalente · capacidade de todos os reservatórios com volume, medidos ou não: ${fint(tot.capacidade_hm3)} hm³ · as comparações ao lado e os gráficos 3 e 4 vêm da curva encadeada calculada da série de cada reservatório`;
     const md = {};
+    ancorarCurva("NE", tot.volume_pct);
     mesmoDiaCurva("NE", $("#g-ne-dia"), `Volume acumulado (%) em ${ref.slice(0, 5)}`).forEach(x => {
       if (x.v != null) md[x.a] = x.v;
     });
@@ -9167,8 +9209,8 @@ function paginaNE() {
       `Mapa-base e imagem de satélite vêm de serviços externos; onde a rede os bloqueia, ficam só os pontos e os contornos.`;
     $("#fontes-ne").innerHTML =
       `Fontes: ${esc(NEd.fontes.medicoes)}; ${esc(NEd.fontes.resumo)}; ${esc(NEd.fontes.equivalente)}; ${esc(NEd.fontes.coordenadas)}; ${esc(NEd.fontes.regra)}; contorno do Semiárido: ${esc(NEd.mapa.semiarido_fonte || "INSA")}. ` +
-      `${esc(NEd.nivel.fonte)}; crítica das leituras de nível com as regras descritas nas páginas de estado. Só entram estações que medem o nível de reservatório; em Minas Gerais, só as dentro do Semiárido. ` +
-      `Não entram nas contagens os ${fint(OCULTOS.size)} reservatórios do cadastro retirados do acompanhamento. No protótipo, a lista dos reservatórios retirados do acompanhamento é simulada pelos que não têm nenhuma leitura nos últimos 12 meses; no sistema, a retirada é decisão da área técnica, com data e motivo registrados. Também não entram as ${fint(Object.values(NVE).reduce((a, e) => a + e.a_verificar.length, 0))} estações com série a verificar (salto de mais de ${fint(NEd.nivel.filtro.suspeito_cm)} cm entre duas leituras que a crítica não explica). ` +
+      `${esc(NEd.nivel.fonte)}; conferência das leituras de nível com as regras descritas nas páginas de estado. Só entram estações que medem o nível de reservatório; em Minas Gerais, só as dentro do Semiárido. ` +
+      `Não entram nas contagens os ${fint(OCULTOS.size)} reservatórios do cadastro retirados do acompanhamento. No protótipo, a lista dos reservatórios retirados do acompanhamento é simulada pelos que não têm nenhuma leitura nos últimos 12 meses; no sistema, a retirada é decisão da área técnica, com data e motivo registrados. Também não entram as ${fint(Object.values(NVE).reduce((a, e) => a + e.a_verificar.length, 0))} estações com série a verificar (salto de mais de ${fint(NEd.nivel.filtro.suspeito_cm)} cm entre duas leituras que a conferência não explica). ` +
       `Volume acumulado do módulo pelo serviço de volume equivalente do portal em ${dBR(coletada)}${coletada === dataRef ? "" : ", a data coletada mais próxima"}: ${tot.volume_pct_portal == null ? "–" : fmt(tot.volume_pct_portal, 1) + "%"} (o portal inclui também reservatórios com medição fora da janela de ${NEd.limiar_dias} dias). ` +
       `<br>A data de referência é livre, de ${dBR(NEd.serie_min)} a ${dBR(NEd.serie_ate)}: a série de 12 meses de cada reservatório está embutida na página e a regra dos ${NEd.limiar_dias} dias é aplicada no navegador. ` +
       `As seções 3 e 4 e as comparações usam a curva encadeada (${esc(CURVA.fonte)}); o valor do portal fica acima só para comparação.` +
@@ -9193,7 +9235,7 @@ function paginaNE() {
         sub: "Volume acumulado de cada estado: volume dos reservatórios com medição na janela de 30 dias, em % da capacidade equivalente desses mesmos reservatórios. Em Minas Gerais, só os reservatórios do Semiárido."
       }
     );
-  $("#baixar-ne-pdf").onclick = () => pdfSecao([$("#tab-estados")], `sar_ne_estados_${dataRef}.pdf`);
+  $("#baixar-ne-pdf").onclick = () => pdfSecao([$("#tab-estados")], `sar_ne_estados_${dataRef}.pdf`, { data: dataRef });
   $("#baixar-ne-ano-csv").onclick = () =>
     baixarCSVGrafico([$("#g-ne-ano")], `sar_ne_ao_longo_do_ano_ate_${dataRef}.csv`);
   $("#baixar-ne-dia-csv").onclick = () => baixarCSVGrafico([$("#g-ne-dia")], `sar_ne_mesmo_dia_${dataRef}.csv`);
@@ -9201,7 +9243,7 @@ function paginaNE() {
   $("#baixar-ne-ano").onclick = () =>
     baixarPNG(
       [$("#g-ne-ano svg")],
-      "sar_ne_ao_longo_do_ano.png",
+      `sar_ne_ao_longo_do_ano_ate_${dataRef}.png`,
       "Nordeste · volume acumulado ao longo do ano",
       LEG_ANOS(+dataRef.slice(0, 4))
     );
@@ -9275,8 +9317,7 @@ function paginaNE() {
 }
 const abrirEstado = uf => {
   if (temPagina(uf)) location.hash = "ne/" + uf;
-  else
-    toast(`${NEd.estados.find(e => e.uf === uf).estado}: no protótipo estão montados Ceará, Piauí, Alagoas e Sergipe.`);
+  else toast(`${NEd.estados.find(e => e.uf === uf).estado}: nenhum reservatório acompanhado, sem página de estado.`);
 };
 function acenderUF(uf) {
   $$("#mapa-ne .uf-ne").forEach(g => {
@@ -9421,7 +9462,7 @@ async function kmzEstadoNE(lista, estado) {
     return L.length
       ? `<Folder><name>${x(ROT_FAIXA(k))}</name>${L.map(
           r =>
-            `<Placemark><name>${x(caso(r.nome))}</name><styleUrl>#${k}</styleUrl><description><![CDATA[<b>${r.volume_pct == null ? "sem informação" : fmt(r.volume_pct, 1) + "% do volume"}</b><br>Capacidade: ${r.capacidade_hm3 == null ? "–" : fmt(r.capacidade_hm3, 1)} hm³<br>Cota: ${r.cota == null ? "–" : fmt(r.cota, 2)} m<br>Volume: ${r.volume_hm3 == null ? "–" : fmt(r.volume_hm3, 1)} hm³<br>Município: ${x(r.municipio || "–")}<br>Bacia: ${x(caso(r.bacia || "–"))}<br>Última medição: ${r.data ? dBR(r.data) : "–"} (${dDias(r)})]]></description><Point><coordinates>${r.lon},${r.lat},0</coordinates></Point></Placemark>`
+            `<Placemark><name>${x(caso(r.nome))}</name><styleUrl>#${k}</styleUrl><description><![CDATA[<b>${r.volume_pct == null ? "sem informação" : fmt(r.volume_pct, 1) + "% do volume · " + FX[k].rot.toLowerCase()}</b><br>Estado: ${x((NEd.estados.find(e => e.uf === r.uf) || {}).estado || estado || "–")}<br>Capacidade: ${r.capacidade_hm3 == null ? "–" : fmt(r.capacidade_hm3, 1)} hm³<br>Cota: ${r.cota == null ? "–" : fmt(r.cota, 2)} m<br>Volume: ${r.volume_hm3 == null ? "–" : fmt(r.volume_hm3, 1)} hm³<br>Município: ${x(r.municipio || "–")}<br>Bacia: ${x(caso(r.bacia || "–"))}<br>Medição usada: ${r.data ? dBR(r.data) : "–"} (${dDias(r)})]]></description><Point><coordinates>${r.lon},${r.lat},0</coordinates></Point></Placemark>`
         ).join("")}</Folder>`
       : "";
   };
@@ -9485,8 +9526,7 @@ async function pdfTabelaEstado(lista, niv, estado, uf) {
     return;
   }
   const doc = new window.jspdf.jsPDF({ orientation: "landscape", unit: "pt", format: "a4", compress: true });
-  const larg = doc.internal.pageSize.getWidth(),
-    alt = doc.internal.pageSize.getHeight();
+  const larg = doc.internal.pageSize.getWidth();
   doc.setFont("helvetica", "bold");
   doc.setFontSize(15);
   doc.setTextColor(...AZUL);
@@ -9500,7 +9540,7 @@ async function pdfTabelaEstado(lista, niv, estado, uf) {
         (niv.length
           ? ` Só nível: reservatório sem curva cota-volume validada, acompanhado pelo nível, sem volume.`
           : "") +
-        ` Fonte: ${NEd.fontes.medicoes}.`,
+        ` Fonte: ${NEd.fontes.medicoes}. Gerado em ${hojeBR()}.`,
       larg - 80
     ),
     40,
@@ -9631,9 +9671,7 @@ async function pdfTabelaEstado(lista, niv, estado, uf) {
       didDrawCell: d => fios(d, i => (niv[i].sem_info ? COR_NV_SEM : COR_NV))
     });
   }
-  doc.setFontSize(8);
-  doc.setTextColor(...CINZA);
-  doc.text(RODAPE, 40, alt - 22);
+  rodapePDF(doc);
   doc.save(`sar_${uf.toLowerCase()}_${dataRef}.pdf`);
   toast("PDF gerado. (Na página publicada no claude.ai o download é bloqueado; abra o arquivo local.)");
 }
@@ -9754,7 +9792,19 @@ function curvaNa(g, iso, campo = "pct") {
     else b = m;
   }
   const k = a > 0 && Math.abs(D[a - 1] - alvo) < Math.abs(D[a] - alvo) ? a - 1 : a;
-  return Math.abs(D[k] - alvo) <= Math.ceil(CURVA.passo / 2) ? CURVA.series[g][campo][k] : null;
+  const v = Math.abs(D[k] - alvo) <= Math.ceil(CURVA.passo / 2) ? CURVA.series[g][campo][k] : null;
+  return v != null && campo === "pct" ? v + (ANCORA_CURVA[g] || 0) : v;
+}
+// a curva embutida vem ancorada no último dia dos dados (preparar_curvas.py); a página a desloca para terminar no volume
+// acumulado direto da data de referência (Anexo I, 4.1, curva do volume acumulado, alínea c). Os passos de 5 dias
+// continuam os do cálculo, contados a partir do último dia.
+const ANCORA_CURVA = {};
+function ancorarCurva(g, direto) {
+  ANCORA_CURVA[g] = 0;
+  const o = curvaPontosAte(g, dataRef),
+    ks = Object.keys(o).sort(),
+    fim = ks.length ? o[ks[ks.length - 1]] : null;
+  ANCORA_CURVA[g] = direto != null && fim != null ? Math.round((direto - fim) * 100) / 100 : 0;
 }
 const ANOS_CURVA = 5; // anos sobrepostos em "Ao longo do ano", como no SIN (Diego, 18/09/2026)
 // curva até a data de referência: os pontos de passo até ela e, no fim, o valor na própria data (interpolado entre
@@ -9770,12 +9820,12 @@ function curvaPontosAte(g, ref) {
         const d0 = diaAbs(CURVA.datas[ant]),
           d1 = diaAbs(iso),
           dr = diaAbs(ref);
-        o[ref] = s[ant] + ((s[i] - s[ant]) * (dr - d0)) / (d1 - d0);
+        o[ref] = s[ant] + ((s[i] - s[ant]) * (dr - d0)) / (d1 - d0) + (ANCORA_CURVA[g] || 0);
       }
       break;
     }
     if (s[i] != null) {
-      o[iso] = s[i];
+      o[iso] = s[i] + (ANCORA_CURVA[g] || 0);
       ant = i;
     }
   }
@@ -10039,7 +10089,9 @@ function paginaEstado(uf) {
   if (corpoVol) ordenavel($("#tab-uf-vol"), vol, desenharVol);
   if (corpoNiv) ordenavel($("#tab-uf-niv"), niv, desenharNiv);
   const mapa = mapaResNE($("#mapa-uf"), [uf]);
-  graficoMonitoramento($("#g-uf-hist"), NV.hist, `Reservatórios ${de} ${estado} com medição, por ano`);
+  graficoMonitoramento($("#g-uf-hist"), NV.hist, `Reservatórios ${de} ${estado} com medição, por ano`, {
+    ate: NEd.data
+  });
 
   // minigráficos: redesenhados a cada ordenação e a cada troca de data ou de variável
   const minisVol = () => {
@@ -10096,6 +10148,7 @@ function paginaEstado(uf) {
       '<span class="dica">Passe o mouse para ler os valores.</span>';
     mapa.atualizar([...vol, ...niv].filter(r => r.lat != null));
     if (curva) {
+      ancorarCurva(uf, agregar(vol).volume_pct);
       desenharCurva(uf, $("#g-uf-ano"), `Volume acumulado ${de} ${estado} (% da capacidade dos reservatórios medidos)`);
       $("#sub-u-dia").textContent =
         `Volume acumulado ${de} ${estado} em ${ref.slice(0, 5)} de cada um dos cinco anos até a data de referência, pela mesma curva encadeada da seção anterior.`;
@@ -10118,7 +10171,7 @@ function paginaEstado(uf) {
         ? ` Para comparação, o serviço de volume equivalente do portal dá ${fmt(portal, 1)}% em ${dBR(coletada)}${coletada === dataRef ? "" : ", a data coletada mais próxima"} (o portal inclui também reservatórios com medição fora da janela de ${NEd.limiar_dias} dias).`
         : "") +
       (temNiv
-        ? ` Crítica das leituras de nível antes de exibir: ${fint(descartadas)} leituras descartadas neste estado, por três regras — erro grosseiro ` +
+        ? ` Conferência das leituras de nível antes de exibir: ${fint(descartadas)} leituras descartadas neste estado, por três regras — erro grosseiro ` +
           `(mais de ${fint(F.grosso_cm / 100)} m da mediana do ano da estação), pico de um dia (mais de ${fint(F.pico_cm)} cm das duas leituras vizinhas, no mesmo sentido) ` +
           `e degrau que volta (salto de mais de ${fmt(F.degrau_cm / 100, 1)} m desfeito em até ${fint(F.volta_dias)} dias).`
         : "");
@@ -10131,7 +10184,7 @@ function paginaEstado(uf) {
     $("#baixar-uf-ano").onclick = () =>
       baixarPNG(
         [$("#g-uf-ano svg")],
-        `sar_${u}_ao_longo_do_ano.png`,
+        `sar_${u}_ao_longo_do_ano_ate_${dataRef}.png`,
         `${estado} · volume acumulado ao longo do ano`,
         LEG_ANOS(+dataRef.slice(0, 4))
       );
@@ -10165,7 +10218,6 @@ function paginaEstado(uf) {
         "cota_m",
         "volume_hm3",
         "volume_pct",
-        "nivel_m",
         "variacao_30d_m",
         "leitura_usada",
         "dias_da_referencia",
@@ -10184,7 +10236,6 @@ function paginaEstado(uf) {
             nn(r.volume_hm3),
             nn(r.volume_pct),
             "",
-            "",
             r.data ? dBR(r.data) : "",
             r.dias ?? "",
             r.sem_info ? "sem informação" : FX[r.faixa].rot
@@ -10199,10 +10250,9 @@ function paginaEstado(uf) {
             "",
             "só nível",
             "",
-            "",
-            "",
-            "",
             nn(r.nivel_m),
+            "",
+            "",
             nn(r.var30 == null ? null : Math.round(r.var30 * 100) / 100),
             r.data ? dBR(r.data) : "",
             r.dias ?? "",
@@ -10418,7 +10468,7 @@ function paginaFichaNE(cod) {
     <section class="cartao secao" id="fn-graf" aria-labelledby="t-fn-graf">
       ${barraBaixar([
         ["baixar-f-csv", "CSV", "Baixar a série do período em CSV"],
-        ["baixar-f-png", "PNG", "Baixar o gráfico como imagem"]
+        ["baixar-f-png", "PNG", "Baixar os gráficos da seção como imagem"]
       ])}
       <h2 id="t-fn-graf"><small>2</small>Gráfico</h2>
       <p class="sub">${soNivel ? "Nível e, abaixo, o volume publicado até o fim do acompanhamento de volume, no mesmo período. " : ""}${soNivel ? "" : 'Leituras do reservatório no período escolhido.<span class="dica">Escolha o período e a variável.</span>'}</p>
@@ -10654,6 +10704,7 @@ function paginaFichaNE(cod) {
     };
   graficoMonitoramento($("#g-med"), hist, "Medições por ano", {
     altura: "apoio",
+    ate: NEd.data,
     rot: { sar: "leituras com volume", hidro: "leituras de nível" }
   });
 
@@ -10742,12 +10793,12 @@ function paginaFichaNE(cod) {
     anoAnos();
   };
 
-  // fontes e crítica
+  // fontes e conferência
   const Dc = F.descartes,
     Ni = F.nao_informados;
   $("#fontes-f").innerHTML =
     `Fontes: ${esc(NEd.fontes.ficha_sar)}${soNivel ? "; " + esc(NEd.fontes.ficha_nivel) : ""}; ${esc(NEd.fontes.regra)}. ` +
-    `Crítica das leituras antes de exibir: na cota, ${qtd(Dc.cota.length, "descartada", "descartadas")} e ${fint(Ni.cota)} sem cota informada (zero ou vazia); ` +
+    `Conferência das leituras antes de exibir: na cota, ${qtd(Dc.cota.length, "descartada", "descartadas")} e ${fint(Ni.cota)} sem cota informada (zero ou vazia); ` +
     `no volume, ${qtd(Dc.volume.length, "descartada", "descartadas")}` +
     `${soNivel ? `; no nível, ${qtd(F.nivel.descartes.length, "descartada", "descartadas")}` : ""}. Vizinhos no mapa: ${esc(NEd.fontes.medicoes)}.`;
 
@@ -10773,10 +10824,17 @@ function paginaFichaNE(cod) {
     .replace(/[^a-z0-9]+/g, "_");
   $("#baixar-f-png").onclick = () => {
     const [de, ate] = periodo();
+    const k = soNivel ? "nivel" : ($("input[name=var-f]:checked") || {}).value || varsGraf[0];
+    // a imagem leva a série do período e, embaixo, as medições por ano, com a legenda das duas
     baixarPNG(
-      [$("#g-f1 svg"), soNivel ? $("#g-f2 svg") : null].filter(Boolean),
+      [$("#g-f1 svg"), soNivel ? $("#g-f2 svg") : null, $("#g-med svg")].filter(Boolean),
       `sar_${u}_${de}_${ate}.png`,
-      `${nomeF} · ${dBR(de)} a ${dBR(ate)}`
+      `${nomeF} · ${dBR(de)} a ${dBR(ate)}`,
+      [
+        { r: `${VNE[k].r} (${VNE[k].u})`, cor: VNE[k].cor },
+        ...(soNivel ? [{ r: "Volume (%) publicado até o fim do acompanhamento", cor: VNE.pct.cor }] : []),
+        { r: "data de referência", cor: COR.vermelho, tracejado: true }
+      ]
     );
   };
   $("#baixar-f-dia").onclick = () =>
@@ -10789,17 +10847,17 @@ function paginaFichaNE(cod) {
   $("#baixar-f-ano").onclick = () =>
     baixarPNG(
       [$("#g-f-ano svg")],
-      `sar_${u}_ano_contra_anos.png`,
+      `sar_${u}_ano_contra_anos_${dataRef}.png`,
       `${nomeF} · ${rotVar($("#var-ano-f").value)} ao longo do ano`,
       LEG_ANOS(+dataRef.slice(0, 4))
     );
   $("#baixar-f-dia-csv").onclick = () => baixarCSVGrafico([$("#g-f-dia")], `sar_${u}_mesmo_dia_${dataRef}.csv`);
-  $("#baixar-f-ano-csv").onclick = () => baixarCSVGrafico([$("#g-f-ano")], `sar_${u}_ano_contra_anos.csv`);
+  $("#baixar-f-ano-csv").onclick = () => baixarCSVGrafico([$("#g-f-ano")], `sar_${u}_ano_contra_anos_${dataRef}.csv`);
   $("#baixar-f-csv").onclick = () => {
     const [de, ate] = periodo(),
       nn = v => (v == null ? "" : String(v).replace(".", ","));
     const linhas = soNivel
-      ? [["data", "nivel_m", "volume_pct"].join(";")].concat(
+      ? [["data", "cota_m", "volume_pct"].join(";")].concat(
           [...new Set(SN.concat(SR).map(o => o.iso))]
             .filter(i => i >= de && i <= ate)
             .sort()
@@ -10913,7 +10971,7 @@ function paginaOutros() {
           ${["df", "rmbh"]
             .map(
               s => `<article class="os-cartao" data-sis="${s}" style="border-left-color:${COR_SIS[s]}">
-            <div class="corpo"><h3>${NOME_SIS[s]}</h3><div class="r" style="margin-bottom:4px">% do volume útil de cada reservatório em ${dBR(dataSis(s))}</div>${sisDF(s)}</div>
+            <div class="corpo"><h3>${NOME_SIS[s]}</h3><div class="r" style="margin-bottom:4px">% da capacidade de cada reservatório em ${dBR(dataSis(s))}</div>${sisDF(s)}</div>
             <button type="button" class="acao" data-abrir="${s}">Abrir</button></article>`
             )
             .join("")}
@@ -11074,8 +11132,8 @@ function paginaCantareira() {
       <p class="sub">Volume útil do sistema (%) dia a dia, cada ano no mesmo calendário, até a data de referência. Ao fundo, as faixas de operação pelo volume útil acumulado, conforme o art. 4º da Resolução Conjunta ANA/DAEE nº 925/2017.<span class="dica">Selecione os anos a comparar, até ${MAX_ANOS} simultaneamente; posicione o cursor sobre o gráfico para ler o mesmo dia em cada ano.</span></p>
       <div class="controles"><fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos-can"></span></legend><span id="anos-chips-can"></span></fieldset></div>
       <div class="graf" id="g-can-ano"></div>
-      ${legendaFaixasCan()}
-      <p class="nota" style="margin:8px 0 0">As faixas são referência e valem a partir de 30/05/2017, início da vigência da resolução (art. 9º). A faixa em vigor é estabelecida mensalmente pela ANA e pelo DAEE, até o último dia útil do mês anterior, e as faixas 4 e 5 podem ser estabelecidas a qualquer momento (art. 6º da resolução); por isso, pode diferir da indicada pelo volume do dia.</p>
+      <div id="c-ano-faixas">${legendaFaixasCan()}
+      <p class="nota" style="margin:8px 0 0">As faixas são referência e valem a partir de 30/05/2017, início da vigência da resolução (art. 9º). A faixa em vigor é estabelecida mensalmente pela ANA e pelo DAEE, até o último dia útil do mês anterior, e as faixas 4 e 5 podem ser estabelecidas a qualquer momento (art. 6º da resolução); por isso, pode diferir da indicada pelo volume do dia.</p></div>
       ${comoLer(ler("anos"), ler("selecao"), ler("cursor"), ler("faixas", "As faixas aparecem ao fundo apenas quando a data de referência está dentro da vigência da resolução; com data anterior, o gráfico é apresentado sem elas."))}
     </section>
     <section class="cartao secao" id="c-dia" aria-labelledby="t-c-dia">
@@ -11130,9 +11188,12 @@ function paginaCantareira() {
   $("#baixar-can-ano").onclick = () =>
     baixarPNG(
       [$("#g-can-ano svg")],
-      "sar_cantareira_ao_longo_do_ano.png",
+      `sar_cantareira_ao_longo_do_ano_ate_${refOS}.png`,
       `Sistema Cantareira · volume útil ao longo do ano · até ${dBR(refOS)}`,
-      [...LEG_ANOS(+refOS.slice(0, 4)), ...FAIXAS_OPERACAO_CAN.map(f => ({ r: f.rot, cor: tintaFaixa(f), area: true }))]
+      [
+        ...LEG_ANOS(+refOS.slice(0, 4)),
+        ...(refOS >= VIG_CAN ? FAIXAS_OPERACAO_CAN.map(f => ({ r: f.rot, cor: tintaFaixa(f), area: true })) : [])
+      ]
     );
   $("#baixar-can-dia").onclick = () =>
     baixarPNG(
@@ -11154,25 +11215,36 @@ function paginaCantareira() {
         "reservatorio",
         "codigo",
         "data",
-        "nivel_m",
-        "volume_util_hm3",
+        "cota_m",
+        "volume_hm3",
         "volume_util_pct",
-        "afluente_natural_m3s",
-        "para_jusante_m3s"
+        "vazao_natural_m3s",
+        "descarga_jusante_m3s"
       ],
-      CAN.res.map(r => [
-        r.nome,
-        r.codigo,
-        dBR(refOS),
-        detCan(r.cota, refOS),
-        detCan(r.vol, refOS),
-        detCan(r.pct, refOS),
-        detCan(r.qnat, refOS),
-        detCan(r.qjus, refOS)
-      ]),
+      CAN.res
+        .map(r => [
+          r.nome,
+          r.codigo,
+          dBR(refOS),
+          detCan(r.cota, refOS),
+          detCan(r.vol, refOS),
+          detCan(r.pct, refOS),
+          detCan(r.qnat, refOS),
+          detCan(r.qjus, refOS)
+        ])
+        .concat([
+          (() => {
+            // linha do sistema, como no rodapé da tabela: soma dos quatro e volume útil do sistema
+            const soma = k => {
+              const v = CAN.res.reduce((a, r) => a + (detCan(r[k], refOS) ?? NaN), 0);
+              return Number.isFinite(v) ? v : null;
+            };
+            return ["Sistema", "", dBR(refOS), null, soma("vol"), pctCan(refOS), soma("qnat"), soma("qjus")];
+          })()
+        ]),
       `sar_cantareira_${refOS}.csv`
     );
-  $("#baixar-can-pdf").onclick = () => pdfSecao([$("#tab-can")], `sar_cantareira_${refOS}.pdf`);
+  $("#baixar-can-pdf").onclick = () => pdfSecao([$("#tab-can")], `sar_cantareira_${refOS}.pdf`, { data: refOS });
   $("#baixar-can-ano-csv").onclick = () =>
     baixarCSVGrafico([$("#g-can-ano")], `sar_cantareira_ao_longo_do_ano_ate_${refOS}.csv`);
   $("#baixar-can-dia-csv").onclick = () => baixarCSVGrafico([$("#g-can-dia")], `sar_cantareira_mesmo_dia_${refOS}.csv`);
@@ -11769,6 +11841,7 @@ function anoCan(ref) {
     tol: 1,
     faixas: ref >= VIG_CAN ? FAIXAS_OPERACAO_CAN : null
   });
+  if ($("#c-ano-faixas")) $("#c-ano-faixas").hidden = ref < VIG_CAN; // legenda e nota só na vigência, como o fundo
 }
 function diaCan(ref) {
   const mmdd = ref.slice(5) === "02-29" ? "02-28" : ref.slice(5),
@@ -11970,7 +12043,7 @@ function paginaSistemaOS(sis) {
       <div id="s-dia-graf"></div>
       ${comoLer(ler("dia"), soNiv.length ? "<b>Escala.</b> No volume em %, o eixo vertical vai de 0 a 100%; na cota, não começa em zero, para que as diferenças entre os anos fiquem visíveis." : "<b>Escala.</b> O eixo vertical vai de 0 a 100%.")}
     </section>
-    <p class="nota">Fontes: ${esc(OS.fontes.coletor)}. Volume em % calculado pelo SAR: volume ÷ capacidade do cadastro. Crítica das cotas antes de exibir (erro grosseiro, pico de um dia e degrau que volta, como no Nordeste): ${L.map(x => `${nomeRes(x.F)} ${fint(x.F.desc[0])}`).join(", ")} leituras descartadas na série inteira; o volume do mesmo dia sai junto.</p>`;
+    <p class="nota">Fontes: ${esc(OS.fontes.coletor)}. Volume em % calculado pelo SAR: volume ÷ capacidade do cadastro. Conferência das cotas antes de exibir (erro grosseiro, pico de um dia e degrau que volta, como no Nordeste): ${L.map(x => `${nomeRes(x.F)} ${fint(x.F.desc[0])}`).join(", ")} leituras descartadas na série inteira; o volume do mesmo dia sai junto.</p>`;
   ligarIndice();
   const desenhar = () => {
     const ref = refOS;
@@ -12052,7 +12125,7 @@ function paginaSistemaOS(sis) {
   $("#baixar-sis-csv").onclick = () => {
     const ref = refOS;
     salvarCSV(
-      ["reservatorio", "codigo", "data", "nivel_m", "volume_hm3", "volume_pct", "capacidade_hm3"],
+      ["reservatorio", "codigo", "data", "cota_m", "volume_hm3", "volume_pct", "capacidade_hm3"],
       L.map(({ cod, F }) => {
         const c = leituraF(F, "cota", ref),
           p = soNivelF(F) ? null : leituraF(F, "pct", ref);
@@ -12061,7 +12134,7 @@ function paginaSistemaOS(sis) {
       `sar_${sis}_${ref}.csv`
     );
   };
-  $("#baixar-sis-pdf").onclick = () => pdfSecao([$("#tab-sis")], `sar_${sis}_${refOS}.pdf`);
+  $("#baixar-sis-pdf").onclick = () => pdfSecao([$("#tab-sis")], `sar_${sis}_${refOS}.pdf`, { data: refOS });
   const nomeSis = NOME_SIS[sis];
   $("#baixar-sis-ano").onclick = () =>
     baixarPNG(
@@ -12173,7 +12246,7 @@ function paginaFichaOS(cod) {
       <div class="graf" id="fo-g-ano"></div>
       ${comoLer(ler("anos"), ler("selecao"), ler("cursor"))}
     </section>
-    <p class="nota">Fontes: ${esc(can ? OS.fontes.sabesp : OS.fontes.coletor)}${can ? `; ${esc(OS.fontes.resolucao)}` : ""}. ${niv ? "" : can ? "Volume em % sobre o volume útil operacional do reservatório no quadro da resolução, como informado pela SABESP. " : "Volume em % calculado pelo SAR: volume ÷ capacidade do cadastro. "}Crítica das cotas antes de exibir (erro grosseiro, pico de um dia e degrau que volta, como no Nordeste): ${qtd(F.desc[0], "leitura descartada", "leituras descartadas")} na série inteira; o volume do mesmo dia sai junto.</p>`;
+    <p class="nota">Fontes: ${esc(can ? OS.fontes.sabesp : OS.fontes.coletor)}${can ? `; ${esc(OS.fontes.resolucao)}` : ""}. ${niv ? "" : can ? "Volume em % sobre o volume útil operacional do reservatório no quadro da resolução, como informado pela SABESP. " : "Volume em % calculado pelo SAR: volume ÷ capacidade do cadastro. "}Conferência das cotas antes de exibir (erro grosseiro, pico de um dia e degrau que volta, como no Nordeste): ${qtd(F.desc[0], "leitura descartada", "leituras descartadas")} na série inteira; o volume do mesmo dia sai junto.</p>`;
   ligarIndice();
 
   // 1. situação
@@ -12374,11 +12447,11 @@ function paginaFichaOS(cod) {
   $("#baixar-fo-ano").onclick = () =>
     baixarPNG(
       [$("#fo-g-ano svg")],
-      `sar_${cod}_ano_contra_anos.png`,
+      `sar_${cod}_ano_contra_anos_${refOS}.png`,
       `${nome} · ${niv ? "cota" : "volume"} ao longo do ano`,
       []
     );
-  $("#baixar-fo-ano-csv").onclick = () => baixarCSVGrafico([$("#fo-g-ano")], `sar_${cod}_ano_contra_anos.csv`);
+  $("#baixar-fo-ano-csv").onclick = () => baixarCSVGrafico([$("#fo-g-ano")], `sar_${cod}_ano_contra_anos_${refOS}.csv`);
   $("#baixar-fo-dia").onclick = () =>
     baixarPNG(
       [$("#fo-g-dia svg")],
@@ -12390,11 +12463,33 @@ function paginaFichaOS(cod) {
     const de = $("#fo-de").value || F.de,
       ate = $("#fo-ate").value || ult,
       S = pontosF(F, niv ? ["cota"] : ["pct", "cota"], de, ate);
+    // no Cantareira, também as vazões do gráfico: natural, para jusante e as ligações do reservatório (catálogo de variáveis)
+    const COL_VAZ = {
+      T5: "tunel_5_m3s",
+      T6: "tunel_6_m3s",
+      T7: "tunel_7_m3s",
+      TransfParaibaDoSul: "transferencia_paraiba_do_sul_m3s",
+      ESI: "retirada_santa_ines_m3s"
+    };
+    const lig = can ? [...liga.ent, ...liga.sai] : [];
     salvarCSV(
-      niv ? ["data", "cota_m"] : ["data", "volume_pct", "volume_hm3", "nivel_m"],
+      niv
+        ? ["data", "cota_m"]
+        : [
+            "data",
+            "volume_pct",
+            "volume_hm3",
+            "cota_m",
+            ...(can ? ["vazao_natural_m3s", "descarga_jusante_m3s", ...lig.map(k => COL_VAZ[k])] : [])
+          ],
       S.map(o => {
-        const d = dBR(new Date(o.t).toISOString().slice(0, 10));
-        return niv ? [d, o.cota] : [d, o.pct, o.pct == null ? null : (o.pct * F.cap) / 100, o.cota];
+        const iso = new Date(o.t).toISOString().slice(0, 10),
+          d = dBR(iso);
+        if (niv) return [d, o.cota];
+        const l = [d, o.pct, o.pct == null ? null : (o.pct * F.cap) / 100, o.cota];
+        return can
+          ? l.concat([detCan(RC.qnat, iso), detCan(RC.qjus, iso), ...lig.map(k => detCan(CAN.vaz[k], iso))])
+          : l;
       }),
       `sar_${cod}_${de}_${ate}.csv`
     );
@@ -12486,6 +12581,18 @@ const CAT_VARS = [
     def: "Chuva diária sobre o sistema, informada pela SABESP."
   }
 ];
+// fonte de cada variável, por módulo (dicionário de dados)
+const FONTE_VAR = {
+  cota_m:
+    "SIN: ONS; Nordeste e Semiárido: órgãos estaduais e leitura de régua da rede hidrometeorológica da ANA; Sistema Cantareira: SABESP; Distrito Federal e Paraopeba: SAR",
+  volume_hm3:
+    "Nordeste e Semiárido: órgãos estaduais e SAR (cota convertida pela curva cota-volume); Sistema Cantareira: SABESP; Distrito Federal e Paraopeba: SAR",
+  volume_pct: "calculado pelo SAR: volume ÷ capacidade do cadastro",
+  volume_util_pct: "SIN: ONS; Sistema Cantareira: SABESP",
+  vazao_natural_m3s: "SIN: ONS; Sistema Cantareira: SABESP"
+};
+const fonteVar = k =>
+  FONTE_VAR[k] || (["afluente_m3s", "defluente_m3s", "turbinada_m3s", "vertida_m3s"].includes(k) ? "ONS" : "SABESP");
 const nomeVar = v => `${v.r} (${v.u})`; // Volume (hm³), Volume (%), Volume útil (%): o nome com a unidade distingue as três
 const VAR_HORA = new Set([
   "cota_m",
@@ -12822,7 +12929,8 @@ function paginaDados() {
       v.u,
       v.def,
       [...new Set(ENT.filter(e => e.vars.includes(v.k)).map(e => ROT_MOD[e.mod]))].join(", "),
-      VAR_HORA.has(v.k) ? "sim (SIN)" : "não"
+      VAR_HORA.has(v.k) ? "sim (SIN)" : "não",
+      fonteVar(v.k)
     ])
   ];
   $("#titulo-pag").innerHTML = `
@@ -12898,14 +13006,14 @@ function paginaDados() {
             ["baixar-dic-pdf", "PDF", "Baixar o dicionário de dados em PDF"]
           ])}
           <h2 id="t-d-dic"><small>4</small>Dicionário de dados</h2>
-          <p class="sub">Todas as colunas que o arquivo pode ter, com o nome, a unidade, a definição, os módulos em que existem e se há base horária. Cada download traz a parte do dicionário das colunas pedidas.</p>
+          <p class="sub">Todas as colunas que o arquivo pode ter, com o nome, a unidade, a definição, a fonte, os módulos em que existem e se há base horária. Cada download traz a parte do dicionário das colunas pedidas.</p>
           <div class="tab-box"><table id="tab-dic">
             <colgroup><col style="width:22%"><col style="width:18%"><col><col style="width:16%"><col style="width:10%"></colgroup>
-            <thead><tr><th>Coluna</th><th>Nome</th><th>Definição</th><th>Módulos</th><th>Base horária</th></tr></thead>
+            <thead><tr><th>Coluna</th><th>Nome (unidade)</th><th>Definição e fonte</th><th>Módulos</th><th>Base horária</th></tr></thead>
             <tbody>${DIC_LINHAS()
               .map(
                 l =>
-                  `<tr><td><code>${esc(l[0]).replace(/_/g, "_<wbr>")}</code></td><td><span class="nm">${esc(l[1])}</span></td><td>${esc(l[3])}</td><td>${esc(l[4] || "todos")}</td><td>${esc(l[5])}</td></tr>`
+                  `<tr><td><code>${esc(l[0]).replace(/_/g, "_<wbr>")}</code></td><td><span class="nm">${esc(l[1])}</span></td><td>${esc(l[3])}${l[6] ? `<span class="nota" style="display:block">Fonte: ${esc(l[6])}.</span>` : ""}</td><td>${esc(l[4] || "todos")}</td><td>${esc(l[5])}</td></tr>`
               )
               .join("")}</tbody></table></div>
         </section>
@@ -13325,15 +13433,17 @@ function paginaDados() {
     $("#d-api").textContent = urlAPI();
     $("#d-arquivos").innerHTML =
       st.formato === "csv"
-        ? `<li><b>dados.csv</b>: a série, no formato do SAR (ponto e vírgula, vírgula decimal, data dd/mm/aaaa)</li><li><b>dicionario.csv</b>: definição, unidade e módulos de cada coluna</li><li><b>leia-me.txt</b>: seleção, período, fontes, regras de crítica e a consulta na API</li>`
+        ? `<li><b>dados.csv</b>: a série, no formato do SAR (ponto e vírgula, vírgula decimal, data dd/mm/aaaa)</li><li><b>dicionario.csv</b>: definição, unidade, módulos e fonte de cada coluna</li><li><b>leia-me.txt</b>: seleção, período, data da versão dos dados, fontes, regras de conferência e a consulta na API</li>`
         : `<li><b>Um arquivo .xlsx com três abas</b>: dados, dicionário e leia-me, com o mesmo conteúdo do CSV</li>`;
     const motivo = !S.length
       ? "Selecione ao menos um reservatório."
       : !V.length
         ? "Escolha ao menos uma variável que os selecionados tenham."
-        : excede
-          ? "Reduza o período: o pedido horário vai até 1 ano."
-          : "";
+        : st.de && st.de > st.ate
+          ? "A data inicial é posterior à final."
+          : excede
+            ? "Reduza o período: o pedido horário vai até 1 ano."
+            : "";
     $("#p-baixar").disabled = !!motivo;
     $("#p-motivo").textContent = motivo;
     clearTimeout(tPrev);
@@ -13370,7 +13480,7 @@ function paginaDados() {
   );
   $("#baixar-dic-csv").onclick = () =>
     salvarCSV(
-      ["coluna", "nome", "unidade", "definicao", "modulos", "base_horaria"],
+      ["coluna", "nome", "unidade", "definicao", "modulos", "base_horaria", "fonte"],
       DIC_LINHAS(),
       "sar_dicionario_de_dados.csv"
     );
@@ -13392,18 +13502,19 @@ function paginaDados() {
 
   // ---------- download
   const dicionario = () => [
-    ["coluna", "descricao", "unidade", "modulos"],
-    ["codigo", "Código do reservatório no SAR", "", ""],
-    ["reservatorio", "Nome do reservatório", "", ""],
-    ["modulo", "Módulo do SAR (SIN; Nordeste e Semiárido; Outros Sistemas)", "", ""],
-    ["uf", "Unidade da Federação", "", ""],
-    ["municipio", "Município", "", ""],
-    ["bacia", "Bacia (SIN, na divisão do ONS; NE, a do cadastro) ou sistema (Outros)", "", ""],
+    ["coluna", "descricao", "unidade", "modulos", "fonte"],
+    ["codigo", "Código do reservatório no SAR", "", "", ""],
+    ["reservatorio", "Nome do reservatório", "", "", ""],
+    ["modulo", "Módulo do SAR (SIN; Nordeste e Semiárido; Outros Sistemas)", "", "", ""],
+    ["uf", "Unidade da Federação", "", "", ""],
+    ["municipio", "Município", "", "", ""],
+    ["bacia", "Bacia (SIN, na divisão do ONS; NE, a do cadastro) ou sistema (Outros)", "", "", ""],
     [
       st.base === "hora" ? "data_hora" : "data",
       st.base === "hora"
         ? "Data e hora da leitura (dd/mm/aaaa hh:mm)"
         : "Data da leitura (dd/mm/aaaa). No NE, a data real da leitura, sem preenchimento",
+      "",
       "",
       ""
     ],
@@ -13411,7 +13522,8 @@ function paginaDados() {
       v.k,
       v.def,
       v.u,
-      [...new Set(ENT.filter(e => e.vars.includes(v.k)).map(e => ROT_MOD[e.mod]))].join("; ")
+      [...new Set(ENT.filter(e => e.vars.includes(v.k)).map(e => ROT_MOD[e.mod]))].join("; "),
+      fonteVar(v.k)
     ])
   ];
   const leiaMe = () => {
@@ -13419,7 +13531,7 @@ function paginaDados() {
       cont = m => S.filter(e => e.mod === m).length;
     return [
       `SAR · Sistema de Acompanhamento de Reservatórios · Área de dados`,
-      `Gerado em ${hojeBR()}.`,
+      `Gerado em ${hojeBR()}. Versão dos dados: carga de ${dBR(D.data)} (no sistema, a data e a hora da versão, que a API aceita no parâmetro versao).`,
       ``,
       `Seleção: ${S.length} reservatórios (SIN ${cont("SIN")}; Nordeste e Semiárido ${cont("NE")}; Outros Sistemas ${cont("OUTROS")}).`,
       `Variáveis: ${varsEf()
@@ -13427,7 +13539,7 @@ function paginaDados() {
         .join(", ")}.`,
       `Período: ${st.de ? dBR(st.de) : "início da série"} a ${dBR(st.ate)}, base ${st.base === "hora" ? "horária" : "diária"}.`,
       ``,
-      `Série: só as leituras aceitas pela crítica. Regras de cota: erro grosseiro, pico de um dia e degrau que volta (descritas nas páginas de estado do Nordeste); o volume do mesmo dia sai junto com a cota descartada.`,
+      `Série: só as leituras aceitas pela conferência. Regras de cota: erro grosseiro, pico de um dia e degrau que volta (descritas nas páginas de estado do Nordeste); o volume do mesmo dia sai junto com a cota descartada.`,
       `Nordeste e Semiárido: data da leitura real, sem preenchimento nem interpolação. Reservatório sem curva cota-volume validada vem com a cota e sem volume.`,
       ...(st.base === "hora"
         ? [
@@ -13835,7 +13947,7 @@ const ADM_GRUPOS = [
     "Dados e cadastro",
     [
       ["serie", "Correção de série"],
-      ["cadastro", "Cadastro e CAV"],
+      ["cadastro", "Cadastro e curva"],
       ["inclusao", "Inclusão"],
       ["codigos", "Códigos das fontes"],
       ["agrupamentos", "Agrupamentos"]
@@ -13852,7 +13964,7 @@ const ADM_GRUPOS = [
     "Controle",
     [
       ["aprovacoes", "Aprovações"],
-      ["trilha", "Trilha de auditoria"]
+      ["trilha", "Registro das ações"]
     ]
   ]
 ];
@@ -13960,7 +14072,7 @@ function semearAdm() {
     motivo: "Exemplo do protótipo: reservatório sem leitura desde a desativação da régua.",
     exemplo: true,
     efeito:
-      "<b>Exibido</b> → <b>retirado do acompanhamento</b>. Sai das tabelas, dos agregados, do mapa e da API; segue na área de dados, marcado.",
+      "<b>Com volume</b> → <b>retirado do acompanhamento</b>. Sai das tabelas, dos agregados e do mapa; segue na área de dados e na API, marcado como retirado.",
     situacao: "aguardando",
     e: a,
     aplicar: () => {
@@ -14022,7 +14134,7 @@ function seletorAdm(host, filtro, aoEscolher) {
   const desenha = () => {
     const e = ADM.ent;
     host.innerHTML = `<div class="adm-sel"><div class="busca-dados"><input type="search" placeholder="Buscar reservatório por nome, código, município ou estado" aria-label="Buscar reservatório" autocomplete="off"></div><div class="adm-sel-res" hidden></div>
-      ${e ? `<p class="adm-atual"><span class="tag" style="background:${COR_MOD[e.mod]}">${ROT_MOD[e.mod]}</span><b>${esc(e.nome)}</b><span>${e.codigo ? "código " + esc(e.codigo) + " · " : ""}${esc([e.municipio, e.uf].filter(Boolean).join(", "))}${e.bacia ? " · " + esc(e.bacia) : ""}</span>${e.retirado || ADM.modo[e.id] === "retirado" ? '<span class="ret">retirado do acompanhamento</span>' : ""}</p>` : ""}</div>`;
+      ${e ? `<p class="adm-atual"><span class="tag" style="background:${COR_MOD[e.mod]}">${ROT_MOD[e.mod]}</span><b>${esc(e.nome)}</b><span>${e.codigo ? "código " + esc(e.codigo) + " · " : ""}${esc([e.municipio, e.uf].filter(Boolean).join(", "))}${e.bacia ? " · " + esc(e.bacia) : ""}</span>${retiradoAdm(e) ? '<span class="ret">retirado do acompanhamento</span>' : ""}</p>` : ""}</div>`;
     const q = $("input", host),
       box = $(".adm-sel-res", host);
     q.oninput = () => {
@@ -14122,7 +14234,7 @@ function paginaAdmin(sub) {
   )();
 }
 
-/* ---------------- 1. integrações e carga forçada */
+/* ---------------- 1. integrações e carga sob demanda */
 // lista, horários e falhas ilustrativos: as integrações reais e os horários previstos serão levantados com a STI
 const ADM_INT = [
   { k: "ons-dia", r: "ONS · base diária", fonte: "ONS", mod: "SIN", horas: [15, 18, 21], n: 162 },
@@ -14215,11 +14327,11 @@ function admIntegracoes() {
   const cont = s => L.filter(l => (s === "ok" ? l.sit === "ok" : l.sit === s)).length;
   tituloAdm(
     "Integrações",
-    "Gestão do SAR pela CORSH, sem chamado à TI: integrações, correção de série, cadastro e curva cota-área-volume, aprovações e trilha de auditoria.",
+    "Gestão do SAR pela CORSH, sem chamado à TI: integrações, correção de série, cadastro e curva cota-área-volume, aprovações e registro das ações.",
     `<span><b>${cont("ok")}</b> de ${L.length} integrações em dia</span>`
   );
   $("#conteudo").innerHTML = `
-    <nav class="indice" aria-label="Seções da página"><a href="#admin" data-alvo="a-int">Situação das integrações</a><a href="#admin" data-alvo="a-carga">Forçar carga</a><a href="#admin" data-alvo="a-exec">Cargas forçadas</a></nav>
+    <nav class="indice" aria-label="Seções da página"><a href="#admin" data-alvo="a-int">Situação das integrações</a><a href="#admin" data-alvo="a-carga">Carga sob demanda</a><a href="#admin" data-alvo="a-exec">Cargas sob demanda</a></nav>
     <section class="cartao secao" id="a-int" aria-labelledby="t-a-int">
       <h2 id="t-a-int"><small>1</small>Situação das integrações</h2>
       <p class="sub">Cada integração roda algumas vezes por dia. Não há tolerância: toda execução que falha, ou que não acontece no horário previsto, aparece aqui, e a linha só volta a "em dia" com uma execução bem-sucedida depois dela.<span class="dica">Clique numa linha para ver o erro e as últimas execuções.</span></p>
@@ -14233,35 +14345,36 @@ function admIntegracoes() {
         <tbody>${L.map(
           ({ I, X, sit, ok, forc }) => `<tr class="adm-linha" data-k="${I.k}" tabindex="0">
           <td><span class="nm">${esc(I.r)}</span></td><td>${esc(I.mod)}</td><td><span class="adm-sit ${SIT_INT[sit][1]}">${SIT_INT[sit][0]}</span></td>
-          <td>${I.horas.map(h => String(h).padStart(2, "0") + ":00").join(" · ")}</td><td>${forc ? esc(forc.quando) + " (forçada)" : X[0] ? dhBR(X[0].q) : "–"}</td><td>${forc ? esc(forc.quando) : ok ? dhBR(ok.q) : "–"}</td>
+          <td>${I.horas.map(h => String(h).padStart(2, "0") + ":00").join(" · ")}</td><td>${forc ? esc(forc.quando) + " (sob demanda)" : X[0] ? dhBR(X[0].q) : "–"}</td><td>${forc ? esc(forc.quando) : ok ? dhBR(ok.q) : "–"}</td>
           <td class="r num">${forc ? fint(forc.lidos) + " · " + fint(forc.gravados) : X[0] && X[0].sit === "ok" ? fint(X[0].lidos) + " · " + fint(X[0].gravados) : "–"}</td>
           <td class="r"><button type="button" class="acao sec adm-forcar" data-k="${I.k}"${podeEditar() && I.k !== "mapas" ? "" : " disabled"}>Forçar carga</button></td></tr>
           <tr class="adm-det" data-det="${I.k}" hidden><td colspan="8">${sit !== "ok" ? `<p class="adm-erro"><b>${sit === "nao" ? "Não executou no horário previsto" : "Falhou"} em ${dhBR(X[0].q)}.</b> ${esc(X[0].msg)}</p>` : ""}
             <p class="adm-hist"><b>Últimas execuções</b>${X.slice(0, 8)
               .map(
                 x =>
-                  `<span class="${x.sit === "ok" ? "ok" : "erro"}" title="${esc(x.msg || "concluída")}">${dhBR(x.q)} · ${x.sit === "ok" ? fint(x.gravados) + " gravados" : SIT_INT[x.sit][0]}</span>`
+                  `<span class="${x.sit === "ok" ? "ok" : "erro"}" title="${esc(x.msg || "concluída")}">${dhBR(x.q)}${x.sit === "ok" ? `–${dhBR(new Date(+x.q + 2 * 60000)).slice(6)} · ${fint(x.lidos)} lidos, ${fint(x.gravados)} gravados, 0 rejeitados` : " · " + SIT_INT[x.sit][0]}</span>`
               )
               .join("")}</p></td></tr>`
         ).join("")}</tbody></table></div>
       <p class="nota">Lista de integrações, horários previstos e falhas são ilustrativos: as integrações reais e os horários de cada uma serão levantados com a STI. No sistema, cada falha também gera um aviso por e-mail ao perfil editor.</p>
     </section>
     <section class="cartao secao" id="a-carga" aria-labelledby="t-a-carga">
-      <h2 id="t-a-carga"><small>2</small>Forçar carga</h2>
-      <p class="sub">Busca de novo, na fonte, os dados de um período. A carga forçada não passa por cima de correção manual: o valor corrigido fica, e a diferença entra na lista de conflitos do resultado.</p>
+      <h2 id="t-a-carga"><small>2</small>Carga sob demanda</h2>
+      <p class="sub">Busca de novo, na fonte, os dados de um período. A carga sob demanda não passa por cima de correção manual: o valor corrigido fica, e a diferença entra na lista de conflitos do resultado.</p>
       <div class="adm-form">
         <label>Fonte<select id="c-fonte">${ADM_INT.filter(I => I.k !== "mapas")
           .map(I => `<option value="${I.k}">${esc(I.r)}</option>`)
           .join("")}</select></label>
         <label>De<input type="date" id="c-de" value="${isoMais(D.data, -6)}"></label><label>Até<input type="date" id="c-ate" value="${D.data}"></label>
-        <label>Reservatórios<select id="c-res"><option value="">Todos os da fonte</option><option value="um">Só ${ADM.ent ? esc(ADM.ent.nome) : "o reservatório escolhido"}</option></select></label>
+        <label>Reservatórios<select id="c-res"><option value="">Todos os da fonte</option><option value="um">Só ${ADM.ent ? esc(ADM.ent.nome) : "o reservatório escolhido"}</option><option value="lista">Lista de reservatórios</option></select></label>
+        <label class="largo" id="c-cod-l" style="display:none">Códigos, separados por vírgula<input type="text" id="c-cod" placeholder="Ex.: 12112, 12231, 12391"></label>
         <button type="button" class="acao" id="c-ir"${podeEditar() ? "" : " disabled"}>Colocar na fila</button>
       </div>
       <p class="nota" id="c-previa"></p>
     </section>
     <section class="cartao secao" id="a-exec" aria-labelledby="t-a-exec">
-      <h2 id="t-a-exec"><small>3</small>Cargas forçadas</h2>
-      <p class="sub">Cada carga forçada fica registrada como qualquer execução, com quem pediu e o resultado.</p>
+      <h2 id="t-a-exec"><small>3</small>Cargas sob demanda</h2>
+      <p class="sub">Cada carga sob demanda fica registrada como qualquer execução, com quem pediu e o resultado.</p>
       <div id="c-lista"></div>
     </section>`;
   $$(".adm-linha").forEach(tr => {
@@ -14294,28 +14407,42 @@ function admIntegracoes() {
       de = $("#c-de").value,
       ate = $("#c-ate").value,
       dias = de && ate && ate >= de ? diaEntre(ate, de) + 1 : 0;
-    const um = $("#c-res").value === "um" && ADM.ent;
-    return { I, de, ate, dias, um, nRes: um ? 1 : I.n };
+    const um = $("#c-res").value === "um" && ADM.ent,
+      cods =
+        $("#c-res").value === "lista"
+          ? [
+              ...new Set(
+                $("#c-cod")
+                  .value.split(/[\s,;]+/)
+                  .filter(Boolean)
+              )
+            ]
+          : null;
+    $("#c-cod-l").style.display = cods ? "" : "none";
+    return { I, de, ate, dias: cods && !cods.length ? 0 : dias, um, cods, nRes: um ? 1 : cods ? cods.length : I.n };
   };
   function previa() {
     const p = pedido();
     $("#c-previa").textContent = !p.dias
-      ? "Informe um período válido."
-      : `${p.I.r}: ${p.um ? ADM.ent.nome : fint(p.nRes) + " reservatórios"}, ${fint(p.dias)} ${p.dias === 1 ? "dia" : "dias"} (${dBR(p.de)} a ${dBR(p.ate)}).`;
+      ? p.cods && !p.cods.length
+        ? "Informe os códigos dos reservatórios."
+        : "Informe um período válido."
+      : `${p.I.r}: ${p.um ? ADM.ent.nome : fint(p.nRes) + (p.nRes === 1 ? " reservatório" : " reservatórios")}, ${fint(p.dias)} ${p.dias === 1 ? "dia" : "dias"} (${dBR(p.de)} a ${dBR(p.ate)}).`;
     $("#c-ir").disabled = !p.dias || !podeEditar();
   }
   ["c-fonte", "c-de", "c-ate", "c-res"].forEach(id => ($("#" + id).onchange = previa));
+  $("#c-cod").oninput = previa;
   function lista() {
     $("#c-lista").innerHTML = ADM.exec.length
-      ? `<div class="tab-box"><table><thead><tr><th>Pedida em</th><th>Por</th><th>Fonte</th><th>Período</th><th>Reservatórios</th><th>Situação</th><th class="r">Lidos</th><th class="r">Gravados</th><th class="r">Mantidos (correção manual)</th></tr></thead>
+      ? `<div class="tab-box"><table><thead><tr><th>Pedida em</th><th>Por</th><th>Fonte</th><th>Período</th><th>Reservatórios</th><th>Situação</th><th class="r">Lidos</th><th class="r">Gravados</th><th class="r">Rejeitados</th><th class="r">Mantidos (correção manual)</th><th>Erro</th></tr></thead>
       <tbody>${ADM.exec
         .map(
           x => `<tr><td>${esc(x.quando)}</td><td>${esc(x.por)}</td><td><span class="nm">${esc(x.r)}</span></td><td>${dBR(x.de)} a ${dBR(x.ate)}</td><td>${esc(x.res)}</td>
-        <td><span class="adm-sit ${x.sit === "ok" ? "ok" : "fila"}">${x.sit === "ok" ? "concluída" : x.sit === "exec" ? "executando" : "na fila"}</span></td><td class="r num">${x.sit === "ok" ? fint(x.lidos) : "–"}</td><td class="r num">${x.sit === "ok" ? fint(x.gravados) : "–"}</td><td class="r num">${x.sit === "ok" ? fint(x.conflitos) : "–"}</td></tr>`
+        <td><span class="adm-sit ${x.sit === "ok" ? "ok" : "fila"}">${x.sit === "ok" ? "concluída" : x.sit === "exec" ? "executando" : "na fila"}</span></td><td class="r num">${x.sit === "ok" ? fint(x.lidos) : "–"}</td><td class="r num">${x.sit === "ok" ? fint(x.gravados) : "–"}</td><td class="r num">${x.sit === "ok" ? "0" : "–"}</td><td class="r num">${x.sit === "ok" ? fint(x.conflitos) : "–"}</td><td>${x.sit === "ok" ? "nenhum" : "–"}</td></tr>`
         )
         .join("")}</tbody></table></div>
       <p class="nota">Resultado simulado: um registro por reservatório e dia do período. "Mantidos" são os valores com correção manual nesta sessão dentro do período.</p>`
-      : '<p class="nota">Nenhuma carga forçada nesta sessão.</p>';
+      : '<p class="nota">Nenhuma carga sob demanda nesta sessão.</p>';
   }
   $("#c-ir").onclick = () => {
     const p = pedido();
@@ -14323,7 +14450,7 @@ function admIntegracoes() {
     const conf = Object.entries(ADM.manual).reduce(
       (a, [id, o]) =>
         a +
-        (p.um && id !== ADM.ent.id
+        ((p.um && id !== ADM.ent.id) || (p.cods && !p.cods.some(c => id.endsWith(":" + c)))
           ? 0
           : Object.keys(o).filter(ch => ch.slice(0, 10) >= p.de && ch.slice(0, 10) <= p.ate).length),
       0
@@ -14333,7 +14460,7 @@ function admIntegracoes() {
       r: p.I.r,
       de: p.de,
       ate: p.ate,
-      res: p.um ? ADM.ent.nome : "todos (" + fint(p.nRes) + ")",
+      res: p.um ? ADM.ent.nome : p.cods ? p.cods.join(", ") : "todos (" + fint(p.nRes) + ")",
       quando: agoraAdm(),
       por: ADM_USU[ADM.perfil],
       sit: "fila",
@@ -14342,7 +14469,7 @@ function admIntegracoes() {
       conflitos: conf
     };
     ADM.exec.unshift(x);
-    trilhaAdm("Carga forçada", null, `${p.I.r}, ${dBR(p.de)} a ${dBR(p.ate)}, ${x.res}`, "", "executado");
+    trilhaAdm("Carga sob demanda", null, `${p.I.r}, ${dBR(p.de)} a ${dBR(p.ate)}, ${x.res}`, "", "executado");
     lista();
     setTimeout(() => {
       x.sit = "exec";
@@ -14386,7 +14513,7 @@ function admSerie() {
         <span class="datas"><label>de <input type="date" id="s-de"></label><label>até <input type="date" id="s-ate"></label></span></div>
     </section>
     <section class="cartao secao" id="s-tab" aria-labelledby="t-s-tab"><h2 id="t-s-tab"><small>2</small>Ver e editar</h2>
-      <p class="sub">Edite o valor na própria célula. A edição pontual não passa por aprovação: pede o motivo, grava a marca de alteração manual e fica na trilha, de onde pode ser desfeita.<span class="dica">Célula com ponto laranja: valor alterado manualmente; passe o mouse para ver o valor anterior.</span></p>
+      <p class="sub">Edite o valor na própria célula. A edição pontual não passa por aprovação: pede o motivo, grava a marca de alteração manual e fica no registro das ações, de onde pode ser desfeita.<span class="dica">Célula com ponto laranja: valor alterado manualmente; passe o mouse para ver o valor anterior.</span></p>
       <div class="adm-graf-cab"><label>Variável do gráfico <select id="s-var"></select></label></div><div id="s-graf"></div>
       <div class="adm-pend" id="s-pend" hidden></div>
       <div class="tab-box adm-serie"><table><thead id="s-cab"></thead><tbody id="s-corpo"></tbody></table></div><p class="mais-res" id="s-mais"></p>
@@ -14755,14 +14882,14 @@ function admSerie() {
 /* ---------------- 3. cadastro, modo de exibição e CAV */
 function admCadastro() {
   tituloAdm(
-    "Cadastro e CAV",
+    "Cadastro e curva",
     "Dados cadastrais, modo de exibição e curva cota-área-volume. Mudança que altera número publicado tem data de vigência, mostra o efeito antes e passa por aprovação."
   );
   $("#conteudo").innerHTML = `
     <nav class="indice" aria-label="Seções da página"><a href="#admin/cadastro" data-alvo="k-res">Reservatório</a><a href="#admin/cadastro" data-alvo="k-cad">Dados cadastrais</a><a href="#admin/cadastro" data-alvo="k-modo">Modo de exibição</a><a href="#admin/cadastro" data-alvo="k-cav">Curva cota-área-volume</a></nav>
     <section class="cartao secao" id="k-res" aria-labelledby="t-k-res"><h2 id="t-k-res"><small>1</small>Reservatório</h2><p class="sub">Reservatório de qualquer módulo.</p><div id="k-sel"></div></section>
     <section class="cartao secao" id="k-cad" aria-labelledby="t-k-cad"><h2 id="t-k-cad"><small>2</small>Dados cadastrais</h2>
-      <p class="sub">A capacidade muda o Volume (%) do reservatório e o volume acumulado do estado: tem vigência e passa por aprovação. A vigência pode ser a data do levantamento, no passado: as leituras desde ela passam a usar a capacidade nova, e as anteriores continuam com a antiga. Os demais campos são gravados na hora e ficam na trilha.</p><div id="k-form"></div></section>
+      <p class="sub">A capacidade muda o Volume (%) do reservatório e o volume acumulado do estado: tem vigência e passa por aprovação. A vigência pode ser a data do levantamento, no passado: as leituras desde ela passam a usar a capacidade nova, e as anteriores continuam com a antiga. Os demais campos são gravados na hora e ficam no registro das ações.</p><div id="k-form"></div></section>
     <section class="cartao secao" id="k-modo" aria-labelledby="t-k-modo"><h2 id="t-k-modo"><small>3</small>Modo de exibição</h2>
       <p class="sub">Definido pela área técnica, com data e motivo. Vale em todo o sistema de uma vez: tabelas, agregados, mapa, API e área de dados, onde o reservatório retirado segue disponível, marcado.</p><div id="k-modo-form"></div></section>
     <section class="cartao secao" id="k-cav" aria-labelledby="t-k-cav"><h2 id="t-k-cav"><small>4</small>Curva cota-área-volume</h2>
@@ -14866,13 +14993,18 @@ function admCadastro() {
       }
       tudo();
     };
-    // modo de exibição
-    const ret = ADM.modo[e.id] ? ADM.modo[e.id] === "retirado" : !!e.retirado;
-    $("#k-modo-form").innerHTML =
-      `<p class="adm-efeito">Hoje: <b>${ret ? "retirado do acompanhamento" : "exibido"}</b>.</p>
-      <div class="adm-form"><label>Novo modo<select id="m-modo"><option value="${ret ? "exibido" : "retirado"}">${ret ? "Exibido" : "Retirado do acompanhamento"}</option></select></label><label>Data<input type="date" id="m-data" value="${hoje}"${dis}></label>
-        <label>Decisão de<input type="text" id="m-quem" placeholder="Área técnica responsável"${dis}></label><label class="largo">Motivo<input type="text" id="m-motivo" placeholder="Ex.: régua desativada; reservatório rompido"${dis}></label>
-        <button type="button" class="acao" id="m-ir"${dis}>Enviar para aprovação</button></div>`;
+    // modo de exibição: com volume, só com nível ou retirado do acompanhamento (Anexo I, 4.1)
+    const MODOS = { volume: "com volume", nivel: "só com nível", retirado: "retirado do acompanhamento" };
+    const modo =
+      ADM.modo[e.id] || (e.retirado ? "retirado" : e.src === "nv" || /só nível/.test(e.tipo) ? "nivel" : "volume");
+    $("#k-modo-form").innerHTML = `<p class="adm-efeito">Hoje: <b>${MODOS[modo]}</b>.</p>
+      <div class="adm-form"><label>Novo modo<select id="m-modo">${Object.entries(MODOS)
+        .filter(([k]) => k !== modo)
+        .map(([k, r]) => `<option value="${k}">${r[0].toUpperCase() + r.slice(1)}</option>`)
+        .join("")}</select></label><label>Data<input type="date" id="m-data" value="${hoje}"${dis}></label>
+        <label>Decisão de<input type="text" id="m-quem" placeholder="Área técnica responsável"${dis}></label><label class="largo">Motivo<input type="text" id="m-motivo" placeholder="Ex.: régua desativada; reservatório rompido; curva cota-volume em revisão"${dis}></label>
+        <button type="button" class="acao" id="m-ir"${dis}>Enviar para aprovação</button></div>
+      <p class="nota">Só com nível: o reservatório aparece com o nível e sai do volume acumulado. Retirado do acompanhamento: sai das tabelas, dos gráficos, dos mapas e dos totais e segue na área de dados e na API, marcado.</p>`;
     $("#m-ir").onclick = () => {
       const mot = $("#m-motivo").value.trim(),
         quem = $("#m-quem").value.trim(),
@@ -14884,7 +15016,7 @@ function admCadastro() {
       pedidoAdm(
         "Modo de exibição",
         e,
-        `<b>${ret ? "Retirado do acompanhamento" : "Exibido"}</b> → <b>${novo === "retirado" ? "retirado do acompanhamento" : "exibido"}</b> em ${dBR($("#m-data").value || hoje)}. Decisão de: ${esc(quem)}.`,
+        `<b>${MODOS[modo][0].toUpperCase() + MODOS[modo].slice(1)}</b> → <b>${MODOS[novo]}</b> em ${dBR($("#m-data").value || hoje)}. Decisão de: ${esc(quem)}.`,
         mot,
         () => {
           ADM.modo[e.id] = novo;
@@ -15104,7 +15236,7 @@ function admAprovacoes() {
 /* ---------------- 5. trilha de auditoria */
 function admTrilha() {
   tituloAdm(
-    "Trilha de auditoria",
+    "Registro das ações",
     "Tudo o que foi feito na área administrativa: quem, quando, o quê, o valor anterior e o novo, e o motivo. A edição pontual pode ser desfeita daqui.",
     `<span><b>${ADM.trilha.length}</b> registros nesta sessão</span>`
   );
@@ -15112,8 +15244,8 @@ function admTrilha() {
     <nav class="indice" aria-label="Seções da página"><a href="#admin/trilha" data-alvo="t-reg">Registros</a></nav>
     <section class="cartao secao" id="t-reg" aria-labelledby="t-t-reg"><h2 id="t-t-reg"><small>1</small>Registros</h2>
       <div class="baixar"><button type="button" id="t-csv"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8m0 0L5 7m3 3 3-3M3 13h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>CSV</button></div>
-      <p class="sub">No protótipo a trilha guarda o que foi feito nesta sessão e se perde ao recarregar a página. No sistema é permanente.</p>
-      <div class="busca-dados"><input type="search" id="t-busca" placeholder="Filtrar por reservatório, operação, pessoa ou motivo" aria-label="Filtrar a trilha" autocomplete="off"></div>
+      <p class="sub">No protótipo o registro das ações guarda o que foi feito nesta sessão e se perde ao recarregar a página. No sistema é permanente.</p>
+      <div class="busca-dados"><input type="search" id="t-busca" placeholder="Filtrar por reservatório, operação, pessoa ou motivo" aria-label="Filtrar o registro das ações" autocomplete="off"></div>
       <div id="t-lista"></div></section>`;
   const filtrada = () => {
     const tm = semAc($("#t-busca").value).split(/\s+/).filter(Boolean);
@@ -15130,7 +15262,7 @@ function admTrilha() {
         x => `<tr><td>${esc(x.quando)}</td><td>${esc(x.quem)}</td><td><span class="nm">${esc(x.op)}</span></td><td>${esc(x.res)}${x.cod ? `<span class="rio">código ${esc(x.cod)}</span>` : ""}</td><td>${esc(x.detalhe)}</td><td>${esc(x.motivo || "–")}</td>
         <td>${esc(x.situacao)}${x.desfazer && !x.desfeito && podeEditar() ? `<button type="button" class="adm-desf" data-n="${x.n}">Desfazer</button>` : ""}</td></tr>`
       ).join("")}</tbody></table></div>`
-      : `<p class="nota">${ADM.trilha.length ? "Nenhum registro com esse filtro." : "Nenhum registro ainda. Faça uma correção de série, force uma carga ou envie um pedido para ver a trilha se formar."}</p>`;
+      : `<p class="nota">${ADM.trilha.length ? "Nenhum registro com esse filtro." : "Nenhum registro ainda. Faça uma correção de série, force uma carga ou envie um pedido para ver o registro se formar."}</p>`;
     $$(".adm-desf").forEach(
       b =>
         (b.onclick = () => {
@@ -15156,7 +15288,7 @@ function admTrilha() {
     salvarCSV(
       ["numero", "quando", "quem", "operacao", "reservatorio", "codigo", "detalhe", "motivo", "situacao"],
       filtrada().map(x => [x.n, x.quando, x.quem, x.op, x.res, x.cod, x.detalhe, x.motivo, x.situacao]),
-      "sar_trilha_auditoria.csv"
+      "sar_registro_das_acoes.csv"
     );
   lista();
 }
@@ -15398,59 +15530,103 @@ const PARAM_ADM = [
     fonte: "SAR, Entendendo o Mapa, a Tabela e o Gráfico"
   },
   {
+    k: "tol_30d",
+    g: "Nordeste e Semiárido",
+    r: "Variação em 30 dias: tolerância em torno do dia de comparação",
+    v: FOLGA30,
+    u: "dias",
+    dec: 0,
+    apr: true,
+    onde: "Variação em 30 dias do volume e do nível (tabelas, mapa e fichas do Nordeste e Semiárido)",
+    fonte: "Critério da CORSH (21/09/2026)"
+  },
+  {
+    k: "faixa_restr",
+    g: "Nordeste e Semiárido",
+    r: "Faixa de volume: restrição abaixo de",
+    v: 20,
+    u: "%",
+    dec: 0,
+    apr: true,
+    onde: "Faixas do Nordeste e Semiárido (mapas, tabelas, faixas e cobertura)",
+    fonte: "SAR atual"
+  },
+  {
+    k: "faixa_aten",
+    g: "Nordeste e Semiárido",
+    r: "Faixa de volume: atenção abaixo de (normal a partir deste valor)",
+    v: 50,
+    u: "%",
+    dec: 0,
+    apr: true,
+    onde: "Faixas do Nordeste e Semiárido (mapas, tabelas, faixas e cobertura)",
+    fonte: "SAR atual"
+  },
+  {
     k: "crit_grosso",
-    g: "Crítica de cota",
+    g: "Conferência da cota",
     r: "Erro grosseiro: distância da mediana do ano da estação",
     v: FCRIT.grosso_cm / 100,
     u: "m",
     dec: 1,
     apr: true,
     onde: "Série aceita (todas as páginas, área de dados e API)",
-    fonte: "Regras de crítica do protótipo"
+    fonte: "Regras de conferência do protótipo"
   },
   {
     k: "crit_pico",
-    g: "Crítica de cota",
+    g: "Conferência da cota",
     r: "Pico de um dia: diferença para as duas leituras vizinhas, no mesmo sentido",
     v: FCRIT.pico_cm,
     u: "cm",
     dec: 0,
     apr: true,
     onde: "Série aceita",
-    fonte: "Regras de crítica do protótipo"
+    fonte: "Regras de conferência do protótipo"
   },
   {
     k: "crit_degrau",
-    g: "Crítica de cota",
+    g: "Conferência da cota",
     r: "Degrau que volta: salto mínimo",
     v: FCRIT.degrau_cm / 100,
     u: "m",
     dec: 1,
     apr: true,
     onde: "Série aceita",
-    fonte: "Regras de crítica do protótipo"
+    fonte: "Regras de conferência do protótipo"
   },
   {
     k: "crit_volta",
-    g: "Crítica de cota",
+    g: "Conferência da cota",
     r: "Degrau que volta: prazo para o salto ser desfeito",
     v: FCRIT.volta_dias,
     u: "dias",
     dec: 0,
     apr: true,
     onde: "Série aceita",
-    fonte: "Regras de crítica do protótipo"
+    fonte: "Regras de conferência do protótipo"
   },
   {
     k: "crit_suspeito",
-    g: "Crítica de cota",
+    g: "Conferência da cota",
     r: "Salto a verificar: salto entre leituras que as regras acima não explicam",
     v: FCRIT.suspeito_cm / 100,
     u: "m",
     dec: 1,
     apr: true,
     onde: "Estações só com nível (saem das contagens até a conferência)",
-    fonte: "Regras de crítica do protótipo"
+    fonte: "Regras de conferência do protótipo"
+  },
+  {
+    k: "crit_vol",
+    g: "Conferência do volume",
+    r: "Pico de um dia e degrau que volta no volume: limite",
+    v: 5,
+    u: "p.p.",
+    dec: 0,
+    apr: true,
+    onde: "Série aceita (volume do Nordeste e Semiárido)",
+    fonte: "Regras de conferência do protótipo"
   },
   {
     k: "hora_limite",
@@ -15601,7 +15777,7 @@ function ultimaLeitura(e) {
 let COB = null;
 function coberturaAdm() {
   if (!COB) {
-    const E = entidadesDados();
+    const E = entidadesDados().filter(e => e.src !== "can"); // o Sistema Cantareira como conjunto não é reservatório
     COB = E.map(e => ({ e, ult: ultimaLeitura(e) }));
     COB.ref = {};
     ["SIN", "NE", "OUTROS"].forEach(m => {
@@ -15627,6 +15803,31 @@ function coberturaAdm() {
   COB.prazo = prazo;
   return COB;
 }
+// conferência do cadastro (N-11): sem coordenada e nome repetido no mesmo módulo e estado, entre os acompanhados
+function coordAdm(e) {
+  if (e.src === "os") return COORD_OS[e.codigo] || null;
+  const o = e.src === "nv" ? e.st : e.r;
+  return o && o.lat != null ? [o.lat, o.lon] : o && o.x != null ? [o.y, o.x] : null;
+}
+function cadastroAdm(C) {
+  const A = C.filter(c => c.sit !== "ret").map(c => c.e),
+    semC = A.filter(e => !coordAdm(e)),
+    grupos = {};
+  A.forEach(e => {
+    const k = `${e.mod}|${e.uf}|${semAc(e.nome)}`;
+    (grupos[k] = grupos[k] || []).push(e);
+  });
+  const rep = Object.values(grupos).filter(g => g.length > 1);
+  const ex = L =>
+    L.slice(0, 6)
+      .map(e => esc(e.nome) + (e.uf ? "/" + e.uf : ""))
+      .join(", ") + (L.length > 6 ? ` e mais ${fint(L.length - 6)}` : "");
+  return `<div class="tab-box"><table><thead><tr><th>Conferência</th><th class="r">Reservatórios</th><th>Exemplos</th></tr></thead><tbody>
+    <tr><td><span class="nm">Sem coordenada</span></td><td class="r num">${fint(semC.length)}</td><td>${semC.length ? ex(semC) : "–"}</td></tr>
+    <tr><td><span class="nm">Nome repetido no mesmo módulo e estado</span></td><td class="r num">${fint(rep.flat().length)}</td><td>${rep.length ? ex(rep.map(g => g[0])) + ` (${fint(rep.length)} nomes)` : "–"}</td></tr>
+    <tr><td><span class="nm">Sem leitura em 12 meses</span></td><td class="r num">${fint(C.filter(c => c.sit === "sem").length)}</td><td>na lista acima, situação "sem leitura em 12 meses"</td></tr></tbody></table></div>
+    <p class="nota">Protótipo: conferido nos dados embutidos. No sistema, a conferência inclui município, estado e bacia vazios e o reservatório cadastrado em duas fontes.</p>`;
+}
 const SIT_COB = {
   ok: ["em dia", "ok"],
   atr: ["atrasado", "erro"],
@@ -15650,7 +15851,7 @@ function admCobertura() {
   const st = { mod: "", sit: "alerta", uf: "", txt: "", mostrar: 25 };
   const ufs = [...new Set(C.map(c => c.e.uf).filter(Boolean))].sort();
   $("#conteudo").innerHTML = `
-    <nav class="indice" aria-label="Seções da página"><a href="#admin/cobertura" data-alvo="cb-res">Por módulo</a><a href="#admin/cobertura" data-alvo="cb-lista">Por reservatório</a></nav>
+    <nav class="indice" aria-label="Seções da página"><a href="#admin/cobertura" data-alvo="cb-res">Por módulo</a><a href="#admin/cobertura" data-alvo="cb-lista">Por reservatório</a><a href="#admin/cobertura" data-alvo="cb-cad">Cadastro</a></nav>
     <section class="cartao secao" id="cb-res" aria-labelledby="t-cb-res"><h2 id="t-cb-res"><small>1</small>Por módulo</h2>
       <p class="sub">Dias sem dado contados até o dado mais recente de cada módulo no protótipo. O prazo de alerta de cada módulo fica em <a href="#admin/parametros">Parâmetros</a>. Os retirados do acompanhamento não entram no alerta.</p>
       <div class="tab-box"><table><thead><tr><th>Módulo</th><th class="r">Acompanhados</th><th class="r">Em dia</th><th class="r">Atrasados</th><th class="r">Sem leitura em 12 meses</th><th class="r">Retirados</th><th>Dado mais recente</th><th class="r">Prazo de alerta</th></tr></thead>
@@ -15665,14 +15866,17 @@ function admCobertura() {
     </section>
     <section class="cartao secao" id="cb-lista" aria-labelledby="t-cb-lista"><h2 id="t-cb-lista"><small>2</small>Por reservatório</h2>
       <div class="baixar"><button type="button" id="cb-csv"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8m0 0L5 7m3 3 3-3M3 13h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>CSV</button></div>
-      <p class="sub">Do maior atraso para o menor. Da linha sai a carga forçada da fonte do reservatório.</p>
+      <p class="sub">Do maior atraso para o menor. Da linha sai a carga sob demanda da fonte do reservatório.</p>
       <div class="adm-form"><span class="seg" role="group" aria-label="Módulo">${[["", "Todos"], ...mods].map(([v, r]) => `<button type="button" data-m="${v}" aria-pressed="${v === ""}">${r}</button>`).join("")}</span>
         <label>Situação<select id="cb-sit"><option value="alerta">Atrasados e sem leitura</option><option value="">Todas</option><option value="ok">Em dia</option><option value="ret">Retirados do acompanhamento</option><option value="novo">Aguardando a primeira carga</option></select></label>
         <label>UF<select id="cb-uf"><option value="">Todas</option>${ufs.map(u => `<option>${u}</option>`).join("")}</select></label>
         <label class="largo">Busca<input type="text" id="cb-busca" placeholder="Nome, código ou município"></label></div>
       <p class="nota" id="cb-n"></p>
       <div class="tab-box adm-tab"><table><thead><tr><th>Reservatório</th><th>Módulo</th><th>UF</th><th>Última leitura</th><th class="r">Dias sem dado</th><th>Situação</th><th></th></tr></thead><tbody id="cb-corpo"></tbody></table></div>
-      <p class="mais-res" id="cb-mais"></p></section>`;
+      <p class="mais-res" id="cb-mais"></p></section>
+    <section class="cartao secao" id="cb-cad" aria-labelledby="t-cb-cad"><h2 id="t-cb-cad"><small>3</small>Cadastro</h2>
+      <p class="sub">Conferência do cadastro dos reservatórios acompanhados: o que falta ou se repete aparece aqui até ser corrigido em <a href="#admin/cadastro">Cadastro e curva</a>.</p>
+      ${cadastroAdm(C)}</section>`;
   const filtrada = () => {
     const tm = semAc(st.txt).split(/\s+/).filter(Boolean);
     return C.filter(
@@ -15760,7 +15964,7 @@ function suspeitosAdm() {
   if (SUSP) return SUSP;
   const L = [],
     E = entidadesDados();
-  // valores que as regras de crítica barraram nas fichas do Nordeste (séries desde 2006)
+  // valores que as regras de conferência barraram nas fichas do Nordeste (séries desde 2006)
   Object.values(NEd.fichas || {}).forEach(F => {
     const e = E.find(x => (x.src === "ne" || x.src === "nv") && String(x.codigo) === String(F.codigo));
     if (!e) return;
@@ -15849,12 +16053,12 @@ const REGRAS_SUSP = () => [
   ],
   [
     "pico de um dia",
-    `Leitura a mais de ${fint(parAdm("crit_pico"))} cm das duas vizinhas, no mesmo sentido.`,
+    `Leitura a mais de ${fint(parAdm("crit_pico"))} cm (na cota) ou ${fint(parAdm("crit_vol"))} pontos percentuais (no volume) das duas vizinhas, no mesmo sentido.`,
     "Cota e volume do Nordeste e Semiárido"
   ],
   [
     "degrau que volta",
-    `Salto de mais de ${fmt(parAdm("crit_degrau"), 1)} m desfeito em até ${fint(parAdm("crit_volta"))} dias.`,
+    `Salto de mais de ${fmt(parAdm("crit_degrau"), 1)} m (na cota) ou ${fint(parAdm("crit_vol"))} pontos percentuais (no volume) desfeito em até ${fint(parAdm("crit_volta"))} dias.`,
     "Cota e volume do Nordeste e Semiárido"
   ],
   [
@@ -15866,6 +16070,16 @@ const REGRAS_SUSP = () => [
     "vazão afluente diária negativa",
     "Vazão afluente diária abaixo de zero. No SIN a afluência é calculada por balanço hídrico e pode sair negativa.",
     "SIN, base diária"
+  ],
+  [
+    "volume acima da capacidade",
+    "Volume maior que a capacidade vigente na data: vai para a fila, sem descarte automático.",
+    "Volume do Nordeste e Semiárido"
+  ],
+  [
+    "queda a zero no fim de um trecho",
+    "Volume que cai a zero na última leitura de um trecho, com cota informada: vai para a fila, porque há açudes que secam.",
+    "Volume do Nordeste e Semiárido"
   ]
 ];
 const ACOES_SUSP = {
@@ -15887,13 +16101,13 @@ function admSuspeitos() {
     pend = S.filter(s => !ADM.susp[s.id]);
   tituloAdm(
     "Valores suspeitos",
-    "Valores que as regras de crítica barraram ou marcaram. Cada um espera uma decisão: fica fora ou volta à série, com o motivo na trilha.",
+    "Valores que as regras de conferência barraram ou marcaram. Cada um espera uma decisão: fica fora ou volta à série, com o motivo no registro das ações.",
     `<span><b>${fint(pend.length)}</b> de ${fint(S.length)} aguardando decisão</span>`
   );
   const st = { regra: "", sit: "pend", txt: "", mostrar: 20 };
   $("#conteudo").innerHTML = `
-    <nav class="indice" aria-label="Seções da página"><a href="#admin/suspeitos" data-alvo="su-regras">Regras de crítica</a><a href="#admin/suspeitos" data-alvo="su-exc">Exceções por reservatório</a><a href="#admin/suspeitos" data-alvo="su-fila">Fila</a></nav>
-    <section class="cartao secao" id="su-regras" aria-labelledby="t-su-regras"><h2 id="t-su-regras"><small>1</small>Regras de crítica</h2>
+    <nav class="indice" aria-label="Seções da página"><a href="#admin/suspeitos" data-alvo="su-regras">Regras de conferência</a><a href="#admin/suspeitos" data-alvo="su-exc">Exceções por reservatório</a><a href="#admin/suspeitos" data-alvo="su-fila">Fila</a></nav>
+    <section class="cartao secao" id="su-regras" aria-labelledby="t-su-regras"><h2 id="t-su-regras"><small>1</small>Regras de conferência</h2>
       <p class="sub">Uma regra única, aplicada antes de publicar, vale para as páginas, a área de dados e a API. Os limites ficam em <a href="#admin/parametros">Parâmetros</a> e mudam só com aprovação.</p>
       <div class="tab-box"><table><thead><tr><th>Regra</th><th>Quando barra</th><th>Onde</th><th class="r">Na fila</th><th class="r">Aguardando</th></tr></thead>
         <tbody>${REGRAS_SUSP()
@@ -15915,7 +16129,7 @@ function admSuspeitos() {
         <label class="largo">Motivo<input type="text" id="su-mot" placeholder="Ex.: açude de enchimento rápido"></label><button type="button" class="acao" id="su-exc-ir"${podeEditar() ? "" : " disabled"}>Enviar para aprovação</button></div>
       <div id="su-exc-lista"></div></section>
     <section class="cartao secao" id="su-fila" aria-labelledby="t-su-fila"><h2 id="t-su-fila"><small>3</small>Fila</h2>
-      <p class="sub">Decisão sobre um valor vale como edição pontual: sem aprovação, com motivo e trilha. Liberar a série inteira de uma estação passa por aprovação, porque ela entra nas contagens.</p>
+      <p class="sub">Decisão sobre um valor vale como edição pontual: sem aprovação, com motivo e registro das ações. Liberar a série inteira de uma estação passa por aprovação, porque ela entra nas contagens.</p>
       <div class="adm-form"><label>Regra<select id="su-f-regra"><option value="">Todas</option>${REGRAS_SUSP()
         .map(([k]) => `<option>${k}</option>`)
         .join("")}</select></label>
@@ -15951,7 +16165,7 @@ function admSuspeitos() {
     const x = { nome: alvo.nome, regra, lim: fmt(lim, 1), mot, sit: "aguardando aprovação" };
     ADM.excecoes.unshift(x);
     pedidoAdm(
-      "Exceção de crítica",
+      "Exceção de conferência",
       alvo,
       `Regra <b>${esc(regra)}</b> com limite próprio de <b>${fmt(lim, 1)}</b> para este reservatório.`,
       mot,
@@ -16086,7 +16300,7 @@ function admSuspeitos() {
       mot.trim(),
       "gravado"
     );
-    toast(`${rot}: registrado na trilha.`);
+    toast(`${rot}: incluído no registro das ações.`);
     lista();
     abasAdm();
   }
@@ -16520,7 +16734,7 @@ function admInclusao() {
         )
         .join("") +
       (f.mod !== "SIN"
-        ? `<span class="nota">Sem capacidade e sem curva cota-volume, o reservatório entra só com o nível; a curva se envia depois, em Cadastro e CAV.</span>`
+        ? `<span class="nota">Sem capacidade e sem curva cota-volume, o reservatório entra só com o nível; a curva se envia depois, em Cadastro e curva.</span>`
         : "");
     topoForm();
     $$("#in-campos [data-f]").forEach(
@@ -16910,7 +17124,7 @@ function admCodigos() {
         <label class="largo">Busca<input type="text" id="co-busca" placeholder="Código, nome na fonte ou reservatório"></label></div>
       <p class="nota" id="co-n"></p><div id="co-tab"></div><p class="mais-res" id="co-mais"></p></section>
     <section class="cartao secao" id="co-nova" aria-labelledby="t-co-nova"><h2 id="t-co-nova"><small>3</small>Nova ou alterada</h2>
-      <p class="sub">Gravada na hora, com vigência e motivo na trilha. Se o código da fonte já estiver ligado a outro reservatório, a tela avisa e a nova correspondência substitui a anterior a partir da vigência.</p>
+      <p class="sub">Gravada na hora, com vigência e motivo no registro das ações. Se o código da fonte já estiver ligado a outro reservatório, a tela avisa e a nova correspondência substitui a anterior a partir da vigência.</p>
       <div class="adm-form"><label>Fonte<select id="co-f">${["FUNCEME", "AESA", "APAC", "SABESP", "ONS", "COGERH", "HidroInfoAna", "GDH"].map(x => `<option>${x}</option>`).join("")}</select></label><label>Código ou nome na fonte<input type="text" id="co-cf"></label><label>Vigência<input type="date" id="co-vig" value="${new Date().toISOString().slice(0, 10)}"></label></div>
       <div id="co-sel"></div><p class="adm-efeito" id="co-prev">Escolha a fonte, o código e o reservatório do SAR.</p>
       <div class="adm-form"><label class="largo">Motivo<input type="text" id="co-mot" placeholder="Ex.: estação nova da FUNCEME para o açude"></label><button type="button" class="acao" id="co-ir" disabled>Gravar</button></div></section>`;
@@ -17231,8 +17445,14 @@ function admAgrupamentos() {
         <td><select data-mv="${esc(e.id)}"${dis}>${bacias.map(b => `<option${(mov[e.id] || g.bacia) === b ? " selected" : ""}>${esc(b)}</option>`).join("")}</select></td></tr>`
       ).join("")}</tbody>`;
     } else {
-      efeito = `Composição: ${fint(Mt.length - tent.size)} de ${fint(Mt.length)} reservatórios. O efeito no agregado do sistema é calculado pelo sistema na aprovação.`;
-      tabela = `<thead><tr><th class="ck">Entra</th><th>Reservatório</th><th>Município</th></tr></thead><tbody>${M.map(e => `<tr${tent.has(e.id) ? ' class="fora"' : ""}><td class="ck"><input type="checkbox" data-id="${esc(e.id)}"${tent.has(e.id) ? "" : " checked"}${dis} aria-label="${esc(e.nome)} entra no agregado"></td><td><span class="nm">${esc(e.nome)}</span><span class="rio">código ${esc(e.codigo)}</span></td><td>${esc(e.municipio)}</td></tr>`).join("")}</tbody>`;
+      // Cantareira: composição fixada pela Resolução Conjunta ANA/DAEE nº 925/2017; DF e Paraopeba: sem valor agregado,
+      // a composição só diz quais reservatórios aparecem na página do sistema
+      const fixo = g.sis === "cantareira",
+        disOS = fixo ? " disabled" : dis;
+      efeito = fixo
+        ? "A composição do Sistema Cantareira é a da Resolução Conjunta ANA/DAEE nº 925/2017 (Jaguari-Jacareí, Cachoeira, Atibainha e Paiva Castro) e não é editável aqui."
+        : `Página do sistema: ${fint(Mt.length - tent.size)} de ${fint(Mt.length)} reservatórios. O sistema não tem valor agregado; muda só a lista da página.`;
+      tabela = `<thead><tr><th class="ck">Entra</th><th>Reservatório</th><th>Município</th></tr></thead><tbody>${M.map(e => `<tr${tent.has(e.id) ? ' class="fora"' : ""}><td class="ck"><input type="checkbox" data-id="${esc(e.id)}"${tent.has(e.id) ? "" : " checked"}${disOS} aria-label="${esc(e.nome)} entra no sistema"></td><td><span class="nm">${esc(e.nome)}</span><span class="rio">código ${esc(e.codigo)}</span></td><td>${esc(e.municipio)}</td></tr>`).join("")}</tbody>`;
     }
     const mudou =
       g.tipo === "sin"
@@ -17326,7 +17546,7 @@ function admPublicacao() {
   $("#conteudo").innerHTML = `
     <nav class="indice" aria-label="Seções da página"><a href="#admin/publicacao" data-alvo="pu-av">Novo aviso</a><a href="#admin/publicacao" data-alvo="pu-lista">Avisos</a><a href="#admin/publicacao" data-alvo="pu-tx">Textos das páginas</a><a href="#admin/publicacao" data-alvo="pu-alt">Textos alterados</a></nav>
     <section class="cartao secao" id="pu-av" aria-labelledby="t-pu-av"><h2 id="t-pu-av"><small>1</small>Novo aviso</h2>
-      <p class="sub">O aviso aparece no alto das páginas escolhidas enquanto estiver no período. Publicado na hora, com registro na trilha.</p>
+      <p class="sub">O aviso aparece no alto das páginas escolhidas enquanto estiver no período. Publicado na hora e incluído no registro das ações.</p>
       <div class="adm-form"><label>Onde<select id="av-onde">${ONDE.map(([v, r]) => `<option value="${v}">${r}</option>`).join("")}</select></label>
         <label>Tipo<select id="av-tipo"><option value="info">Informativo</option><option value="atencao">Atenção</option></select></label>
         <label>Início<input type="date" id="av-ini" value="${hoje}"></label><label>Fim<input type="date" id="av-fim"></label></div>
@@ -17609,7 +17829,7 @@ function admParametros() {
           p => `<tr><td>${esc(p.g)}</td><td><span class="nm">${esc(p.r)}</span>${ADM.params[p.k] != null ? `<span class="rio">alterado; original ${fmt(p.v, p.dec)}</span>` : ""}</td>
           <td class="r"><input class="adm-cel" data-k="${p.k}" inputmode="decimal" aria-label="${esc(p.r)}" value="${fmt(parAdm(p.k), p.dec).replace(/\./g, "")}"${podeEditar() ? "" : " disabled"}></td><td>${esc(p.u)}</td><td>${esc(p.onde)}</td><td>${esc(p.fonte)}</td><td>${p.apr ? "sim" : "não"}</td></tr>`
         ).join("")}</tbody></table></div>
-      <p class="nota">No protótipo, só o painel de cobertura usa o valor gravado; as páginas públicas e a crítica não são recalculadas com ele.</p></section>
+      <p class="nota">No protótipo, só o painel de cobertura usa o valor gravado; as páginas públicas e a conferência não são recalculadas com ele.</p></section>
     <section class="cartao secao" id="pa-hor" aria-labelledby="t-pa-hor"><h2 id="t-pa-hor"><small>2</small>Horários das integrações</h2>
       <p class="sub">Horários previstos de cada execução. O painel de integrações marca como "não executou" a execução prevista que não aconteceu. Os horários abaixo são ilustrativos: os reais serão levantados com a STI.</p>
       <div class="tab-box"><table><thead><tr><th>Integração</th><th>Horários previstos</th></tr></thead><tbody>${ADM_INT.map(I => `<tr><td><span class="nm">${esc(I.r)}</span></td><td>${I.horas.map(h => String(h).padStart(2, "0") + ":00").join(" · ")}</td></tr>`).join("")}</tbody></table></div></section>`;
@@ -17867,8 +18087,23 @@ function montarFaixa(novaPagina) {
   if (barra && barra.parentElement !== pe) pe.prepend(barra);
 }
 
+let modRota = null;
 function rota() {
   const h = decodeURIComponent(location.hash.slice(1));
+  // a data de referência vale dentro do módulo; ao sair dele, volta ao padrão (Anexo I, 1, "Data de referência")
+  const modH = h.startsWith("ne")
+    ? "ne"
+    : h.startsWith("outros")
+      ? "outros"
+      : h === "sin" || h.startsWith("bacia/") || h.startsWith("ficha/")
+        ? "sin"
+        : "fora";
+  if (modH !== modRota) {
+    refSIN = null;
+    dataRef = NEd.data;
+    sisOS = null;
+    modRota = modH;
+  }
   if (h === "bacia/GRANDE") paginaGrande();
   else if (h.startsWith("ficha/")) abrirFichaRota(h.slice(6));
   else if (h === "ne") paginaNE();
