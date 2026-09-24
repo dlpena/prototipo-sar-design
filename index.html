@@ -5005,6 +5005,50 @@ function mesAnterior(iso) {
 // somam mais que o limiar (em % da média das duas capacidades equivalentes; parâmetro da área administrativa). troca
 // nula (falta um dos dois conjuntos) não interrompe: o vão entre os pontos já separa a linha
 const pontoLigado = (troca, limiar) => troca == null || troca <= limiar;
+
+/* SIN, conferência da base diária (Anexo I, item 22 d; Diego, 24/09/2026: "Erro evidente deveria ser marcado para
+   revisão"): a vazão afluente diária negativa é erro evidente. Sai da publicação (páginas, área de dados e API) e vai
+   para a fila de revisão da CORSH, que confirma a retirada ou devolve o valor à série; o valor recebido fica guardado.
+   Na base horária, os negativos do balanço hídrico continuam publicados, com o aviso fixo (item 22 c).
+   Altera d no lugar (último dia de cada usina, série diária da ficha e séries da bacia) e devolve os valores retirados,
+   sem repetição: [{ codigo, data, v }]. */
+function retiraAfluenteNegativa(d) {
+  const R = [],
+    visto = new Set(),
+    neg = v => v != null && v < 0,
+    anota = (codigo, data, v) => {
+      const k = codigo + "|" + data;
+      if (!visto.has(k)) R.push({ codigo, data, v });
+      visto.add(k);
+    };
+  (d.reservatorios || []).forEach(r => {
+    if (!neg(r.afl)) return;
+    anota(r.codigo, d.data, r.afl);
+    r.afl = null;
+  });
+  if (d.ficha && d.ficha.diario) {
+    const ia = d.ficha.diario_colunas.indexOf("afl");
+    d.ficha.diario.forEach(l => {
+      if (!neg(l[ia])) return;
+      anota(d.ficha.codigo, l[0], l[ia]);
+      l[ia] = null;
+    });
+  }
+  ((d.grande && d.grande.res) || []).forEach(r => {
+    if (neg(r.afl)) {
+      anota(r.codigo, d.data, r.afl);
+      r.afl = null;
+    }
+    (r.serie || []).forEach(o => {
+      if (!neg(o.afl)) return;
+      anota(r.codigo, o.data, o.afl);
+      o.afl = null;
+    });
+  });
+  return R;
+}
+// aplicada uma vez, ao carregar a página (nos testes, D não existe)
+const AFL_RETIRADAS = typeof D === "undefined" ? [] : retiraAfluenteNegativa(D);
 /* ============================================================ exportação: PNG dos gráficos e do diagrama, PDF das tabelas */
 const CDN_JSPDF = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
 const CDN_AUTOTABLE = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js";
@@ -14743,7 +14787,7 @@ function abasAdm() {
   const h = decodeURIComponent(location.hash.slice(1)),
     sub = h === "admin" ? "" : h.slice(6),
     nAg = ADM.pedidos.filter(p => p.situacao === "aguardando").length;
-  const nSus = typeof suspeitosAdm === "function" ? suspeitosAdm().filter(s => s.fila && !ADM.susp[s.id]).length : 0;
+  const nSus = typeof suspeitosAdm === "function" ? suspeitosAdm().filter(s => !ADM.susp[s.id]).length : 0;
   el.innerHTML = ADM_GRUPOS.map(
     ([g, L]) =>
       `<div class="abas-grupo"><span class="rot">${g}</span>${L.map(([k, r]) => `<a href="#admin${k ? "/" + k : ""}"${k === sub ? ' aria-current="page"' : ""}>${r}${k === "aprovacoes" && nAg ? `<i>${nAg}</i>` : k === "suspeitos" && nSus ? `<i>${nSus}</i>` : ""}</a>`).join("")}</div>`
@@ -16688,67 +16732,59 @@ function suspeitosAdm() {
       })
     )
   );
-  // SIN: vazão afluente diária negativa (Furnas desde 2000; nas demais usinas, o dia mais recente)
-  const fu = E.find(x => x.src === "sin" && String(x.codigo) === String(D.ficha.codigo)),
+  // SIN: vazão afluente diária negativa, já retirada da publicação ao carregar (AFL_RETIRADAS, js/regras.js): Furnas
+  // desde 2000; nas demais usinas, o dia mais recente
+  const Dd = D.ficha.diario,
     ia = D.ficha.diario_colunas.indexOf("afl"),
-    Dd = D.ficha.diario;
-  if (fu)
-    Dd.forEach((l, i) => {
-      if (l[ia] != null && l[ia] < 0)
-        L.push({
-          id: `s|${fu.codigo}|${l[0]}`,
-          tipo: "sin",
-          e: fu,
-          t: l[0],
-          k: "afluente_m3s",
-          v: l[ia],
-          regra: "vazão afluente diária negativa",
-          ant: i ? [Dd[i - 1][0], Dd[i - 1][ia]] : null,
-          seg: Dd[i + 1] ? [Dd[i + 1][0], Dd[i + 1][ia]] : null
-        });
-    });
-  E.filter(x => x.src === "sin" && x !== fu && x.r.afl != null && x.r.afl < 0).forEach(x =>
+    vizinho = (i, passo) => {
+      for (let k = i + passo; k >= 0 && k < Dd.length; k += passo) if (Dd[k][ia] != null) return [Dd[k][0], Dd[k][ia]];
+      return null;
+    };
+  AFL_RETIRADAS.forEach(x => {
+    const e = E.find(y => y.src === "sin" && String(y.codigo) === String(x.codigo));
+    if (!e) return;
+    const i = String(x.codigo) === String(D.ficha.codigo) ? Dd.findIndex(l => l[0] === x.data) : -1;
     L.push({
-      id: `s|${x.codigo}|${D.data}`,
+      id: `s|${x.codigo}|${x.data}`,
       tipo: "sin",
-      e: x,
-      t: D.data,
+      e,
+      t: x.data,
       k: "afluente_m3s",
-      v: x.r.afl,
+      v: x.v,
       regra: "vazão afluente diária negativa",
-      ant: null,
-      seg: null
-    })
-  );
-  // gestão por exceção (Diego, 24/09/2026): o descarte automático vale sem decisão; só esperam a CORSH os casos que
-  // as regras não resolvem (fila)
-  L.forEach(s => (s.fila = REGRAS_FILA.has(s.regra)));
+      ant: i >= 0 ? vizinho(i, -1) : null,
+      seg: i >= 0 ? vizinho(i, 1) : null
+    });
+  });
+  // erro evidente (Diego, 24/09/2026: "Erro evidente deveria ser marcado para revisão"): sai da publicação e vai para a
+  // fila; o valor improvável fica publicado e também vai. Todo caso da fila espera a decisão da CORSH
+  L.forEach(s => (s.retirado = REGRAS_RETIRA.has(s.regra)));
   return (SUSP = L);
 }
-const REGRAS_FILA = new Set([
-  "salto a verificar",
-  "vazão afluente diária negativa",
-  "volume acima da capacidade",
-  "queda a zero no fim de um trecho"
+const REGRAS_RETIRA = new Set([
+  "erro grosseiro",
+  "pico de um dia",
+  "degrau que volta",
+  "vazão afluente diária negativa"
 ]);
 const REGRAS_SUSP = () => [
   [
     "erro grosseiro",
     `Cota a mais de ${fmt(parAdm("crit_grosso"), 1)} m da mediana do ano da estação.`,
     "Cota do Nordeste e Semiárido e de Outros Sistemas Hídricos",
-    "descarta automaticamente"
+    "retira da publicação e vai para a fila"
   ],
   [
     "pico de um dia",
     `Leitura a mais de ${fint(parAdm("crit_pico"))} cm (na cota) ou ${fint(parAdm("crit_vol"))} pontos percentuais (no volume) das duas vizinhas, no mesmo sentido.`,
     "Cota e volume do Nordeste e Semiárido; cota de Outros Sistemas Hídricos",
-    "descarta automaticamente"
+    "retira da publicação e vai para a fila"
   ],
   [
     "degrau que volta",
     `Salto de mais de ${fmt(parAdm("crit_degrau"), 1)} m (na cota) ou ${fint(parAdm("crit_vol"))} pontos percentuais (no volume) desfeito em até ${fint(parAdm("crit_volta"))} dias.`,
     "Cota e volume do Nordeste e Semiárido; cota de Outros Sistemas Hídricos",
-    "descarta automaticamente"
+    "retira da publicação e vai para a fila"
   ],
   [
     "salto a verificar",
@@ -16758,9 +16794,9 @@ const REGRAS_SUSP = () => [
   ],
   [
     "vazão afluente diária negativa",
-    "Vazão afluente diária abaixo de zero. No SIN a afluência é calculada por balanço hídrico e pode sair negativa.",
+    "Vazão afluente diária abaixo de zero, que não corresponde a vazão real. Na base horária, os negativos do balanço hídrico continuam publicados, com aviso.",
     "SIN, base diária",
-    "mantém publicado e vai para a fila"
+    "retira da publicação e vai para a fila"
   ],
   [
     "volume acima da capacidade",
@@ -16775,36 +16811,28 @@ const REGRAS_SUSP = () => [
     "mantém publicado e vai para a fila"
   ]
 ];
-// ações por item: o descarte automático só pode ser revertido; os casos da fila pedem decisão
+// ações por item: todo caso da fila pede decisão; o valor retirado pode ser confirmado fora ou devolvido à série
 const acoesSusp = s =>
-  s.tipo === "descarte" && !s.fila
-    ? [["devolver", "Devolver à série"]]
-    : s.tipo === "descarte"
+  s.retirado
+    ? [
+        ["confirmar", "Confirmar a retirada"],
+        ["devolver", "Devolver à série"]
+      ]
+    : s.tipo === "estacao"
       ? [
+          ["manter", "Manter fora"],
+          ["liberar", "Liberar a série"]
+        ]
+      : [
           ["confirmar", "Descartar"],
           ["manter", "Manter na série"]
-        ]
-      : ACOES_SUSP[s.tipo];
-const ACOES_SUSP = {
-  descarte: [
-    ["confirmar", "Confirmar o descarte"],
-    ["devolver", "Devolver à série"]
-  ],
-  estacao: [
-    ["manter", "Manter fora"],
-    ["liberar", "Liberar a série"]
-  ],
-  sin: [
-    ["manter", "Manter publicado"],
-    ["retirar", "Retirar da série"]
-  ]
-};
+        ];
 function admSuspeitos() {
   const S = suspeitosAdm(),
-    pend = S.filter(s => s.fila && !ADM.susp[s.id]);
+    pend = S.filter(s => !ADM.susp[s.id]);
   tituloAdm(
     "Valores suspeitos",
-    "O que as regras de conferência fizeram com as leituras. O descarte automático vale sem decisão e fica aqui para consulta, com a opção de devolver o valor à série; só os casos que as regras não resolvem esperam uma decisão.",
+    "O que as regras de conferência encontraram nas leituras. O erro evidente sai da publicação na hora e o valor improvável fica publicado; os dois esperam aqui a revisão da CORSH. A leitura que passa nas regras é publicada sem intervenção.",
     `<span><b>${fint(pend.length)}</b> de ${fint(S.length)} aguardando decisão</span>`
   );
   const st = { regra: "", sit: "pend", txt: "", mostrar: 20 };
@@ -16819,7 +16847,7 @@ function admSuspeitos() {
               `<tr><td><span class="nm">${k[0].toUpperCase() + k.slice(1)}</span></td><td>${esc(d)}</td><td>${o}</td><td>${ef}</td><td class="r num">${fint(S.filter(s => s.regra === k).length)}</td><td class="r num">${fint(pend.filter(s => s.regra === k).length)}</td></tr>`
           )
           .join("")}</tbody></table></div>
-      <p class="nota">Protótipo: a lista traz o que as regras encontraram nas séries embutidas: os valores descartados automaticamente nas três fichas de exemplo do Nordeste (desde 2006), as estações só com nível com série a verificar e as vazões afluentes diárias negativas do SIN (Furnas desde 2000; nas demais usinas, o dia mais recente). Só estes dois últimos esperam decisão.</p></section>
+      <p class="nota">Protótipo: a lista traz o que as regras encontraram nas séries embutidas: os valores barrados pelas regras nas três fichas de exemplo do Nordeste (desde 2006), as estações só com nível com série a verificar e as vazões afluentes diárias negativas do SIN (Furnas desde 2000; nas demais usinas, o dia mais recente).</p></section>
     <section class="cartao secao" id="su-exc" aria-labelledby="t-su-exc"><h2 id="t-su-exc"><small>2</small>Exceções por reservatório</h2>
       <p class="sub">Limite próprio de uma regra para um reservatório (por exemplo, açude que enche vários metros num dia de cheia). A exceção passa por aprovação, porque muda o que é publicado.</p>
       <div id="su-sel"></div>
@@ -16831,14 +16859,14 @@ function admSuspeitos() {
         )}</select></label><label>Limite próprio<input type="text" id="su-lim" inputmode="decimal" placeholder="Ex.: 3,0"></label>
         <label class="largo">Motivo<input type="text" id="su-mot" placeholder="Ex.: açude de enchimento rápido"></label><button type="button" class="acao" id="su-exc-ir"${podeEditar() ? "" : " disabled"}>Enviar para aprovação</button></div>
       <div id="su-exc-lista"></div></section>
-    <section class="cartao secao" id="su-fila" aria-labelledby="t-su-fila"><h2 id="t-su-fila"><small>3</small>Fila e descartes</h2>
-      <p class="sub">Aguardam decisão só os casos da fila: estação com série a verificar, vazão afluente negativa do SIN, volume acima da capacidade e queda a zero no fim de um trecho. Os descartes automáticos já valem e aparecem em "Descartados automaticamente". Decisão sobre um valor vale como edição pontual: sem aprovação, com motivo e registro das ações. Liberar a série inteira de uma estação passa por aprovação, porque ela entra nas contagens.</p>
+    <section class="cartao secao" id="su-fila" aria-labelledby="t-su-fila"><h2 id="t-su-fila"><small>3</small>Fila de revisão</h2>
+      <p class="sub">Enquanto espera a decisão, o valor retirado fica fora da publicação, o valor improvável continua publicado e a estação a verificar fica fora das contagens. Decisão sobre um valor vale como edição pontual: sem aprovação, com motivo e registro das ações. Com uma regra escolhida no filtro, os valores retirados podem ser confirmados de uma vez, com um só motivo. Liberar a série inteira de uma estação passa por aprovação, porque ela entra nas contagens.</p>
       <div class="adm-form"><label>Regra<select id="su-f-regra"><option value="">Todas</option>${REGRAS_SUSP()
         .map(([k]) => `<option>${k}</option>`)
         .join("")}</select></label>
-        <label>Situação<select id="su-f-sit"><option value="pend">Aguardando decisão</option><option value="auto">Descartados automaticamente</option><option value="dec">Decididos ou revertidos</option><option value="">Todos</option></select></label>
+        <label>Situação<select id="su-f-sit"><option value="pend">Aguardando decisão</option><option value="ret">Retirados, aguardando decisão</option><option value="dec">Decididos ou revertidos</option><option value="">Todos</option></select></label>
         <label class="largo">Busca<input type="text" id="su-f-busca" placeholder="Reservatório ou estação"></label></div>
-      <p class="nota" id="su-n"></p><div id="su-lista"></div><p class="mais-res" id="su-mais"></p></section>`;
+      <p class="nota" id="su-n"></p><div class="adm-form" id="su-lote"></div><div id="su-lista"></div><p class="mais-res" id="su-mais"></p></section>`;
   let alvo = null;
   const sel = () =>
     escolherRes(
@@ -16886,9 +16914,9 @@ function admSuspeitos() {
         (!st.regra || s.regra === st.regra) &&
         (!st.sit ||
           (st.sit === "pend"
-            ? s.fila && !ADM.susp[s.id]
-            : st.sit === "auto"
-              ? !s.fila && !ADM.susp[s.id]
+            ? !ADM.susp[s.id]
+            : st.sit === "ret"
+              ? s.retirado && !ADM.susp[s.id]
               : !!ADM.susp[s.id])) &&
         tm.every(t => normalizaBusca(s.e.nome + " " + s.e.codigo + " " + s.e.uf).includes(t))
     );
@@ -16897,6 +16925,22 @@ function admSuspeitos() {
     const L = filtrada(),
       vis = L.slice(0, st.mostrar);
     $("#su-n").textContent = `${fint(L.length)} ${L.length === 1 ? "valor" : "valores"}.`;
+    // retirados de uma mesma regra, confirmados de uma vez (com a regra escolhida no filtro)
+    const lote = st.regra ? L.filter(s => s.retirado && !ADM.susp[s.id]) : [];
+    $("#su-lote").innerHTML =
+      lote.length > 1 && podeEditar()
+        ? `<label class="largo">Motivo<input type="text" id="su-lote-mot" value="Conferido: não são leituras reais"></label><button type="button" class="acao" id="su-lote-ir">Confirmar a retirada dos ${fint(lote.length)} valores</button>`
+        : "";
+    if ($("#su-lote-ir"))
+      $("#su-lote-ir").onclick = () => {
+        const mot = $("#su-lote-mot").value.trim();
+        if (!mot) {
+          toast("Informe o motivo.");
+          return;
+        }
+        lote.forEach(s => decidir(s, "confirmar", "Confirmar a retirada", mot));
+        toast(`${fint(lote.length)} retiradas confirmadas.`);
+      };
     $("#su-lista").innerHTML = vis.length
       ? `<div class="tab-box adm-tab"><table><thead><tr><th>Reservatório</th><th>Data</th><th>Variável</th><th class="r">Valor</th><th>Vizinhos</th><th>Regra</th><th>Decisão</th></tr></thead><tbody>${vis
           .map(s => {
@@ -16911,7 +16955,7 @@ function admSuspeitos() {
             : st.dec && st.dec.id === s.id
               ? `<span class="adm-dec"><b>${esc(st.dec.rot)}</b><input type="text" class="su-mot" value="${esc(st.dec.pad)}" aria-label="Motivo"><button type="button" class="acao su-ok">Confirmar</button><button type="button" class="acao sec su-canc">Cancelar</button></span>`
               : podeEditar()
-                ? `${s.fila ? "" : '<span class="rio">descartado automaticamente</span>'}<span class="adm-acoes">${acoesSusp(
+                ? `${s.retirado ? '<span class="rio">retirado da publicação</span>' : s.tipo === "estacao" ? '<span class="rio">fora das contagens</span>' : '<span class="rio">publicado até a decisão</span>'}<span class="adm-acoes">${acoesSusp(
                     s
                   )
                     .map(
@@ -16944,13 +16988,13 @@ function admSuspeitos() {
             rot: b.textContent,
             pad:
               a === "confirmar"
-                ? "Conferido: não é leitura real"
+                ? s.tipo === "sin"
+                  ? "Conferido: vazão negativa, não é vazão real"
+                  : "Conferido: não é leitura real"
                 : a === "manter"
-                  ? s.tipo === "sin"
-                    ? "Conferido: resíduo do balanço hídrico, mantido como informado pelo ONS"
-                    : s.tipo === "descarte"
-                      ? "Conferido: o valor corresponde à leitura real"
-                      : "Conferido: série ainda inconsistente"
+                  ? s.tipo === "descarte"
+                    ? "Conferido: o valor corresponde à leitura real"
+                    : "Conferido: série ainda inconsistente"
                   : ""
           };
           lista();
