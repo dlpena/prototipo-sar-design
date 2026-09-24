@@ -15538,7 +15538,7 @@ function admCadastro() {
     <section class="cartao secao" id="k-cad" aria-labelledby="t-k-cad"><h2 id="t-k-cad"><small>2</small>Dados cadastrais</h2>
       <p class="sub">A capacidade muda o Volume (%) do reservatório e o volume acumulado do estado: tem vigência e passa por aprovação. A vigência pode ser a data do levantamento, no passado: as leituras desde ela passam a usar a capacidade nova, e as anteriores continuam com a antiga. Os demais campos são gravados na hora e ficam no registro das ações.</p><div id="k-form"></div></section>
     <section class="cartao secao" id="k-modo" aria-labelledby="t-k-modo"><h2 id="t-k-modo"><small>3</small>Modo de exibição</h2>
-      <p class="sub">Definido pela área técnica, com data e motivo. Vale em todo o sistema de uma vez: tabelas, agregados, mapa, API e área de dados, onde o reservatório retirado segue disponível, marcado.</p><div id="k-modo-form"></div></section>
+      <p class="sub">Só nos reservatórios do Nordeste e Semiárido. Definido pela área técnica, com data e motivo. Vale em todo o sistema de uma vez: tabelas, agregados, mapa, API e área de dados, onde o reservatório retirado segue disponível, marcado.</p><div id="k-modo-form"></div></section>
     <section class="cartao secao" id="k-cav" aria-labelledby="t-k-cav"><h2 id="t-k-cav"><small>4</small>Curva cota-área-volume</h2>
       <p class="sub">A curva nova vale da data de vigência em diante: o volume é recalculado só a partir dela, e o histórico anterior fica como foi publicado. A vigência pode ser a data do levantamento, no passado. Se o levantamento também muda a capacidade, as duas entram juntas, com a mesma vigência.</p><div id="k-cav-form"></div></section>`;
   function tudo() {
@@ -15640,11 +15640,16 @@ function admCadastro() {
       }
       tudo();
     };
-    // modo de exibição: com volume, só com nível ou retirado do acompanhamento (Anexo I, 4.1)
-    const MODOS = { volume: "com volume", nivel: "só com nível", retirado: "retirado do acompanhamento" };
-    const modo =
-      ADM.modo[e.id] || (e.retirado ? "retirado" : e.src === "nv" || /só nível/.test(e.tipo) ? "nivel" : "volume");
-    $("#k-modo-form").innerHTML = `<p class="adm-efeito">Hoje: <b>${MODOS[modo]}</b>.</p>
+    // modo de exibição: com volume, só com nível ou retirado do acompanhamento (Anexo I, 4.1). Regra só do Nordeste e
+    // Semiárido (Diego, 24/09/2026): no SIN e em Outros Sistemas a seção informa que não se aplica.
+    if (e.mod !== "NE")
+      $("#k-modo-form").innerHTML =
+        `<p class="nota">Não se aplica: o modo de exibição (com volume, só com nível ou retirado do acompanhamento) é regra do módulo Nordeste e Semiárido.</p>`;
+    else {
+      const MODOS = { volume: "com volume", nivel: "só com nível", retirado: "retirado do acompanhamento" };
+      const modo =
+        ADM.modo[e.id] || (e.retirado ? "retirado" : e.src === "nv" || /só nível/.test(e.tipo) ? "nivel" : "volume");
+      $("#k-modo-form").innerHTML = `<p class="adm-efeito">Hoje: <b>${MODOS[modo]}</b>.</p>
       <div class="adm-form"><label>Novo modo<select id="m-modo">${Object.entries(MODOS)
         .filter(([k]) => k !== modo)
         .map(([k, rot]) => `<option value="${k}">${rot[0].toUpperCase() + rot.slice(1)}</option>`)
@@ -15652,25 +15657,26 @@ function admCadastro() {
         <label>Decisão de<input type="text" id="m-quem" placeholder="Área técnica responsável"${dis}></label><label class="largo">Motivo<input type="text" id="m-motivo" placeholder="Ex.: régua desativada; reservatório rompido; curva cota-volume em revisão"${dis}></label>
         <button type="button" class="acao" id="m-ir"${dis}>Enviar para aprovação</button></div>
       <p class="nota">Só com nível: o reservatório aparece com o nível e sai do volume acumulado. Retirado do acompanhamento: sai das tabelas, dos gráficos, dos mapas e dos totais e segue na área de dados e na API, marcado.</p>`;
-    $("#m-ir").onclick = () => {
-      const mot = $("#m-motivo").value.trim(),
-        quem = $("#m-quem").value.trim(),
-        novo = $("#m-modo").value;
-      if (!mot || !quem) {
-        toast("Informe o motivo e de quem é a decisão.");
-        return;
-      }
-      pedidoAdm(
-        "Modo de exibição",
-        e,
-        `<b>${MODOS[modo][0].toUpperCase() + MODOS[modo].slice(1)}</b> → <b>${MODOS[novo]}</b> em ${dBR($("#m-data").value || hoje)}. Decisão de: ${esc(quem)}.`,
-        mot,
-        () => {
-          ADM.modo[e.id] = novo;
+      $("#m-ir").onclick = () => {
+        const mot = $("#m-motivo").value.trim(),
+          quem = $("#m-quem").value.trim(),
+          novo = $("#m-modo").value;
+        if (!mot || !quem) {
+          toast("Informe o motivo e de quem é a decisão.");
+          return;
         }
-      );
-      tudo();
-    };
+        pedidoAdm(
+          "Modo de exibição",
+          e,
+          `<b>${MODOS[modo][0].toUpperCase() + MODOS[modo].slice(1)}</b> → <b>${MODOS[novo]}</b> em ${dBR($("#m-data").value || hoje)}. Decisão de: ${esc(quem)}.`,
+          mot,
+          () => {
+            ADM.modo[e.id] = novo;
+          }
+        );
+        tudo();
+      };
+    }
     // CAV
     const pares = new Map();
     S.forEach(l => {
