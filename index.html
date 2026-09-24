@@ -14573,7 +14573,6 @@ const ADM = {
   excecoes: [],
   codigos: [],
   agrup: {},
-  bacias: {},
   inclusoes: []
 };
 const LEV_ADM = ["Batimetria", "Topografia", "Estudo do órgão estadual", "Correção de cadastro"];
@@ -18003,26 +18002,26 @@ function admAgrupamentos() {
       uf: x.uf,
       est: x
     })),
-    ...[...new Set(E.filter(e => e.src === "sin").map(e => e.bacia))]
-      .sort((a, b) => a.localeCompare(b, "pt-BR"))
-      .map(b => ({ k: "SIN:" + b, tipo: "sin", r: `SIN · bacia ${b}`, bacia: b })),
+    // SIN: só o reservatório equivalente do SIN inteiro; não há valor agregado por bacia, e a bacia de cada usina é
+    // atributo do cadastro (tela Cadastro e curva)
+    { k: "SIN:equivalente", tipo: "sin", r: "SIN · Reservatório equivalente" },
     ...Object.entries(NOME_SIS).map(([s, r]) => ({ k: "OS:" + s, tipo: "os", r: `Outros Sistemas · ${r}`, sis: s }))
   ];
-  const baciaDe = e => ADM.bacias[e.id] || e.bacia;
+  // equivalente: usinas com reservatório e reservatórios, acrescidos de Itaipu, cadastrada a fio d'água (mesma regra do SAR atual)
+  const noEquiv = e => e.r.tipo !== "fio" || e.r.nome === "ITAIPU";
   const membros = g =>
     g.tipo === "ne"
       ? E.filter(e => e.src === "ne" && e.uf === g.uf)
       : g.tipo === "sin"
-        ? E.filter(e => e.src === "sin" && baciaDe(e) === g.bacia)
+        ? E.filter(e => e.src === "sin" && noEquiv(e))
         : E.filter(e => e.src === "os" && e.sis === g.sis);
   const fora = g => ADM.agrup[g.k] || new Set();
   tituloAdm(
     "Agrupamentos",
-    "Quais reservatórios entram em cada agregado: o volume acumulado de cada estado do Nordeste, as bacias do SIN e os sistemas de Outros. Mudança de composição tem vigência, mostra o efeito e passa por aprovação."
+    "Quais reservatórios entram em cada agregado: o volume acumulado de cada estado do Nordeste, o reservatório equivalente do SIN e a lista de reservatórios de cada sistema de Outros. Mudança de composição tem vigência, mostra o efeito e passa por aprovação."
   );
   let g = G.find(x => x.k === "NE:CE"),
     tent = new Set(fora(g)),
-    mov = {},
     todos = false;
   $("#conteudo").innerHTML = `
     <nav class="indice" aria-label="Seções da página"><a href="#admin/agrupamentos" data-alvo="ag-lista">Agregados</a><a href="#admin/agrupamentos" data-alvo="ag-comp">Composição</a></nav>
@@ -18047,7 +18046,7 @@ function admAgrupamentos() {
     const grupo = t => G.filter(x => x.tipo === t);
     $("#ag-cards").innerHTML = [
       ["ne", "Nordeste e Semiárido (volume acumulado por estado)"],
-      ["sin", "SIN (bacias, divisão do ONS)"],
+      ["sin", "SIN (sem valor por bacia)"],
       ["os", "Outros Sistemas"]
     ]
       .map(
@@ -18055,7 +18054,7 @@ function admAgrupamentos() {
           `<div class="adm-agr-g"><b>${r}</b><div>${grupo(t)
             .map(x => {
               const n = membros(x).length - fora(x).size;
-              return `<button type="button" class="preset${x.k === g.k ? " ativo" : ""}" data-k="${esc(x.k)}">${esc(x.r.split(" · ")[1].replace(/^bacia /, ""))} <span>${fint(n)}</span></button>`;
+              return `<button type="button" class="preset${x.k === g.k ? " ativo" : ""}" data-k="${esc(x.k)}">${esc(x.r.split(" · ")[1])} <span>${fint(n)}</span></button>`;
             })
             .join("")}</div></div>`
       )
@@ -18065,7 +18064,6 @@ function admAgrupamentos() {
         (b.onclick = () => {
           g = G.find(x => x.k === b.dataset.k);
           tent = new Set(fora(g));
-          mov = {};
           todos = false;
           cardsG();
           comp();
@@ -18078,11 +18076,11 @@ function admAgrupamentos() {
       hoje = new Date().toISOString().slice(0, 10);
     let efeito = "",
       tabela = "";
-    // a tabela abre com 25 linhas (os que saem ou mudam de bacia primeiro); o efeito conta todos
+    // a tabela abre com 25 linhas (os que saem primeiro); o efeito conta todos
     const M = todos
       ? Mt
-      : Mt.filter(e => tent.has(e.id) || mov[e.id])
-          .concat(Mt.filter(e => !tent.has(e.id) && !mov[e.id]))
+      : Mt.filter(e => tent.has(e.id))
+          .concat(Mt.filter(e => !tent.has(e.id)))
           .slice(0, 25);
     if (g.tipo === "ne") {
       const a = agr(Mt, fora(g)),
@@ -18099,25 +18097,12 @@ function admAgrupamentos() {
         }
       ).join("")}</tbody>`;
     } else if (g.tipo === "sin") {
-      const bacias = [...new Set(E.filter(e => e.src === "sin").map(e => e.bacia))].sort((a, b) =>
-        a.localeCompare(b, "pt-BR")
-      );
-      const nM = Object.keys(mov).length,
-        destinos = {};
-      Object.values(mov).forEach(b => (destinos[b] = (destinos[b] || 0) + 1));
-      efeito = nM
-        ? `Bacia ${esc(g.bacia)}: ${fint(Mt.length)} → <b>${fint(Mt.length - nM)}</b> usinas · ${Object.entries(
-            destinos
-          )
-            .map(
-              ([b, n]) =>
-                `bacia ${esc(b)}: ${fint(E.filter(e => e.src === "sin" && baciaDe(e) === b).length)} → <b>${fint(E.filter(e => e.src === "sin" && baciaDe(e) === b).length + n)}</b>`
-            )
-            .join(" · ")}. Mudam a página da bacia, a tabela de bacias do SIN e o filtro da área de dados.`
-        : "Nenhuma mudança.";
-      tabela = `<thead><tr><th>Usina</th><th>Tipo</th><th>UF</th><th>Bacia</th></tr></thead><tbody>${M.map(
-        e => `<tr${mov[e.id] ? ' class="mudou"' : ""}><td><span class="nm">${esc(e.nome)}</span><span class="rio">código ${esc(e.codigo)}</span></td><td>${esc(e.tipo)}</td><td>${e.uf}</td>
-        <td><select data-mv="${esc(e.id)}"${dis}>${bacias.map(b => `<option${(mov[e.id] || g.bacia) === b ? " selected" : ""}>${esc(b)}</option>`).join("")}</select></td></tr>`
+      // o protótipo não tem o volume útil total de cada usina: o efeito no percentual fica para o sistema
+      const n = Mt.length - tent.size;
+      efeito = `Reservatório equivalente do SIN: ${fint(Mt.length - fora(g).size)} → <b>${fint(n)}</b> usinas. No sistema, o efeito mostra também o equivalente na data antes e depois da mudança, com o volume útil total de cada usina; a usina incluída no cadastro entra a partir da data de vigência, sem alterar os valores anteriores.`;
+      tabela = `<thead><tr><th class="ck">Entra</th><th>Usina</th><th>Tipo</th><th>UF</th><th>Bacia</th><th class="r">Volume útil (%)</th></tr></thead><tbody>${M.map(
+        e =>
+          `<tr${tent.has(e.id) ? ' class="fora"' : ""}><td class="ck"><input type="checkbox" data-id="${esc(e.id)}"${tent.has(e.id) ? "" : " checked"}${dis} aria-label="${esc(e.nome)} entra no reservatório equivalente"></td><td><span class="nm">${esc(e.nome)}</span><span class="rio">código ${esc(e.codigo)}</span></td><td>${e.r.tipo === "fio" ? "usina a fio d'água (entra por regra)" : esc(e.tipo)}</td><td>${e.uf}</td><td>${esc(e.bacia)}</td><td class="r num">${e.r.vu == null ? "–" : fmt(e.r.vu, 2)}</td></tr>`
       ).join("")}</tbody>`;
     } else {
       // Cantareira: composição fixada pela Resolução Conjunta ANA/DAEE nº 925/2017; DF e Paraopeba: sem valor agregado,
@@ -18129,14 +18114,11 @@ function admAgrupamentos() {
         : `Página do sistema: ${fint(Mt.length - tent.size)} de ${fint(Mt.length)} reservatórios. O sistema não tem valor agregado; muda só a lista da página.`;
       tabela = `<thead><tr><th class="ck">Entra</th><th>Reservatório</th><th>Município</th></tr></thead><tbody>${M.map(e => `<tr${tent.has(e.id) ? ' class="fora"' : ""}><td class="ck"><input type="checkbox" data-id="${esc(e.id)}"${tent.has(e.id) ? "" : " checked"}${disOS} aria-label="${esc(e.nome)} entra no sistema"></td><td><span class="nm">${esc(e.nome)}</span><span class="rio">código ${esc(e.codigo)}</span></td><td>${esc(e.municipio)}</td></tr>`).join("")}</tbody>`;
     }
-    const mudou =
-      g.tipo === "sin"
-        ? Object.keys(mov).length
-        : [...tent].filter(x => !fora(g).has(x)).length + [...fora(g)].filter(x => !tent.has(x)).length;
+    const mudou = [...tent].filter(x => !fora(g).has(x)).length + [...fora(g)].filter(x => !tent.has(x)).length;
     $("#ag-corpo").innerHTML =
       `<p class="sub"><b>${esc(g.r)}</b> · ${fint(Mt.length)} ${g.tipo === "sin" ? "usinas" : "reservatórios"}${g.tipo === "ne" ? `, ${fint(Mt.filter(e => naJ(e) && !naJ(e).sem_info).length)} com medição na janela de ${fint(NEd.limiar_dias)} dias em torno de ${dBR(dt)}` : ""}.${g.tipo === "ne" ? " Só entra no volume acumulado quem tem medição na janela; quem sai da composição deixa de entrar mesmo com medição." : ""}</p>
       <p class="adm-efeito"><b>Efeito.</b> ${efeito}</p>
-      <div class="adm-form"><label>Vigência<input type="date" id="ag-vig" value="${hoje}"${dis}></label><label class="largo">Motivo<input type="text" id="ag-mot" placeholder="${g.tipo === "sin" ? "Ex.: bacia da calha do Paraná separada, como no ONS" : "Ex.: reservatório de outro sistema de abastecimento"}"${dis}></label>
+      <div class="adm-form"><label>Vigência<input type="date" id="ag-vig" value="${hoje}"${dis}></label><label class="largo">Motivo<input type="text" id="ag-mot" placeholder="${g.tipo === "sin" ? "Ex.: usina desativada" : g.tipo === "ne" ? "Ex.: reservatório de outro estado" : "Ex.: reservatório de outro sistema de abastecimento"}"${dis}></label>
         <button type="button" class="acao" id="ag-ir"${mudou && podeEditar() ? "" : " disabled"}>Enviar para aprovação</button><button type="button" class="acao sec" id="ag-desf"${mudou ? "" : " disabled"}>Desfazer as mudanças</button></div>
       <div class="tab-box adm-tab adm-comp"><table>${tabela}</table></div>
       ${Mt.length > M.length ? `<p class="mais-res"><button type="button" class="acao sec" id="ag-todos">Mostrar todos (${fint(Mt.length - M.length)} restantes)</button></p>` : ""}
@@ -18149,17 +18131,8 @@ function admAgrupamentos() {
           comp();
         })
     );
-    $$("#ag-corpo [data-mv]").forEach(
-      s =>
-        (s.onchange = () => {
-          if (s.value === g.bacia) delete mov[s.dataset.mv];
-          else mov[s.dataset.mv] = s.value;
-          comp();
-        })
-    );
     $("#ag-desf").onclick = () => {
       tent = new Set(fora(g));
-      mov = {};
       comp();
     };
     if ($("#ag-todos"))
@@ -18176,24 +18149,16 @@ function admAgrupamentos() {
       }
       const gg = g,
         novo = new Set(tent),
-        mv = { ...mov },
         vig = $("#ag-vig").value || hoje,
         ent = { nome: gg.r, codigo: "", id: null };
-      const det =
-        gg.tipo === "sin"
-          ? Object.entries(mv)
-              .map(([id, b]) => `${E.find(e => e.id === id).nome} → bacia ${esc(b)}`)
-              .join("; ")
-          : [...novo]
-              .filter(x => !fora(gg).has(x))
-              .map(id => "sai " + E.find(e => e.id === id).nome)
-              .concat([...fora(gg)].filter(x => !novo.has(x)).map(id => "volta " + E.find(e => e.id === id).nome))
-              .join("; ");
+      const det = [...novo]
+        .filter(x => !fora(gg).has(x))
+        .map(id => "sai " + E.find(e => e.id === id).nome)
+        .concat([...fora(gg)].filter(x => !novo.has(x)).map(id => "volta " + E.find(e => e.id === id).nome))
+        .join("; ");
       pedidoAdm("Composição de agregado", ent, `${esc(det)}. ${efeito} Vigência: ${dBR(vig)}.`, mot, () => {
-        if (gg.tipo === "sin") Object.assign(ADM.bacias, mv);
-        else ADM.agrup[gg.k] = novo;
+        ADM.agrup[gg.k] = novo;
       });
-      mov = {};
       comp();
     };
   }
