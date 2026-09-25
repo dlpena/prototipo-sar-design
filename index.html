@@ -5961,6 +5961,39 @@ function marcasTempo(t0, t1) {
   return out;
 }
 
+// linhas de referência horizontais (Diego, 25/09/2026: capacidade no volume em hm³, cota máxima na cota): entram na
+// escala e são desenhadas tracejadas, com o nome e o valor sobre a linha, à direita. refs: [{ v, rot }]; v nulo não desenha
+const refsVals = refs => (refs || []).map(r => r.v).filter(v => v != null);
+function desenhaRefs(svg, Y, x0, x1, refs, dec, unidade) {
+  (refs || []).forEach(r => {
+    if (r.v == null) return;
+    const y = Y(r.v);
+    svg.append(
+      svgEl("line", {
+        x1: x0,
+        x2: x1,
+        y1: y,
+        y2: y,
+        stroke: COR.tinta2,
+        "stroke-width": 1.4,
+        "stroke-dasharray": "8 4"
+      })
+    );
+    const tx = svgEl("text", {
+      x: x1 - 4,
+      y: y - 5,
+      "text-anchor": "end",
+      "font-size": 12,
+      fill: COR.tinta2,
+      stroke: COR.branco,
+      "stroke-width": 3,
+      "paint-order": "stroke"
+    });
+    tx.textContent = `${r.rot}: ${fmt(r.v, dec ?? 1)}${unidade ? " " + unidade : ""}`;
+    svg.append(tx);
+  });
+}
+
 function graficoLinhas(host, S, series, o) {
   host.innerHTML = "";
   if (!S.length || !series.length) {
@@ -5975,8 +6008,9 @@ function graficoLinhas(host, S, series, o) {
     host.innerHTML = `<p class="nota" style="padding:14px 0">Sem dados de ${series.map(s => s.r.toLowerCase()).join(", ")} no período.</p>`;
     return;
   }
-  let lo = Math.min(...vals),
-    hi = Math.max(...vals);
+  const vr = vals.concat(refsVals(o.refs));
+  let lo = Math.min(...vr),
+    hi = Math.max(...vr);
   if (hi === lo) {
     hi += 1;
     lo -= 1;
@@ -5992,7 +6026,7 @@ function graficoLinhas(host, S, series, o) {
   } // volume útil: escala fixa de 0 a 100%
   if (o.escala) {
     lo = o.escala[0];
-    hi = Math.max(o.escala[1], Math.max(...vals));
+    hi = Math.max(o.escala[1], Math.max(...vr));
   } // escala pedida (volume %, hm³)
   const t0 = o.t0 ?? S[0].t,
     t1 = o.t1 ?? S[S.length - 1].t; // período pedido, não só o dos dados
@@ -6049,6 +6083,7 @@ function graficoLinhas(host, S, series, o) {
       })
     );
   });
+  desenhaRefs(svg, Y, m.l, W - m.r, o.refs, o.dec, o.unidade);
   if (o.depois) o.depois(svg, X, Y, { lo, hi, m, W, H });
   const cruz = svgEl("line", { y1: m.t, y2: H - m.b, stroke: COR.linhaForte, visibility: "hidden" });
   svg.append(cruz);
@@ -6153,8 +6188,9 @@ function graficoCalendario(host, pontos, o) {
     host.innerHTML = '<p class="nota" style="padding:14px 0">Sem série no período.</p>';
     return;
   }
-  let lo = Math.min(...vals),
-    hi = Math.max(...vals);
+  const vr = vals.concat(refsVals(o.refs));
+  let lo = Math.min(...vr),
+    hi = Math.max(...vr);
   if (o.pct) {
     lo = Math.min(0, Math.floor(lo / 10) * 10);
     hi = Math.max(100, hi);
@@ -6266,6 +6302,7 @@ function graficoCalendario(host, pontos, o) {
       })
     );
   });
+  desenhaRefs(svg, Y, m.l, W - m.r, o.refs, o.dec, o.unidade);
   if (o.marcaDia) {
     const xd = X(idx(o.marcaDia));
     svg.append(
@@ -10905,7 +10942,22 @@ function paginaFichaNE(cod) {
   const nomeF = caso(F.nome);
   const rotVar = k => (soNivel && k === "pct" ? "Volume" : VNE[k].r);
   const varsGraf = soNivel ? [] : ["pct", "hm3", "cota"],
-    varsComp = soNivel ? ["nivel", "pct"] : ["pct", "cota"];
+    varsComp = soNivel ? ["nivel", "pct"] : ["pct", "hm3", "cota"];
+  // referências (Diego, 25/09/2026): capacidade no volume em hm³ e cota máxima na cota, esta só quando cadastrada
+  const refsDe = k =>
+    k === "hm3"
+      ? [{ v: F.capacidade_hm3, rot: "Capacidade" }]
+      : k === "cota"
+        ? [{ v: F.cota_maxima_m ?? null, rot: "Cota máxima" }]
+        : [];
+  const semCotaMax = k =>
+    k === "cota" && F.cota_maxima_m == null
+      ? " A cota máxima deste açude não está cadastrada no SAR: a linha aparece quando a CORSH cadastrar o valor."
+      : "";
+  const legRefs = k =>
+    refsDe(k)
+      .filter(r => r.v != null)
+      .map(r => ({ r: `${r.rot} (${fmt(r.v, VNE[k].dec)} ${VNE[k].u})`, cor: COR.tinta2, tracejado: true }));
   const opcao = k => `<option value="${k}">${rotVar(k)} (${VNE[k].u})</option>`;
   $("#titulo-pag").innerHTML = `
     <p class="trilha"><a href="#inicio">Início</a><span class="sep">›</span><a href="#ne">Nordeste e Semiárido</a><span class="sep">›</span>${temPagina(F.uf) ? `<a href="#ne/${F.uf}">${F.estado}</a>` : F.estado}<span class="sep">›</span>${nomeF}</p>
@@ -10949,6 +11001,7 @@ function paginaFichaNE(cod) {
       <div class="graf" id="g-med"></div>
       ${comoLer(
         `<b>Leituras.</b> A linha liga as leituras nas datas em que foram feitas; intervalo de mais de ${VAO_MAX} dias sem leitura não é ligado, e a leitura isolada aparece como ponto. A linha tracejada vermelha marca a data de referência. Com o cursor sobre o gráfico, o balão mostra a leitura mais próxima.`,
+        "<b>Referências.</b> No volume em hm³, a linha tracejada cinza marca a capacidade; na cota, a cota máxima do açude, quando cadastrada.",
         `<b>Medições por ano.</b> As barras contam as leituras de cada ano${soNivel ? ", com volume e de nível," : ""} e mostram quando o acompanhamento foi regular, esparso ou parou.`
       )}
     </section>
@@ -10973,7 +11026,8 @@ function paginaFichaNE(cod) {
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-ano-f" aria-label="Variável">${varsComp.map(opcao).join("")}</select></fieldset>
         <fieldset class="anos"><legend>Anos <span class="nota" id="nota-anos-f"></span></legend><span id="anos-chips-f"></span></fieldset></div>
       <div class="graf" id="g-f-ano"></div>
-      ${comoLer(ler("anos"), ler("leituras"), ler("selecao"), ler("cursor"))}
+      <p class="nota" id="nota-ref-ano" style="margin:10px 0 0"></p>
+      ${comoLer(ler("anos"), ler("leituras"), ler("selecao"), ler("cursor"), "<b>Referências.</b> No volume em hm³, a linha tracejada cinza marca a capacidade; na cota, a cota máxima do açude, quando cadastrada.")}
     </section>
     <p class="nota fontes-inicio" id="fontes-f"></p>`;
   ligarIndice();
@@ -11129,7 +11183,8 @@ function paginaFichaNE(cod) {
       );
     }
   };
-  const escalaDe = k => (k === "pct" ? [0, 100] : k === "hm3" ? [0, F.capacidade_hm3] : null);
+  // hm³: de zero a um pouco acima da capacidade, para a linha da capacidade não colar no topo do eixo
+  const escalaDe = k => (k === "pct" ? [0, 100] : k === "hm3" ? [0, F.capacidade_hm3 * 1.08] : null);
   function grafico(host, k, de, ate, rotulo, alt = "principal") {
     const S = pontosDe(k, de, ate);
     if (!S.some(o => o[k] != null)) {
@@ -11144,6 +11199,7 @@ function paginaFichaNE(cod) {
       sync: {},
       rotulo,
       escala: escalaDe(k),
+      refs: refsDe(k),
       t0: Date.parse(de + "T00:00:00Z"),
       t1: Date.parse(ate + "T00:00:00Z"),
       depois: porCima(k, de, ate)
@@ -11155,7 +11211,8 @@ function paginaFichaNE(cod) {
     if (!soNivel) {
       const k = $("input[name=var-f]:checked").value;
       const n = grafico($("#g-f1"), k, de, ate, `${VNE[k].r} (${VNE[k].u})`);
-      $("#resumo-f").textContent = `${fint(n)} leituras de ${VNE[k].r.toLowerCase()} de ${dBR(de)} a ${dBR(ate)}.`;
+      $("#resumo-f").textContent =
+        `${fint(n)} leituras de ${VNE[k].r.toLowerCase()} de ${dBR(de)} a ${dBR(ate)}.${semCotaMax(k)}`;
     } else {
       const n1 = grafico($("#g-f1"), "nivel", de, ate, "Nível (m)");
       const n2 = grafico($("#g-f2"), "pct", de, ate, `Volume (%) · acompanhamento até ${dBR(ultVol.iso)}`, "apoio");
@@ -11250,8 +11307,10 @@ function paginaFichaNE(cod) {
       pct: k === "pct",
       marcaDia: dataRef,
       rotulo: `${rotVar(k)} (${V.u})`,
-      maxVao: VAO_MAX
+      maxVao: VAO_MAX,
+      refs: refsDe(k)
     });
+    $("#nota-ref-ano").textContent = semCotaMax(k).trim();
   }
   $("#var-ano-f").onchange = () => {
     estAnos = {}; // outra variável: volta ao padrão
@@ -11298,6 +11357,7 @@ function paginaFichaNE(cod) {
       `${nomeF} · ${dBR(de)} a ${dBR(ate)}`,
       [
         { r: `${VNE[k].r} (${VNE[k].u})`, cor: VNE[k].cor },
+        ...(soNivel ? [] : legRefs(k)),
         ...(soNivel ? [{ r: "Volume (%) publicado até o fim do acompanhamento", cor: VNE.pct.cor }] : []),
         { r: "data de referência", cor: COR.vermelho, tracejado: true }
       ]
@@ -11315,7 +11375,7 @@ function paginaFichaNE(cod) {
       [$("#g-f-ano svg")],
       `sar_${u}_ano_contra_anos_${dataRef}.png`,
       `${nomeF} · ${rotVar($("#var-ano-f").value)} ao longo do ano`,
-      LEG_ANOS(+dataRef.slice(0, 4))
+      LEG_ANOS(+dataRef.slice(0, 4)).concat(legRefs($("#var-ano-f").value))
     );
   $("#baixar-f-dia-csv").onclick = () => baixarCSVGrafico([$("#g-f-dia")], `sar_${u}_mesmo_dia_${dataRef}.csv`);
   $("#baixar-f-ano-csv").onclick = () => baixarCSVGrafico([$("#g-f-ano")], `sar_${u}_ano_contra_anos_${dataRef}.csv`);
@@ -15372,7 +15432,11 @@ function admCadastro() {
       ["uf", "UF", e.uf],
       ["bacia", "Bacia ou sistema", e.bacia],
       ["lat", "Latitude", lat == null ? "" : String(lat).replace(".", ",")],
-      ["lon", "Longitude", lon == null ? "" : String(lon).replace(".", ",")]
+      ["lon", "Longitude", lon == null ? "" : String(lon).replace(".", ",")],
+      // cota máxima (Diego, 25/09/2026): referência no gráfico da cota da ficha do açude; não altera número publicado
+      ...(e.src === "ne"
+        ? [["cota_max", "Cota máxima (m)", r.cota_maxima_m == null ? "" : String(r.cota_maxima_m).replace(".", ",")]]
+        : [])
     ];
     $("#k-form").innerHTML = `<div class="adm-form grade">
         <label>Código<input type="text" value="${esc(e.codigo)}" disabled></label>${C.map(([k, rot, v]) => `<label>${rot}<input type="text" data-c="${k}" value="${esc(v ?? "")}"${dis}></label>`).join("")}
