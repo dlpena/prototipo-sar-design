@@ -156,6 +156,11 @@ main {
 .secao .lado > h2 small::before {
   content: "0";
 }
+/* seção 10 em diante (small.n2): sem o zero */
+.secao > h2 small.n2::before,
+.secao .lado > h2 small.n2::before {
+  content: none;
+}
 .secao > p.sub {
   margin: 0 0 14px;
   color: var(--tinta-2);

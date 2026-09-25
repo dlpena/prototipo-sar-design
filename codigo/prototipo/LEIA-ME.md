@@ -88,6 +88,7 @@ repetido.
 | `js/outros.js`, `js/cantareira.js`, `js/outros_sistemas.js`, `js/ficha_outros.js` | Outros Sistemas Hídricos: página do módulo, Sistema Cantareira, Distrito Federal e RMBH, ficha do reservatório | 5 |
 | `js/dados.js` | área de dados (seleção, variáveis, período, prévia e arquivo) | 6 |
 | `js/api.js` | documentação da API pública e especificação OpenAPI | 7 |
+| `js/guia.js`, `css/guia.css` | guia de componentes (`#componentes`): cores e medidas lidas do CSS em uso, paletas dos dados e cada componente com o exemplo ao vivo e o código que o desenha | — |
 | `js/admin/` | área administrativa (simulação) | 8 |
 | `js/titulo_grafico_celular.js` | quebra em linhas do título do gráfico que não cabe no celular | 1 |
 | `js/rotas.js` | rotas por hash (`#sin`, `#ne/CE`, `#ficha/FURNAS`…), montagem da barra lateral | 1 |
@@ -95,6 +96,8 @@ repetido.
 | demais `css/*.css` | componentes, páginas e ajustes para celular, na ordem da cascata | — |
 
 ### Componentes comuns (use estes, não crie outros)
+
+Todos aparecem, com exemplo e código, no guia de componentes (`#componentes`), montado pelo mesmo código das páginas.
 
 - Gráficos (`js/graficos.js`): `graficoCalendario` (cada ano no mesmo calendário, com faixas de referência, também mês a
   mês), `graficoBarrasAnos` (mesmo dia em outros anos), `graficoLinhas` (série no período, eixos de tempo e cursor
@@ -147,11 +150,11 @@ dados, em Python (`../dados/critica_nivel.py`), e não na página.
   entre 26 e 29 (a escolha da rota, a série da área de dados, a situação da ficha do açude e três telas da área
   administrativa); os demais devem ficar em zero. Como a pasta está no OneDrive, convém instalar os
   pacotes do Node fora dela ou excluir `node_modules/` da sincronização.
-- `auditoria.html` (servida junto com o protótipo): percorre as 55 páginas numa largura pedida (`?w=1366`, `?w=390`) e
+- `auditoria.html` (servida junto com o protótipo): percorre as 56 páginas numa largura pedida (`?w=1366`, `?w=390`) e
   aponta erro no console, estouro de largura, rolagem interna, "undefined/NaN", numeração de seções e links quebrados;
   `&baixar=1` clica todos os botões de download.
 - `ferramentas/regressao.py registrar <pasta>` e `comparar <antes> <depois>`: textos visíveis, arquivos baixados,
-  auditoria em 1366 e 390 px e capturas das 55 páginas comparadas pixel a pixel.
+  auditoria em 1366 e 390 px e capturas das 56 páginas comparadas pixel a pixel.
 - `ferramentas/mesma_ast.mjs <antes> <depois>`: confere que dois conjuntos de arquivos JS têm a mesma árvore sintática
   (depois de formatar com o Prettier, `.prettierrc.json`, largura 120).
 - `ferramentas/mover.py` e `ferramentas/troca_funcao.py`: movem ou trocam funções entre arquivos sem reescrevê-las; depois

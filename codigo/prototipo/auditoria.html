@@ -5,7 +5,7 @@ const Q = new URLSearchParams(location.search), W = +(Q.get("w") || 1366), H = +
 const ROTAS = ["inicio","sin","bacia/GRANDE","ficha/FURNAS",...["M_MORAES","EMBORCACAO","ITUMBIARA","JURUMIRIM","CHAVANTES","CAPIVARA","TRES_MARIAS","SOBRADINHO","SERRA_DA_MESA"].map(n => "ficha/" + n),"ne",...["AL","BA","CE","MA","MG","PB","PE","PI","RN","SE"].map(u => "ne/" + u),
   "ne/ficha/12112","ne/ficha/12231","ne/ficha/12391","outros","outros/cantareira","outros/df","outros/rmbh",
   ...["29001","29002","29003","29004","40001","40002","40003","50001","50002","50003"].map(c => "outros/ficha/" + c),
-  "dados","api","admin",...["cobertura","suspeitos","serie","cadastro","inclusao","codigos","agrupamentos","publicacao","parametros","aprovacoes","trilha"].map(s => "admin/" + s)];
+  "dados","api","componentes","admin",...["cobertura","suspeitos","serie","cadastro","inclusao","codigos","agrupamentos","publicacao","parametros","aprovacoes","trilha"].map(s => "admin/" + s)];
 const VALIDA = h => h==="" || ROTAS.includes(h) || /^ne\/ficha\/\d+$/.test(h) || /^ne\/[A-Z]{2}$/.test(h);
 const f = document.createElement("iframe"); f.style.cssText = `width:${W}px;height:${H}px;border:0`; f.src = "prototipo.html?a=" + Date.now() + "#inicio"; document.body.prepend(f);
 const espera = ms => new Promise(r => setTimeout(r, ms));
@@ -29,10 +29,15 @@ f.onload = async () => {
       if ((/(auto|scroll)/.test(cs.overflowX) && el.scrollWidth > el.clientWidth + 2) || (/(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 2 && el.tagName !== "TEXTAREA" && el.tagName !== "SELECT"))
         rol.push((el.id || el.className || el.tagName).toString().slice(0, 40) + ":" + el.scrollWidth + "/" + el.clientWidth); });
     o.rolagem = rol.slice(0, 5);
+    // o texto de <code> (blocos de código da API e do guia de componentes) fica fora: "null" ali é código, não dado
+    const codigos = [...d.querySelectorAll("code")].filter(c => c.style.display !== "none");
+    codigos.forEach(c => (c.style.display = "none"));
     const txt = d.body.innerText;
+    codigos.forEach(c => (c.style.display = ""));
     o.textoRuim = (txt.match(/[^\n]{0,40}\b(undefined|NaN|null|Infinity)\b[^\n]{0,40}|\[object [A-Za-z]+\]/g) || []).slice(0, 5);
     o.h1 = (d.querySelector("#titulo-pag h1, #conteudo h1") || {}).textContent || "";
-    const nums = [...d.querySelectorAll("#conteudo section.secao > h2 > small, #conteudo section.secao h2 small")].map(s => +s.textContent);
+    // os exemplos de marcação do guia de componentes (.guia-exemplo) não contam na numeração da página
+    const nums = [...d.querySelectorAll("#conteudo section.secao > h2 > small, #conteudo section.secao h2 small")].filter(s => !s.closest(".guia-exemplo")).map(s => +s.textContent);
     o.numeracao = nums.every((n, i) => n === i + 1) ? "ok" : nums.join(",");
     o.linksRuins = [...new Set([...d.querySelectorAll("a[href^='#']")].map(a => decodeURIComponent(a.getAttribute("href").slice(1))).filter(h => !VALIDA(h)))];
     o.alvosRuins = [...d.querySelectorAll("[data-alvo]")].map(a => a.dataset.alvo).filter(id => !d.getElementById(id));

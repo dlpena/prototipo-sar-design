@@ -34,6 +34,9 @@ Código-fonte da página publicada neste repositório (`index.html`), com a mesm
   [`prototipo/LEIA-ME.md`](prototipo/LEIA-ME.md).
 - `dados/`: o que a montagem lê além de `prototipo/` (correspondência de códigos das fontes do Nordeste e fichas das usinas).
 
+Guia de componentes (cores, fontes e cada componente com exemplo ao vivo e o código): a própria página publicada,
+rota `#componentes` (https://dlpena.github.io/prototipo-sar-design/#componentes).
+
 Para trabalhar: `py -m http.server 8765 --directory codigo/prototipo` e abrir `http://127.0.0.1:8765/dev.html` (módulos
 carregados direto). Para montar a página: `py codigo/prototipo/montar.py`, que grava `prototipo/prototipo.html` (a mesma
 página do `index.html`). Verificação: `npm install` e `npm run verificar` em `codigo/prototipo`.

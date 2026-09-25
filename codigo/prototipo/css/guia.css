@@ -1,0 +1,15 @@
+/* guia de componentes (#componentes): moldura do exemplo ao vivo e amostra de cor; o resto reaproveita a página da API */
+.guia-exemplo {
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--branco);
+}
+.guia-amostra {
+  display: inline-block;
+  width: 36px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--linha-forte);
+  vertical-align: middle;
+}

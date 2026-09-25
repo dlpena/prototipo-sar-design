@@ -1,4 +1,4 @@
-/* Rotas por hash (#inicio, #sin, #bacia/..., #ficha/..., #ne/..., #outros/..., #dados, #api, #admin/...) e barra
+/* Rotas por hash (#inicio, #sin, #bacia/..., #ficha/..., #ne/..., #outros/..., #dados, #api, #componentes, #admin/...) e barra
    lateral: cada rota abre a sua página, e a barra lateral recebe o índice e o controle de data da página aberta. A
    partida (iniciar) é chamada por principal.js. */
 import { contexto } from "./contexto.js";
@@ -16,6 +16,7 @@ import { paginaSistemaOS } from "./outros_sistemas.js";
 import { paginaFichaOS } from "./ficha_outros.js";
 import { paginaDados } from "./dados.js";
 import { paginaAPI } from "./api.js";
+import { paginaGuia } from "./guia.js";
 import { paginaAdmin } from "./admin/admin_nucleo.js";
 import { extrasPublicos } from "./admin/admin_telas.js";
 
@@ -120,21 +121,24 @@ function rota() {
   else if (h.startsWith("outros/ficha/")) paginaFichaOS(h.slice(13));
   else if (h === "dados") paginaDados();
   else if (h === "api") paginaAPI();
+  else if (h === "componentes") paginaGuia();
   else if (h === "admin" || h.startsWith("admin/")) paginaAdmin(h.slice(6));
   else paginaInicio();
   extrasPublicos(h);
   const mod =
     h === "" || h === "inicio"
       ? "inicio"
-      : h === "dados" || h === "api"
-        ? "dados"
-        : h.startsWith("admin")
-          ? "admin"
-          : h.startsWith("ne")
-            ? "ne"
-            : h.startsWith("outros")
-              ? "outros"
-              : "sin";
+      : h === "componentes"
+        ? "guia" // página de desenvolvimento: nenhum módulo marcado
+        : h === "dados" || h === "api"
+          ? "dados"
+          : h.startsWith("admin")
+            ? "admin"
+            : h.startsWith("ne")
+              ? "ne"
+              : h.startsWith("outros")
+                ? "outros"
+                : "sin";
   $$(".modulos button").forEach(b => {
     if (b.dataset.rota === mod) b.setAttribute("aria-current", "page");
     else b.removeAttribute("aria-current");

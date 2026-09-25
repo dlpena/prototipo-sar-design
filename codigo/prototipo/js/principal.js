@@ -24,6 +24,7 @@ import "./outros_sistemas.js"; // páginas do Distrito Federal e do Paraopeba
 import "./ficha_outros.js"; // ficha do reservatório de Outros Sistemas Hídricos
 import "./dados.js"; // área de dados
 import "./api.js"; // documentação da API pública
+import "./guia.js"; // guia de componentes (desenvolvimento)
 import "./admin/admin_nucleo.js"; // área administrativa: núcleo, perfis, cadastro, série, aprovações
 import "./admin/admin_telas.js"; // área administrativa: cobertura, valores suspeitos, inclusão, códigos, agrupamentos, textos
 import "./titulo_grafico_celular.js"; // título de gráfico quebrado em linhas no celular

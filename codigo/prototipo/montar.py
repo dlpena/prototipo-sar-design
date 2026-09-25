@@ -21,7 +21,7 @@ from pathlib import Path
 
 AQUI = Path(__file__).parent
 CSS = ["base.css", "faixa.css", "componentes.css", "dados.css", "api.css", "recolhiveis_e_mapa_lista.css", "inicio.css", "ne.css",
-       "bacia_e_ficha.css", "geral_e_celular.css", "outros.css", "tema_b2.css", "inicio_sem_barra.css", "admin.css"]
+       "bacia_e_ficha.css", "geral_e_celular.css", "outros.css", "tema_b2.css", "inicio_sem_barra.css", "admin.css", "guia.css"]
 # ordem de carga dos módulos: a de js/principal.js (import "./x.js" e, por último, o módulo que exporta iniciar)
 PRINCIPAL = (AQUI / "js" / "principal.js").read_text(encoding="utf-8")
 JS = re.findall(r'^import (?:\{ iniciar \} from )?"\./([\w/]+\.js)";', PRINCIPAL, flags=re.M)

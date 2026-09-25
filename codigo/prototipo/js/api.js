@@ -329,4 +329,4 @@ const corpoAPI = pag =>
     </section>
     <p class="nota fontes-inicio">Fontes: as mesmas das páginas de cada módulo (ONS, SABESP, órgãos estaduais e rede da ANA), com a conferência e as correções do SAR.</p>`;
 
-export { paginaAPI };
+export { bloco, cod, ligarCopiarAPI, paginaAPI, tab };
