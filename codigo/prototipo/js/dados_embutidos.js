@@ -1,9 +1,9 @@
-/* Dados do protótipo (dados_sin.json, gerado pelos preparar_*.py a partir das coletas de ../dados). Na página montada,
-   o montar.py os embute num <script type="application/json" id="dados-sin">; na página de desenvolvimento (dev.html),
+/* Dados do protótipo (dados.json, gerado pelos preparar_*.py a partir das coletas de ../dados). Na página montada,
+   o montar.py os embute num <script type="application/json" id="dados-prototipo">; na página de desenvolvimento (dev.html),
    a mesma marca é criada com o arquivo lido do servidor antes de os módulos carregarem. */
 import { retiraAfluenteNegativa } from "./regras.js";
 
-const D = JSON.parse(document.getElementById("dados-sin").textContent);
+const D = JSON.parse(document.getElementById("dados-prototipo").textContent);
 
 // vistas dos módulos: Nordeste e Semiárido (com valores vazios se o bloco faltar) e Outros Sistemas Hídricos
 const NEd = D.ne || {

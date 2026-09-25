@@ -1,11 +1,11 @@
-// Testes das regras de negócio do protótipo (js/regras.js). Rodar em mockups/sin: node --test testes/
-// Importam o próprio módulo js/regras.js (o mesmo código da página) e leem os dados embutidos (dados_sin.json).
+// Testes das regras de negócio do protótipo (js/regras.js). Rodar em mockups/prototipo: node --test testes/
+// Importam o próprio módulo js/regras.js (o mesmo código da página) e leem os dados embutidos (dados.json).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import * as R from "../js/regras.js";
 
-const D = JSON.parse(readFileSync(new URL("../dados_sin.json", import.meta.url), "utf8"));
+const D = JSON.parse(readFileSync(new URL("../dados.json", import.meta.url), "utf8"));
 const NE = D.ne;
 const dia = iso => Math.round((Date.parse(iso + "T00:00:00Z") - Date.parse(NE.serie_de + "T00:00:00Z")) / 864e5);
 

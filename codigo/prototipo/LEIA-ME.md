@@ -9,7 +9,7 @@ aproveitada diretamente.
 ## O que é real e o que é simulado
 
 - **Dados reais**, lidos nas fontes (SAR, ONS, SNIRH, IBGE, INPE, INSA, SABESP, HidroInfoAna) com a data de cada
-  leitura registrada. Veja `../dados/LEIA-ME.md`. Os dados vão embutidos na página (`dados_sin.json`, cerca de 9 MB),
+  leitura registrada. Veja `../dados/LEIA-ME.md`. Os dados vão embutidos na página (`dados.json`, cerca de 9 MB),
   com recortes para caber: série do Nordeste e Semiárido de 12 meses; base horária do ONS de julho a setembro de 2026;
   fichas completas só de 10 usinas do SIN (Furnas e as usinas com faixas de operação em resolução da ANA, carregadas
   sob demanda de `fichas/`), 3 açudes do Nordeste e 10 reservatórios de Outros Sistemas.
@@ -19,9 +19,9 @@ aproveitada diretamente.
 ## Montar e ver
 
 ```
-py preparar.py      # refaz dados_sin.json a partir das coletas de ../dados (só quando os dados mudam)
-py montar.py        # junta pagina.html, css/, js/ e os dados em prototipo-sin.html (um arquivo só) e gera dev.html
-py -m http.server 8765 --directory .    # e abrir http://127.0.0.1:8765/prototipo-sin.html
+py preparar.py      # refaz dados.json a partir das coletas de ../dados (só quando os dados mudam)
+py montar.py        # junta pagina.html, css/, js/ e os dados em prototipo.html (um arquivo só) e gera dev.html
+py -m http.server 8765 --directory .    # e abrir http://127.0.0.1:8765/prototipo.html
 ```
 
 Para trabalhar no código, abra `http://127.0.0.1:8765/dev.html`: a mesma página, com os módulos de `js/` carregados
@@ -32,8 +32,8 @@ Pacotes Python: `../requirements.txt` (a montagem usa só a biblioteca padrão; 
 Nenhum caminho depende da máquina: a correspondência de códigos do Nordeste que o `montar.py` embute está em
 `../dados/referencias/depara_ne.json`.
 
-`py preparar.py --comparar` refaz os dados numa cópia e aponta o que difere do `dados_sin.json` atual, sem gravar.
-O resultado publicado é o `prototipo-sin.html` com a pasta `fichas/` ao lado. `py ferramentas/publicar.py <cópia do repositório>` copia
+`py preparar.py --comparar` refaz os dados numa cópia e aponta o que difere do `dados.json` atual, sem gravar.
+O resultado publicado é o `prototipo.html` com a pasta `fichas/` ao lado. `py ferramentas/publicar.py <cópia do repositório>` copia
 para o repositório publicado a página (`index.html`), as fichas e, em `codigo/`, o código que a gera (esta pasta, com
 a mesma estrutura, e o que a montagem lê de `../dados`), para a página e o código irem juntos em cada publicação. As
 coletas de `../dados` ficam fora do repositório público (acessam bases internas).
@@ -76,7 +76,7 @@ repetido.
 |---|---|---|
 | `js/principal.js` | ponto de entrada: ordem de carga dos módulos e partida | — |
 | `js/contexto.js` | o que as páginas compartilham e alteram (datas de referência, sistema aberto, busca) | 1 |
-| `js/dados_embutidos.js` | dados do protótipo (`dados_sin.json`) e vistas de cada módulo; aplica a retirada da afluência negativa do SIN | — |
+| `js/dados_embutidos.js` | dados do protótipo (`dados.json`) e vistas de cada módulo; aplica a retirada da afluência negativa do SIN | — |
 | `js/base.js` | formatação de números e datas (`fmt`, `dBR`, `fData`, `fHora`), meses (`MESES`, `mesesAte`, `rotuloMes`, `diasNoMes`), SVG, aviso (toast), `COR` (cores lidas do CSS, e `COR_NV` do nível), `DESKTOP`, cadastro do SIN (`RES`, `NOME`, `POR_BACIA`, `UNID_MINI`), índice da página (`ligarIndice`), controle da data de referência (`barraData`, `ligarData`) | 1 |
 | `js/regras.js` | regras de negócio que decidem números publicados (ver abaixo) | 3, 4 e 5 |
 | `js/exportacao.js` | PNG dos gráficos e diagramas, PDF das tabelas, CSV, KMZ e legendas | 1 |
@@ -127,7 +127,7 @@ troca em relação ao mesmo dia do mês anterior); os dois critérios (ano inici
 `../dados/confere_serie_ne.py`.
 
 ```
-node --test testes/regras.test.mjs        # em mockups/sin
+node --test testes/regras.test.mjs        # em mockups/prototipo
 py testes/gera_fixture_janela.py          # quando preparar_ne.py ou os dados do Nordeste mudarem
 ```
 
@@ -141,7 +141,7 @@ dados, em Python (`../dados/critica_nivel.py`), e não na página.
 
 ## Verificação de mudanças
 
-- `npm run verificar` (em `mockups/sin`, depois de `npm install`): formato pelo Prettier, sintaxe de cada arquivo de
+- `npm run verificar` (em `mockups/prototipo`, depois de `npm install`): formato pelo Prettier, sintaxe de cada arquivo de
   `js/`, ESLint e testes das regras. O ESLint (`eslint.config.mjs`) confere cada módulo sozinho: nome usado sem `import`
   é erro. Avisos esperados (oito em 25/09/2026): as duas funções um pouco acima de 120 linhas e seis com complexidade
   entre 26 e 29 (a escolha da rota, a série da área de dados, a situação da ficha do açude e três telas da área

@@ -7,7 +7,7 @@ const ROTAS = ["inicio","sin","bacia/GRANDE","ficha/FURNAS",...["M_MORAES","EMBO
   ...["29001","29002","29003","29004","40001","40002","40003","50001","50002","50003"].map(c => "outros/ficha/" + c),
   "dados","api","admin",...["cobertura","suspeitos","serie","cadastro","inclusao","codigos","agrupamentos","publicacao","parametros","aprovacoes","trilha"].map(s => "admin/" + s)];
 const VALIDA = h => h==="" || ROTAS.includes(h) || /^ne\/ficha\/\d+$/.test(h) || /^ne\/[A-Z]{2}$/.test(h);
-const f = document.createElement("iframe"); f.style.cssText = `width:${W}px;height:${H}px;border:0`; f.src = "prototipo-sin.html?a=" + Date.now() + "#inicio"; document.body.prepend(f);
+const f = document.createElement("iframe"); f.style.cssText = `width:${W}px;height:${H}px;border:0`; f.src = "prototipo.html?a=" + Date.now() + "#inicio"; document.body.prepend(f);
 const espera = ms => new Promise(r => setTimeout(r, ms));
 const R = {}; let erros = [], baixados = [];
 f.onload = async () => {

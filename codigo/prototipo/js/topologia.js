@@ -7,7 +7,7 @@ import { D } from "./dados_embutidos.js";
 import { caso, COR, fint, fmt, svgEl } from "./base.js";
 import { ADM } from "./admin/admin_nucleo.js";
 
-// topologia a partir dos dados embutidos (preparar_dados.py): {foz, rios: {nome: {...}}, nos: {id: {...}}}
+// topologia a partir dos dados embutidos (preparar_sin.py): {foz, rios: {nome: {...}}, nos: {id: {...}}}
 // topologia publicada da bacia do Grande: a do cadastro (D.grande.topologia) até uma inclusão aprovada na área
 // administrativa, que a substitui (ADM.topo, em js/admin/admin_nucleo.js; no protótipo a publicação é simulada no navegador)
 const topoGrande = () => ADM.topo || (ADM.topo = topoDe(D.grande));

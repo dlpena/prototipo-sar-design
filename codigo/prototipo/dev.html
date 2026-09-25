@@ -58,13 +58,13 @@
 
 
 <script type="module">
-  // Página de desenvolvimento: os módulos de js/ carregados direto, sem montagem (servir a pasta mockups/sin com
+  // Página de desenvolvimento: os módulos de js/ carregados direto, sem montagem (servir a pasta mockups/prototipo com
   // py -m http.server e abrir dev.html). Os dados e o logotipo, que o montar.py embute na página publicada, são lidos
-  // do servidor; o resto é o mesmo código de prototipo-sin.html.
+  // do servidor; o resto é o mesmo código de prototipo.html.
   const [dados, admin, logo] = await Promise.all(
-    ["dados_sin.json", "dados_admin.json", "assets/logo_ana_horizontal.svg"].map(u => fetch(u).then(r => r.text()))
+    ["dados.json", "dados_admin.json", "assets/logo_ana_horizontal.svg"].map(u => fetch(u).then(r => r.text()))
   );
-  for (const [id, texto] of [["dados-sin", dados], ["dados-admin", admin]]) {
+  for (const [id, texto] of [["dados-prototipo", dados], ["dados-admin", admin]]) {
     const marca = Object.assign(document.createElement("script"), { type: "application/json", id });
     marca.textContent = texto;
     document.body.append(marca);

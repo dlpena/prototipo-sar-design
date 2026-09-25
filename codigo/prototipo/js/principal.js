@@ -1,12 +1,12 @@
 /* Ponto de entrada do protótipo. Carrega os módulos na ordem abaixo e dá a partida (rotas.js, iniciar).
 
    A mesma lista serve às duas formas de rodar:
-   - dev.html carrega este arquivo como módulo ES, direto do código-fonte (py -m http.server na pasta mockups/sin);
+   - dev.html carrega este arquivo como módulo ES, direto do código-fonte (py -m http.server na pasta mockups/prototipo);
    - montar.py lê a lista, junta os arquivos nessa ordem sem os import e export e gera o arquivo único publicado
-     (prototipo-sin.html). Por isso a ordem segue a das dependências: quem é usado ao carregar vem antes. */
+     (prototipo.html). Por isso a ordem segue a das dependências: quem é usado ao carregar vem antes. */
 import "./contexto.js"; // contexto compartilhado entre as páginas (datas de referência, sistema aberto)
 import "./regras.js"; // regras de negócio que decidem números publicados, com testes em testes/
-import "./dados_embutidos.js"; // dados do protótipo (dados_sin.json)
+import "./dados_embutidos.js"; // dados do protótipo (dados.json)
 import "./base.js"; // utilitários da página: seletores, formatos, cores, barra de data, índice
 import "./exportacao.js"; // CSV, PDF, PNG e KMZ
 import "./graficos.js"; // componentes de gráfico (linhas, calendário, barras por ano, mensal) e textos "Como ler"

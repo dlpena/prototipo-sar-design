@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Acrescenta a dados_sin.json (chave ne.fichas) as três fichas de exemplo do NE (Diego, 18/09/2026).
+"""Acrescenta a dados.json (chave ne.fichas) as três fichas de exemplo do NE (Diego, 18/09/2026).
 
 Rodar depois de preparar_ne.py e preparar_nivel.py. Entrada: ../dados/fichas_ne.json (coleta_fichas_ne.py).
 
@@ -18,7 +18,7 @@ DADOS = AQUI.parent / "dados"
 sys.path.insert(0, str(DADOS))
 from critica_nivel import filtrar, filtrar_volume  # noqa: E402
 
-SIN = json.loads((AQUI / "dados_sin.json").read_text(encoding="utf-8"))
+SIN = json.loads((AQUI / "dados.json").read_text(encoding="utf-8"))
 NE = SIN["ne"]
 FI = json.loads((DADOS / "fichas_ne.json").read_text(encoding="utf-8"))
 ATE = NE["serie_ate"]
@@ -61,5 +61,5 @@ for cod, f in FI["fichas"].items():
 NE["fichas"] = fichas
 NE["fontes"]["ficha_sar"] = FI["fonte_sar"]
 NE["fontes"]["ficha_nivel"] = FI["fonte_nivel"]
-(AQUI / "dados_sin.json").write_text(json.dumps(SIN, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-print("dados_sin.json atualizado")
+(AQUI / "dados.json").write_text(json.dumps(SIN, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+print("dados.json atualizado")

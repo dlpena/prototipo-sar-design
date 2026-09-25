@@ -3,7 +3,7 @@
 encadeada (preparar_curvas.py, retirado): cada valor é o que a página mostra se a data for escolhida como data de
 referência, pela mesma regra; nada é calculado por encadeamento.
 
-Rodar depois de preparar_ne.py (usa o cadastro do bloco "ne" de dados_sin.json). Entrada:
+Rodar depois de preparar_ne.py (usa o cadastro do bloco "ne" de dados.json). Entrada:
 ../dados/serie_completa_ne.json (coleta_ne_completa.py, sar0/Medicao desde 2006).
 
 Regras:
@@ -20,7 +20,7 @@ Regras:
   Calibração (23/09/2026, dia 15 de cada mês, 2013 a 2026, 1.466 pares de meses): acima de 15% a regra pega os 45
   saltos de composição de mais de 5 p.p. e interrompe 116 meses; acima de 10%, os mesmos 45, com 155 interrupções (../dados/confere_serie_ne.py).
 
-Saída: bloco "serie_direta" do "ne" em dados_sin.json: inicio, fim, ano_inicial, limiar_troca_pct, cobertura_min_pct e,
+Saída: bloco "serie_direta" do "ne" em dados.json: inicio, fim, ano_inicial, limiar_troca_pct, cobertura_min_pct e,
 por grupo (UF e "NE"), listas diárias pct (3 casas, para o navegador arredondar como na página), n (reservatórios medidos), cap (capacidade equivalente, hm³) e
 troca (%, inteiro; None quando falta um dos dois conjuntos)."""
 import bisect
@@ -35,7 +35,7 @@ sys.path.insert(0, str(DADOS))
 from critica_nivel import filtrar, filtrar_volume  # noqa: E402
 
 LIM, LIMIAR_TROCA, COBERTURA_MIN = 30, 15, 90
-SIN = json.loads((AQUI / "dados_sin.json").read_text(encoding="utf-8"))
+SIN = json.loads((AQUI / "dados.json").read_text(encoding="utf-8"))
 NE = SIN["ne"]
 FONTE = json.loads((DADOS / "serie_completa_ne.json").read_text(encoding="utf-8"))
 SC = FONTE["reservatorios"]
@@ -150,5 +150,5 @@ NE["serie_direta"] = {"inicio": INI.isoformat(), "fim": FIM.isoformat(), "ano_in
                       "limiar_troca_pct": LIMIAR_TROCA, "cobertura_min_pct": COBERTURA_MIN,
                       "cobertura_ano": {a: round(v, 1) for a, v in cob_ano.items()},
                       "series": series, "critica": desc, "fonte": FONTE["fonte"]}
-(AQUI / "dados_sin.json").write_text(json.dumps(SIN, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-print("dados_sin.json atualizado (ne.serie_direta)")
+(AQUI / "dados.json").write_text(json.dumps(SIN, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+print("dados.json atualizado (ne.serie_direta)")

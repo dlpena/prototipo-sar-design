@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Acrescenta a dados_sin.json (chave ne.nivel) os estados com página no modelo único: CE (só volume), PI (misto),
+"""Acrescenta a dados.json (chave ne.nivel) os estados com página no modelo único: CE (só volume), PI (misto),
 AL e SE (só nível). O tipo da página sai do dado: volume, misto ou nível.
 
 Rodar depois de preparar_ne.py. Entradas: ../dados/nivel_ne.json (coleta_nivel_ne.py, HidroInfoAna) e
@@ -26,7 +26,7 @@ from pathlib import Path
 
 AQUI = Path(__file__).parent
 DADOS = AQUI.parent / "dados"
-SIN = json.loads((AQUI / "dados_sin.json").read_text(encoding="utf-8"))
+SIN = json.loads((AQUI / "dados.json").read_text(encoding="utf-8"))
 NIV = json.loads((DADOS / "nivel_ne.json").read_text(encoding="utf-8"))
 FAS = json.loads((DADOS / "fases_ne.json").read_text(encoding="utf-8"))
 NE = SIN["ne"]
@@ -94,5 +94,5 @@ for uf in ("AL", "BA", "CE", "MA", "MG", "PB", "PE", "PI", "RN", "SE"):
 print("fora do cadastro e descartadas: montante", len(descartes["montante"]), "| nome sem açude", len(descartes["nome"]), descartes["nome"])
 NE["nivel"] = {"estados": estados, "filtro": NIV["filtro"], "fonte": NIV["fonte"], "fonte_hist": FAS["fonte"],
                "descartes": {k: len(v) for k, v in descartes.items()}}
-(AQUI / "dados_sin.json").write_text(json.dumps(SIN, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-print("dados_sin.json atualizado")
+(AQUI / "dados.json").write_text(json.dumps(SIN, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+print("dados.json atualizado")

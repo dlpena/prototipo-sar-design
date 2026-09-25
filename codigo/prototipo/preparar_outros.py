@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Bloco "outros" de dados_sin.json: módulo Outros Sistemas Hídricos (Diego, 18/09/2026; estrutura/outros_sistemas.md).
+"""Bloco "outros" de dados.json: módulo Outros Sistemas Hídricos (Diego, 18/09/2026; estrutura/outros_sistemas.md).
 
 Entradas: ../dados/sabesp_cantareira.json (coleta_sabesp_cantareira.py, API da SABESP para a ANA) e
 ../dados/outros_coletor.json (coleta_outros_coletor.py, Coletor do SAR para DF e RMBH).
@@ -15,7 +15,7 @@ from pathlib import Path
 
 AQUI = Path(__file__).parent
 DADOS = AQUI.parent / "dados"
-SIN = json.loads((AQUI / "dados_sin.json").read_text(encoding="utf-8"))
+SIN = json.loads((AQUI / "dados.json").read_text(encoding="utf-8"))
 SAB = json.loads((DADOS / "sabesp_cantareira.json").read_text(encoding="utf-8"))
 COL = json.loads((DADOS / "outros_coletor.json").read_text(encoding="utf-8"))
 C = SAB["componentes"]
@@ -154,5 +154,5 @@ SIN["outros"] = {
                "resolucao": "Resolução Conjunta ANA/DAEE nº 925, de 29/05/2017 (DOU 102, Seção 1, p. 92, de 30/05/2017), "
                             "texto em gov.br/ana, lido em 18/09/2026"},
 }
-(AQUI / "dados_sin.json").write_text(json.dumps(SIN, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+(AQUI / "dados.json").write_text(json.dumps(SIN, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 print(f"outros: {len(pct)} dias no %, detalhe desde {det0} ({len(det)} dias); gravado")

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""Monta o bloco do módulo Nordeste e Semiárido dentro de dados_sin.json (chave "ne").
+"""Monta o bloco do módulo Nordeste e Semiárido dentro de dados.json (chave "ne").
 
-Entradas: ../dados/dados_ne.json (coleta_ne.py) e dados_sin.json (contornos de UF em lon/lat).
+Entradas: ../dados/dados_ne.json (coleta_ne.py) e dados.json (contornos de UF em lon/lat).
 Regras das decisões (estrutura/decisoes.md, 17/09/2026): níveis NE > Estado > Reservatório; faixas do mapa de julho
 (restrição < 20%, atenção 20 a 50%, normal > 50%); sem informação = sem medição há mais de 30 dias, fora do agregado.
 """
@@ -18,7 +18,7 @@ from critica_nivel import filtrar, filtrar_volume  # noqa: E402
 NE = json.loads((DADOS / "dados_ne.json").read_text(encoding="utf-8"))
 DT = json.loads((DADOS / "datas_ne.json").read_text(encoding="utf-8"))
 HIST = json.loads((DADOS / "hist_ne.json").read_text(encoding="utf-8"))
-SIN = json.loads((AQUI / "dados_sin.json").read_text(encoding="utf-8"))
+SIN = json.loads((AQUI / "dados.json").read_text(encoding="utf-8"))
 
 UFS_NE = ["AL", "BA", "CE", "MA", "MG", "PB", "PE", "PI", "RN", "SE"]
 LIMIAR_DIAS = 30          # acima disso: sem informação (Diego, 17/09/2026)
@@ -361,7 +361,7 @@ out = {"data": NE["data"], "limiar_dias": LIMIAR_DIAS, "passo_serie_dias": NE["p
                                         "lista": DT["fontes"]["medicoes"]}}
 
 SIN["ne"] = out
-(AQUI / "dados_sin.json").write_text(json.dumps(SIN, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+(AQUI / "dados.json").write_text(json.dumps(SIN, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 print("NE:", total["n"], "reservatórios;", total["com_dado"], "com dado nos últimos", LIMIAR_DIAS, "dias;",
       total["sem_info"], "sem informação")
 print("agregado próprio:", total["volume_pct"], "% | portal:", total["volume_pct_portal"], "%")
@@ -370,4 +370,4 @@ print("CE:", len(ce_res), "reservatórios;", sum(1 for r in ce_res if r["gx"] is
 print("série embutida de", HIST["de"], "a", HIST["ate"], "| data de referência livre a partir de",
       (DE + timedelta(days=LIMIAR_DIAS)).isoformat(), "(antes disso a janela de ±30 dias ficaria incompleta)")
 print("séries do portal (seções 3 e 4) nas", len(DT["datas"]), "datas coletadas, de", DT["datas"][-1], "a", DT["datas"][0])
-print("KB", round((AQUI / "dados_sin.json").stat().st_size / 1024))
+print("KB", round((AQUI / "dados.json").stat().st_size / 1024))

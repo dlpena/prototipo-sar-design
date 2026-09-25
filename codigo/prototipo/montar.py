@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Monta o protótipo num arquivo só (prototipo-sin.html), a partir do código dividido por responsabilidade:
+"""Monta o protótipo num arquivo só (prototipo.html), a partir do código dividido por responsabilidade:
 
   pagina.html        esqueleto da página, com os marcadores /*__CSS__*/, /*__DADOS__*/ e /*__JS__*/
   css/*.css          estilo, na ordem de CSS abaixo (a ordem é a da cascata: não trocar sem conferir a página)
@@ -8,7 +8,7 @@
                      função (escopo próprio, modo estrito), e a partida (iniciar) vai no fim. A página de
                      desenvolvimento, dev.html, carrega os mesmos módulos direto, sem montagem.
   js/admin/*.js      área administrativa (simulação sem servidor)
-  dados_sin.json     dados embutidos (gerados pelos preparar_*.py a partir das coletas de ../dados)
+  dados.json     dados embutidos (gerados pelos preparar_*.py a partir das coletas de ../dados)
   assets/            logotipo da ANA e CSS do Leaflet
 
 Também copia as fichas das usinas com resolução da ANA (../dados/fichas_sin) para fichas/, que a página carrega
@@ -74,13 +74,13 @@ def textos_originais(js):
 
 
 CARGA_DEV = """<script type="module">
-  // Página de desenvolvimento: os módulos de js/ carregados direto, sem montagem (servir a pasta mockups/sin com
+  // Página de desenvolvimento: os módulos de js/ carregados direto, sem montagem (servir a pasta mockups/prototipo com
   // py -m http.server e abrir dev.html). Os dados e o logotipo, que o montar.py embute na página publicada, são lidos
-  // do servidor; o resto é o mesmo código de prototipo-sin.html.
+  // do servidor; o resto é o mesmo código de prototipo.html.
   const [dados, admin, logo] = await Promise.all(
-    ["dados_sin.json", "dados_admin.json", "assets/logo_ana_horizontal.svg"].map(u => fetch(u).then(r => r.text()))
+    ["dados.json", "dados_admin.json", "assets/logo_ana_horizontal.svg"].map(u => fetch(u).then(r => r.text()))
   );
-  for (const [id, texto] of [["dados-sin", dados], ["dados-admin", admin]]) {
+  for (const [id, texto] of [["dados-prototipo", dados], ["dados-admin", admin]]) {
     const marca = Object.assign(document.createElement("script"), { type: "application/json", id });
     marca.textContent = texto;
     document.body.append(marca);
@@ -95,7 +95,7 @@ def pagina_dev(pag):
     trocas = [("<style>/*__LEAFLET_CSS__*/</style>", '<link rel="stylesheet" href="assets/leaflet.min.css">'),
               ("<style>\n/*__CSS__*/\n</style>", "\n".join(f'<link rel="stylesheet" href="css/{f}">' for f in CSS)),
               ("/*__LOGO__*/", ""),
-              ('<script type="application/json" id="dados-sin">/*__DADOS__*/</script>', ""),
+              ('<script type="application/json" id="dados-prototipo">/*__DADOS__*/</script>', ""),
               ('<script type="application/json" id="dados-admin">/*__ADMIN__*/</script>', ""),
               ("<script>\n/*__JS__*/\n</script>", CARGA_DEV)]
     for a, b in trocas:
@@ -116,7 +116,7 @@ def montar():
     (AQUI / "dados_admin.json").write_text(admin, encoding="utf-8")
     logo = (AQUI / "assets" / "logo_ana_horizontal.svg").read_text(encoding="utf-8")
     logo = logo[logo.index("<svg"):]                      # sem a declaração XML e o comentário do Illustrator
-    dados = (AQUI / "dados_sin.json").read_text(encoding="utf-8").replace("</", "<\\/")
+    dados = (AQUI / "dados.json").read_text(encoding="utf-8").replace("</", "<\\/")
     pag = (AQUI / "pagina.html").read_text(encoding="utf-8")
     pagina_dev(pag)
     for marca, valor in (("/*__CSS__*/", css), ("/*__JS__*/", js)):
@@ -126,7 +126,7 @@ def montar():
                          ("/*__LEAFLET_CSS__*/", (AQUI / "assets" / "leaflet.min.css").read_text(encoding="utf-8"))):
         assert marca in pag, marca
         pag = pag.replace(marca, valor)
-    saida = AQUI / "prototipo-sin.html"; saida.write_text(pag, encoding="utf-8")
+    saida = AQUI / "prototipo.html"; saida.write_text(pag, encoding="utf-8")
     print(saida.name, round(saida.stat().st_size / 1024), "KB")
     origem, destino = AQUI.parent / "dados" / "fichas_sin", AQUI / "fichas"; destino.mkdir(exist_ok=True)
     fichas = [f for f in origem.glob("*.json") if f.name != "indice.json"]

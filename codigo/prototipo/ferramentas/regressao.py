@@ -41,9 +41,9 @@ def registrar(pasta):
         R = rotas(pg); pg.close()
         for w in LARGURAS:
             pg = b.new_page(viewport={"width": w, "height": 900})
-            pg.goto(BASE + "prototipo-sin.html#inicio"); pg.wait_for_timeout(2500)
+            pg.goto(BASE + "prototipo.html#inicio"); pg.wait_for_timeout(2500)
             for r in R:
-                pg.goto(BASE + "prototipo-sin.html#" + r); pg.reload(); pg.add_style_tag(content=ESCONDE); pg.wait_for_timeout(2600)
+                pg.goto(BASE + "prototipo.html#" + r); pg.reload(); pg.add_style_tag(content=ESCONDE); pg.wait_for_timeout(2600)
                 pg.screenshot(path=str(pasta / "telas" / f"{w}_{r.replace('/', '__') or 'raiz'}.png"), full_page=True)
             pg.close()
         b.close()

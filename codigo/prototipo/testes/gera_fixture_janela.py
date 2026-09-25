@@ -12,7 +12,7 @@ fonte = (AQUI.parent / "preparar_ne.py").read_text(encoding="utf-8")
 arv = ast.parse(fonte)
 func = next(n for n in arv.body if isinstance(n, ast.FunctionDef) and n.name == "na_data")
 limiar = next(n.value.value for n in arv.body if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "LIMIAR_DIAS")
-NE = json.loads((AQUI.parent / "dados_sin.json").read_text(encoding="utf-8"))["ne"]
+NE = json.loads((AQUI.parent / "dados.json").read_text(encoding="utf-8"))["ne"]
 DE = date.fromisoformat(NE["serie_de"])
 ctx = {"LIMIAR_DIAS": limiar, "DE": DE}
 exec(compile(ast.Module(body=[func], type_ignores=[]), "preparar_ne.py:na_data", "exec"), ctx)

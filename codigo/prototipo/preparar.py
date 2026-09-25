@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Refaz os dados embutidos no protótipo (dados_sin.json) a partir das coletas guardadas em ../dados, na ordem certa.
+"""Refaz os dados embutidos no protótipo (dados.json) a partir das coletas guardadas em ../dados, na ordem certa.
 
-  py preparar.py              # roda as etapas e grava dados_sin.json
-  py preparar.py --comparar   # roda sobre uma cópia e compara com o dados_sin.json atual (não grava nada)
+  py preparar.py              # roda as etapas e grava dados.json
+  py preparar.py --comparar   # roda sobre uma cópia e compara com o dados.json atual (não grava nada)
 
-Etapas (cada uma lê o dados_sin.json da anterior):
-  1. preparar_dados.py    SIN: usinas, bacias, reservatório equivalente, bacia do Grande, mapas
+Etapas (cada uma lê o dados.json da anterior):
+  1. preparar_sin.py    SIN: usinas, bacias, reservatório equivalente, bacia do Grande, mapas
                           (baixa as malhas de país e estados do IBGE)
   2. preparar_ne.py       Nordeste e Semiárido: reservatórios, séries de 12 meses, resumo por estado (refaz o bloco "ne")
   3. preparar_serie_ne.py série diária do volume acumulado direto de cada estado e do Nordeste, desde o ano inicial
@@ -17,7 +17,7 @@ import json, shutil, subprocess, sys
 from pathlib import Path
 
 AQUI = Path(__file__).parent
-ETAPAS = ["preparar_dados.py", "preparar_ne.py", "preparar_serie_ne.py", "preparar_fichas.py", "preparar_nivel.py", "preparar_outros.py"]
+ETAPAS = ["preparar_sin.py", "preparar_ne.py", "preparar_serie_ne.py", "preparar_fichas.py", "preparar_nivel.py", "preparar_outros.py"]
 
 
 def rodar():
@@ -44,7 +44,7 @@ def diferencas(a, b, cam="", out=None, lim=30):
 
 if __name__ == "__main__":
     if "--comparar" in sys.argv:
-        atual = AQUI / "dados_sin.json"; guarda = AQUI / "dados_sin.json.atual"
+        atual = AQUI / "dados.json"; guarda = AQUI / "dados.json.atual"
         shutil.copy2(atual, guarda)
         try:
             rodar()
