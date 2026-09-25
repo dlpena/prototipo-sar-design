@@ -1,0 +1,466 @@
+/* ---------- bacia ---------- */
+.acao {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--ana);
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 14px;
+}
+.acao:hover {
+  background: var(--ana-noite);
+}
+.cab-bacia {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 14px;
+}
+h1 .simb {
+  margin-right: 10px;
+  vertical-align: -2px;
+}
+/* ---------- ficha ---------- */
+.sit-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 22px;
+  align-items: stretch;
+}
+.valores {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-content: start;
+}
+.valores .v {
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-width: 0;
+}
+.valores .v.principal {
+  grid-column: 1 / -1;
+  background: var(--ana-gelo);
+  border-color: transparent;
+}
+.valores .r {
+  font-size: 12.5px;
+  color: var(--apagado);
+}
+.valores .n {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ana);
+  line-height: 1.15;
+}
+.valores .principal .n {
+  font-size: 48px;
+  line-height: 1;
+}
+.valores .n small {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--tinta-2);
+  margin-left: 4px;
+}
+.valores .principal .n small {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ana);
+  margin-left: 2px;
+}
+.valores .c {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 12px;
+  color: var(--apagado);
+  margin-top: 4px;
+}
+.valores .c b {
+  color: var(--tinta);
+  font-weight: 700;
+}
+#mapa-ficha {
+  min-height: 320px;
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+.rot-usina.eu span {
+  font-size: 13.5px;
+}
+.controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 28px;
+  margin: 0 0 16px;
+}
+.controles.painel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px 48px;
+  background: var(--ana-gelo);
+  border-radius: 4px;
+  padding: 18px 22px 20px;
+  margin: 6px 0 22px;
+}
+.controles fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  font-size: 13px;
+  color: var(--tinta-2);
+  min-width: 0;
+}
+.controles legend {
+  float: left;
+  font-weight: 700;
+  color: var(--apagado);
+  font-size: 12px;
+  margin-right: 6px;
+  padding: 0;
+}
+.controles.painel fieldset {
+  display: block;
+}
+.controles.painel legend {
+  float: none;
+  display: block;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin: 0 0 10px;
+}
+.controles.painel label {
+  margin: 0 18px 6px 0;
+}
+.controles.painel .sw {
+  margin-right: 2px;
+}
+.controles.painel .presets {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 22px 8px 0;
+  vertical-align: middle;
+}
+.controles.painel .datas {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  vertical-align: middle;
+}
+.controles.painel .datas label {
+  margin: 0;
+}
+.controles label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.controles input[type="date"],
+.controles select {
+  font: 13px var(--sans);
+  color: var(--ana);
+  border: 1px solid var(--linha-forte);
+  border-radius: 2px;
+  background: #fff;
+  padding: 3px 6px;
+}
+.controles .sw {
+  display: inline-block;
+  width: 14px;
+  border-top: 3px solid;
+  vertical-align: middle;
+}
+.preset {
+  all: unset;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--linha-forte);
+  color: var(--ana);
+  font-size: 12.5px;
+}
+.preset:hover {
+  border-color: var(--ana);
+}
+.preset.ativo {
+  background: var(--ana);
+  border-color: var(--ana);
+  color: #fff;
+}
+.chip-ano {
+  all: unset;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--linha);
+  color: var(--apagado);
+  font-size: 12px;
+  margin: 2px 2px 2px 0;
+}
+.chip-ano.on {
+  background: var(--ana);
+  border-color: var(--ana);
+  color: #fff;
+}
+.chip-ano:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.chip-ano.antes {
+  border-style: dashed;
+  border-color: var(--linha-forte);
+}
+.chip-ano.antes.on {
+  border-color: #ffffff;
+}
+.controles .anos legend .nota {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.graf {
+  position: relative;
+}
+.graf svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.graf + .graf {
+  margin-top: 22px;
+}
+.aviso-afl {
+  background: #fff7e6;
+  border-left: 4px solid #e0a526;
+  padding: 10px 14px;
+  margin: 0 0 24px;
+  color: var(--tinta);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+#mapa-grande {
+  height: 560px;
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+.rot-usina span {
+  font: 700 12px/1 var(--narrow);
+  color: var(--ana);
+  white-space: nowrap;
+  text-shadow:
+    0 0 3px #fff,
+    0 0 3px #fff,
+    0 0 3px #fff;
+}
+#mapa-grande.sat .rot-usina span {
+  color: #fff;
+  text-shadow:
+    0 0 3px #000,
+    0 0 4px #000,
+    0 1px 2px #000;
+}
+.legenda-mapa {
+  background: #fff;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font: 12px var(--sans);
+  line-height: 1.6;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  max-width: 240px;
+}
+.legenda-mapa b {
+  display: block;
+  color: var(--ana);
+}
+.legenda-mapa .nota {
+  display: block;
+  font-size: 11px;
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+.legenda-mapa i {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  vertical-align: middle;
+  border-radius: 2px;
+}
+@media (max-width: 860px) {
+  #mapa-grande {
+    height: 420px;
+  }
+}
+.tabela-bacia,
+.diagrama {
+  margin-top: 22px;
+}
+th.mini-th {
+  text-align: left;
+  padding-left: 16px;
+}
+th.mini-th label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+th.mini-th select {
+  font: 13px var(--sans);
+  color: var(--ana);
+  border: 1px solid var(--linha-forte);
+  border-radius: 2px;
+  background: #fff;
+  padding: 2px 4px;
+}
+.tabela-bacia table {
+  table-layout: fixed;
+}
+.tabela-bacia th:first-child {
+  width: 17%;
+}
+.tabela-bacia th.mini-th {
+  width: 22%;
+}
+.tabela-bacia th.mini-th label {
+  white-space: normal;
+  flex-wrap: wrap;
+} /* auditoria 19/09/2026: o rótulo com o seletor não quebrava e empurrava a tabela 7 px além da caixa */
+td.mini {
+  padding: 4px 12px 4px 16px;
+  line-height: 0;
+}
+td.mini .mini-svg {
+  display: block;
+  width: 100%;
+}
+td.mini .sem {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--apagado);
+}
+.bloco {
+  padding: 18px 20px;
+}
+.bloco h2 {
+  font-size: 16px;
+  margin: 0 0 2px;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+  border-top: 2px solid var(--ana);
+}
+tbody tr:last-child td {
+  border-bottom: 2px solid var(--ana);
+}
+tfoot th {
+  border-top: 1px solid var(--linha-forte);
+  border-bottom: 2px solid var(--ana);
+  font: 700 13.5px var(--sans);
+  color: var(--ana);
+  padding: 9px 8px;
+}
+tfoot th.r {
+  text-align: right;
+}
+table:has(tfoot) tbody tr:last-child td {
+  border-bottom: 1px solid var(--linha);
+}
+.tab-box {
+  overflow-x: auto;
+}
+th {
+  font: 700 13px var(--sans);
+  color: var(--tinta-2);
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 2px solid var(--ana);
+  white-space: normal;
+  line-height: 1.25;
+}
+th.r,
+td.r {
+  text-align: right;
+}
+tr.unid th {
+  font-size: 12px;
+  color: var(--apagado);
+  border-bottom: 2px solid var(--ana);
+  padding-top: 0;
+  font-weight: 400;
+}
+thead tr:first-child th {
+  border-bottom: 0;
+  padding-bottom: 2px;
+}
+td {
+  padding: 8px;
+  border-bottom: 1px solid var(--linha);
+  white-space: nowrap;
+}
+tbody tr {
+  cursor: pointer;
+}
+tbody tr:hover td,
+tbody tr.acesa td {
+  background: var(--ana-gelo);
+}
+td .nm {
+  font-weight: 700;
+  color: var(--ana);
+}
+td .rio {
+  display: block;
+  font: 12px var(--narrow);
+  color: var(--apagado);
+}
+.simb {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+.diagrama .cx {
+  overflow-x: auto;
+}
+#diag-grande svg {
+  display: block;
+  min-width: 980px;
+  width: 100%;
+  height: auto;
+}
+#diag-grande svg.vert {
+  min-width: 0;
+  max-width: 460px;
+}
+.no-diag {
+  cursor: pointer;
+}
+.no-diag text {
+  font-family: var(--narrow);
+}

@@ -1,0 +1,57 @@
+<!doctype html><html><head><meta charset="utf-8"><title>auditoria</title></head><body>
+<pre id="saida">rodando…</pre>
+<script>
+const Q = new URLSearchParams(location.search), W = +(Q.get("w") || 1366), H = +(Q.get("h") || 900), BAIXAR = Q.get("baixar") === "1";
+const ROTAS = ["inicio","sin","bacia/GRANDE","ficha/FURNAS",...["M_MORAES","EMBORCACAO","ITUMBIARA","JURUMIRIM","CHAVANTES","CAPIVARA","TRES_MARIAS","SOBRADINHO","SERRA_DA_MESA"].map(n => "ficha/" + n),"ne",...["AL","BA","CE","MA","MG","PB","PE","PI","RN","SE"].map(u => "ne/" + u),
+  "ne/ficha/12112","ne/ficha/12231","ne/ficha/12391","outros","outros/cantareira","outros/df","outros/rmbh",
+  ...["29001","29002","29003","29004","40001","40002","40003","50001","50002","50003"].map(c => "outros/ficha/" + c),
+  "dados","api","admin",...["cobertura","suspeitos","serie","cadastro","inclusao","codigos","agrupamentos","publicacao","parametros","aprovacoes","trilha"].map(s => "admin/" + s)];
+const VALIDA = h => h==="" || ROTAS.includes(h) || /^ne\/ficha\/\d+$/.test(h) || /^ne\/[A-Z]{2}$/.test(h);
+const f = document.createElement("iframe"); f.style.cssText = `width:${W}px;height:${H}px;border:0`; f.src = "prototipo-sin.html?a=" + Date.now() + "#inicio"; document.body.prepend(f);
+const espera = ms => new Promise(r => setTimeout(r, ms));
+const R = {}; let erros = [], baixados = [];
+f.onload = async () => {
+  const w = f.contentWindow, d = f.contentDocument;
+  w.addEventListener("error", e => erros.push(String(e.message || e.error)));
+  w.addEventListener("unhandledrejection", e => erros.push("promise: " + String(e.reason && (e.reason.stack || e.reason))));
+  const ce = w.console.error; w.console.error = (...a) => { erros.push("console: " + a.join(" ")); ce.apply(w.console, a); };
+  w.URL.createObjectURL = b => { baixados.push({tam:b.size, tipo:b.type}); return "blob:x"; };
+  w.HTMLAnchorElement.prototype.click = function(){ if (baixados.length) baixados[baixados.length-1].nome = this.download; };
+  w.alert = () => {}; w.prompt = () => null;
+  await espera(1500);
+  for (const r of ROTAS){
+    erros = []; baixados = [];
+    w.location.hash = r; await espera(r.startsWith("sin") || r.includes("ficha") || r==="ne" || r.startsWith("outros") ? 2200 : 1200);
+    const o = {};
+    o.estouroX = d.documentElement.scrollWidth > d.documentElement.clientWidth + 1 ? d.documentElement.scrollWidth : 0;
+    const rol = [];
+    d.querySelectorAll("#conteudo *, #titulo-pag *").forEach(el => { const cs = w.getComputedStyle(el); if (el.closest(".leaflet-container") || el.closest("[hidden]") || !el.offsetParent) return;
+      if ((/(auto|scroll)/.test(cs.overflowX) && el.scrollWidth > el.clientWidth + 2) || (/(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 2 && el.tagName !== "TEXTAREA" && el.tagName !== "SELECT"))
+        rol.push((el.id || el.className || el.tagName).toString().slice(0, 40) + ":" + el.scrollWidth + "/" + el.clientWidth); });
+    o.rolagem = rol.slice(0, 5);
+    const txt = d.body.innerText;
+    o.textoRuim = (txt.match(/[^\n]{0,40}\b(undefined|NaN|null|Infinity)\b[^\n]{0,40}|\[object [A-Za-z]+\]/g) || []).slice(0, 5);
+    o.h1 = (d.querySelector("#titulo-pag h1, #conteudo h1") || {}).textContent || "";
+    const nums = [...d.querySelectorAll("#conteudo section.secao > h2 > small, #conteudo section.secao h2 small")].map(s => +s.textContent);
+    o.numeracao = nums.every((n, i) => n === i + 1) ? "ok" : nums.join(",");
+    o.linksRuins = [...new Set([...d.querySelectorAll("a[href^='#']")].map(a => decodeURIComponent(a.getAttribute("href").slice(1))).filter(h => !VALIDA(h)))];
+    o.alvosRuins = [...d.querySelectorAll("[data-alvo]")].map(a => a.dataset.alvo).filter(id => !d.getElementById(id));
+    o.baixar = d.querySelectorAll("#conteudo .baixar button").length;
+    if (BAIXAR){
+      const bs = [...d.querySelectorAll("#conteudo .baixar button")]; o.arquivos = [];
+      for (const b of bs){ const n0 = baixados.length, e0 = erros.length; try { b.click(); } catch(err){ erros.push("clique: " + err.message); }
+        await espera(b.textContent.includes("PNG") || b.textContent.includes("PDF") || b.textContent.includes("KMZ") ? 2500 : 600);
+        const novo = baixados.slice(n0);
+        o.arquivos.push(`${b.textContent.trim()}→${novo.length ? novo.map(x => (x.nome || "?") + "(" + x.tam + ")").join("+") : "NADA"}${erros.length > e0 ? " ERRO" : ""}`); }
+    }
+    if (Q.get("textos")==="1") o.texto = d.body.innerText;
+    o.erros = [...erros].slice(0, 5);
+    R[r] = o;
+    document.getElementById("saida").textContent = "rodando… " + r;
+  }
+  const ruins = Object.entries(R).filter(([r, o]) => o.estouroX || o.rolagem.length || o.textoRuim.length || o.numeracao !== "ok" || o.linksRuins.length || o.alvosRuins.length || o.erros.length || (o.arquivos || []).some(a => a.includes("NADA") || a.includes("ERRO")) || !o.h1);
+  window.TEXTOS = Object.fromEntries(Object.entries(R).map(([r, o]) => [r, o.texto || ""]));
+  window.RESULTADO = {W, rotas:ROTAS.length, ruins:Object.fromEntries(ruins), arquivos: BAIXAR ? Object.fromEntries(Object.entries(R).map(([r, o]) => [r, o.arquivos])) : null};
+  document.getElementById("saida").textContent = "FIM\n" + JSON.stringify(window.RESULTADO, null, 1);
+};
+</script></body></html>

@@ -1,0 +1,75 @@
+:root {
+  color-scheme: light;
+  /* tema B2: cores do manual da ANA (2020) — marinho 28/55/130, azul 0/147/221, claro 128/180/224 */
+  --ana: #1c3782;
+  --ana-medio: #0b72c2;
+  --ana-vivo: #0093dd;
+  --ana-claro: #80b4e0;
+  --ana-noite: #13286b;
+  --ana-bruma: #e4eef8;
+  --ana-gelo: #eef3f9;
+  --tinta: #1b2532;
+  --tinta-2: #3d4b5c;
+  --apagado: #5b6b80;
+  --linha: #e3eaf2;
+  --linha-forte: #c6d1de;
+  --fundo: #f4f7fa;
+  --branco: #ffffff;
+  --terra-sin: #e1e5ea;
+  --terra-fora: #f0f1f3;
+  --hover: #0b72c2;
+  --aviso: #8a5a00;
+  --aviso-fundo: #fff4d6;
+  /* cores dos gráficos e mapas (lidas pelo JavaScript no objeto COR, js/base.js). azul-médio: ano anterior ao da data de
+     referência, usina a fio d'água e rios; cinza: demais anos; vermelho: marca da data de referência e vertida */
+  --graf-azul-medio: #4a7fb0;
+  --graf-cinza-anos: #c9ced6;
+  --graf-vermelho: #c0392b;
+  /* paletas de dados que se repetem entre arquivos: nível e volume nas séries das fichas; verde-azulado e bronze dos
+     módulos e sistemas (NE e DF; Outros Sistemas e RMBH, usina nova na cascata); bronze escuro para texto e para a
+     transferência entre bacias no balanço do Cantareira */
+  --graf-nivel: #17868f;
+  --graf-verde: #0a9396;
+  --graf-bronze: #b7793a;
+  --graf-bronze-escuro: #8f5b22;
+  /* rios nos mapas com mapa-base (bacia e ficha): sobre o mapa e sobre o satélite */
+  --mapa-rio: #5f8fc0;
+  --mapa-rio-satelite: #8fc4f2;
+  --sans: Arial, "Liberation Sans", Helvetica, sans-serif; /* família institucional (manual, p. 10) */
+  --narrow: "Arial Narrow", "Liberation Sans Narrow", "Roboto Condensed", Arial, sans-serif;
+  --cond: "Arial Narrow", "Liberation Sans Narrow", "Roboto Condensed", Arial, sans-serif;
+  --raio: 14px;
+  --sombra: 0 1px 2px rgba(28, 55, 130, 0.04), 0 8px 24px rgba(28, 55, 130, 0.06);
+  --lateral: 232px;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  background: var(--fundo);
+}
+body {
+  margin: 0;
+  color: var(--tinta);
+  font: 15px/1.5 var(--sans);
+}
+a {
+  color: var(--ana-medio);
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+:focus-visible {
+  outline: 3px solid var(--ana-medio);
+  outline-offset: 2px;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+.wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-inline: 24px;
+}

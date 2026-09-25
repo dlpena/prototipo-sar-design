@@ -1,0 +1,20 @@
+{
+  "name": "sar-prototipo",
+  "private": true,
+  "type": "module",
+  "description": "Protótipo do novo SAR (ANA): ferramentas de verificação do código. O código da página está em módulos ES (js/, entrada js/principal.js); a montagem e os dados são em Python (montar.py, preparar.py).",
+  "scripts": {
+    "formatar": "prettier --write \"js/**/*.js\" \"css/*.css\"",
+    "conferir-formato": "prettier --check \"js/**/*.js\" \"css/*.css\"",
+    "sintaxe": "node -e \"const fs=require('fs'),p=require('path'),c=require('child_process');const r=d=>fs.readdirSync(d,{withFileTypes:true}).flatMap(e=>e.isDirectory()?r(p.join(d,e.name)):e.name.endsWith('.js')?[p.join(d,e.name)]:[]);r('js').forEach(f=>c.execFileSync(process.execPath,['--check',f],{stdio:'inherit'}));console.log('sintaxe ok')\"",
+    "lint": "eslint js testes",
+    "testes": "node --test testes/regras.test.mjs",
+    "verificar": "npm run conferir-formato && npm run sintaxe && npm run lint && npm run testes"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "eslint": "^9.39.5",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.8"
+  }
+}

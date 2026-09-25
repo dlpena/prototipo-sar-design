@@ -1,0 +1,389 @@
+/* saiba mais: texto de método recolhido; a frase essencial fica fora dele, visível */
+details.saiba {
+  margin: 10px 0 0;
+}
+details.saiba > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--ana-medio);
+  font-size: 14px;
+  font-weight: 500;
+}
+details.saiba > summary::-webkit-details-marker {
+  display: none;
+}
+details.saiba > summary::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border: solid currentColor;
+  border-width: 0 1.8px 1.8px 0;
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+}
+details.saiba[open] > summary::before {
+  transform: rotate(45deg) translate(-2px, -1px);
+}
+details.saiba > summary:hover {
+  color: var(--ana);
+}
+details.saiba > summary:focus-visible {
+  outline: 2px solid var(--ana-medio);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+details.saiba .saiba-corpo {
+  margin: 10px 0 0;
+  padding: 14px 18px;
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+details.saiba .saiba-corpo p {
+  margin: 0;
+}
+details.saiba .saiba-corpo p + p {
+  margin-top: 8px;
+}
+/* "Como ler este gráfico": fecho discreto de toda seção de gráfico */
+details.saiba.como-ler {
+  margin: 14px 0 0;
+}
+details.saiba.como-ler > summary {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--apagado);
+}
+details.saiba.como-ler > summary:hover {
+  color: var(--ana);
+}
+details.saiba.como-ler .saiba-corpo {
+  font-size: 13.5px;
+  color: var(--tinta-2);
+}
+main > section + section,
+main > .secao + .secao {
+  margin-top: 22px;
+}
+.equiv {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+  gap: 0;
+}
+.equiv .lado {
+  padding: 22px 26px;
+  border-right: 1px solid var(--linha);
+}
+.equiv .valor {
+  font: 700 64px/1 var(--sans);
+  letter-spacing: -0.01em;
+  color: var(--ana);
+  font-variant-numeric: tabular-nums;
+}
+.equiv .valor small {
+  font-size: 26px;
+  font-weight: 700;
+  margin-left: 2px;
+}
+.equiv .quando {
+  font-size: 13px;
+  color: var(--apagado);
+  margin-top: 6px;
+}
+.comparacoes {
+  list-style: none;
+  margin: 0;
+  padding: 12px 26px;
+  display: grid;
+  align-content: center;
+}
+.comparacoes li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-top: 1px solid var(--linha);
+  font-size: 14px;
+}
+.comparacoes li:first-child {
+  border-top: 0;
+}
+.comparacoes li span {
+  color: var(--tinta-2);
+}
+.comparacoes li b {
+  font-weight: 700;
+}
+.comparacoes li span small {
+  display: block;
+  font-size: 12px;
+  color: var(--apagado);
+  margin-top: 2px;
+}
+.regua-faixas {
+  position: relative;
+  height: 12px;
+  border-radius: 2px;
+  overflow: hidden;
+  display: flex;
+  margin: 16px 0 4px;
+  max-width: 360px;
+}
+.regua-faixas span {
+  height: 100%;
+}
+.regua-rot {
+  position: relative;
+  height: 16px;
+  max-width: 360px;
+  font-size: 11px;
+  color: var(--apagado);
+}
+.regua-rot b {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-weight: 400;
+}
+.regua-marca {
+  position: absolute;
+  top: -19px;
+  width: 3px;
+  height: 18px;
+  background: var(--tinta);
+  border-radius: 1px;
+  transform: translateX(-50%);
+}
+.secao:has(> .equiv) .regua-rot {
+  color: #c5d2ea;
+}
+.regua-nota {
+  font-size: 12px;
+  color: var(--apagado);
+  margin: 6px 0 0;
+  line-height: 1.45;
+}
+.secao:has(> .equiv) .regua-marca {
+  background: #ffffff;
+  box-shadow: 0 0 0 1px #13286b;
+}
+.equiv .def {
+  font-size: 12.5px;
+  color: var(--apagado);
+  margin: 12px 0 0;
+  line-height: 1.45;
+  max-width: 60ch;
+}
+.data-ref {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--tinta-2);
+}
+.data-ref input {
+  font: inherit;
+  color: var(--tinta);
+  border: 1px solid var(--linha-forte);
+  border-radius: 3px;
+  padding: 4px 8px;
+  background: #fff;
+}
+
+.graf {
+  position: relative;
+}
+.graf svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.eixo text {
+  fill: var(--apagado);
+  font: 11.5px var(--sans);
+}
+.tip {
+  position: absolute;
+  pointer-events: none;
+  background: #fff;
+  border: 1px solid var(--linha-forte);
+  border-radius: 3px;
+  padding: 7px 10px;
+  font-size: 12.5px;
+  box-shadow: 0 4px 16px rgba(20, 42, 102, 0.16);
+  white-space: nowrap;
+  z-index: 20;
+}
+.tip b {
+  display: block;
+  color: var(--ana);
+  margin-bottom: 3px;
+}
+.tip .l {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+.tip .l i {
+  display: inline-block;
+  width: 12px;
+  border-top: 3px solid;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+/* mapa + lista */
+.explorar {
+  display: grid;
+  grid-template-columns: minmax(0, 0.68fr) minmax(0, 1.32fr);
+  gap: 22px;
+  align-items: stretch;
+}
+.mapa-caixa {
+  position: relative;
+  padding: 18px 18px 10px;
+}
+.explorar > .mapa-caixa {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.explorar > .mapa-caixa > #mapa-sin {
+  width: 100%;
+}
+#mapa-sin svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 460px;
+  margin: 0 auto;
+}
+.brasil {
+  fill: var(--fundo);
+  stroke: var(--linha-forte);
+  stroke-width: 0.8;
+}
+.sub-bacia {
+  stroke: #fff;
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+  transition: fill 0.12s;
+}
+
+.sub-bacia.sin {
+  fill: #cfddec;
+  cursor: pointer;
+}
+.sub-bacia.sin.acesa {
+  stroke: var(--ana);
+  stroke-width: 1.6;
+  fill: #8fb2d6;
+}
+.sub-bacia.sin.apagada {
+  fill: var(--ana-bruma);
+}
+.usina {
+  transition: opacity 0.12s;
+}
+.usina.apagada {
+  opacity: 0.22;
+}
+.rotulo-bacia {
+  position: absolute;
+  pointer-events: none;
+  background: var(--ana);
+  color: #fff;
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 2px;
+  white-space: nowrap;
+  z-index: 15;
+}
+.rotulo-bacia small {
+  color: var(--ana-claro);
+  margin-left: 6px;
+}
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 12.5px;
+  color: var(--tinta-2);
+  align-items: center;
+}
+.legenda svg {
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.dica {
+  font-size: 12.5px;
+  color: var(--apagado);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+}
+.lista .cab {
+  padding: 12px 20px 8px;
+  border-bottom: 1px solid var(--linha);
+}
+.lista .cab p {
+  margin: 4px 0 0;
+}
+.duas-tabelas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 18px;
+  padding: 0 20px 8px;
+}
+.lista .tab-box {
+  padding: 0;
+}
+.duas-tabelas td {
+  padding: 4px 8px;
+  font-size: 13.5px;
+}
+.duas-tabelas th {
+  padding: 8px 8px;
+}
+/* empilhado (celular e telas estreitas): as duas metades têm de ler como uma tabela só — o segundo cabeçalho
+   sai, as colunas ganham largura fixa para alinhar e o fio grosso fica só no fim da segunda */
+@media (max-width: 1180px) {
+  .duas-tabelas {
+    grid-template-columns: 1fr;
+  }
+  .duas-tabelas table {
+    table-layout: fixed;
+  }
+  .duas-tabelas th:first-child,
+  .duas-tabelas td:first-child {
+    width: 52%;
+  }
+  .duas-tabelas th:nth-child(2),
+  .duas-tabelas td:nth-child(2),
+  .duas-tabelas th:nth-child(3),
+  .duas-tabelas td:nth-child(3) {
+    width: 24%;
+  }
+  #tab-bacias-2 thead {
+    display: none;
+  }
+  #tab-bacias-2 {
+    border-top: 0;
+  }
+  #tab-bacias tbody tr:last-child td {
+    border-bottom: 1px solid var(--linha);
+  }
+}
+td.zero {
+  color: var(--linha-forte);
+}

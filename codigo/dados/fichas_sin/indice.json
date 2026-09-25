@@ -1,0 +1,140 @@
+{
+ "consulta": "2026-09-22T12:07:18",
+ "fichas": [
+  {
+   "nome": "M. MORAES",
+   "codigo": 19005,
+   "bacia": "GRANDE",
+   "rio": "Grande",
+   "uf": "MG",
+   "arquivo": "fichas/19005.json",
+   "diario": [
+    "2000-01-01",
+    "2026-09-15",
+    9755
+   ],
+   "horario": 1918,
+   "municipio": "Ibiraci"
+  },
+  {
+   "nome": "EMBORCAÇÃO",
+   "codigo": 19017,
+   "bacia": "PARANAIBA",
+   "rio": "Paranaíba",
+   "uf": "GO",
+   "arquivo": "fichas/19017.json",
+   "diario": [
+    "2000-01-01",
+    "2026-09-15",
+    9754
+   ],
+   "horario": 1920,
+   "municipio": "Cascalho Rico"
+  },
+  {
+   "nome": "ITUMBIARA",
+   "codigo": 19025,
+   "bacia": "PARANAIBA",
+   "rio": "Paranaíba",
+   "uf": "MG",
+   "arquivo": "fichas/19025.json",
+   "diario": [
+    "2000-01-01",
+    "2026-09-15",
+    9755
+   ],
+   "horario": 1919,
+   "municipio": "Araporã"
+  },
+  {
+   "nome": "JURUMIRIM",
+   "codigo": 19048,
+   "bacia": "PARANAPANEMA",
+   "rio": "Paranapanema",
+   "uf": "SP",
+   "arquivo": "fichas/19048.json",
+   "diario": [
+    "2000-01-01",
+    "2026-09-15",
+    9755
+   ],
+   "horario": 1920,
+   "municipio": "Cerqueira César"
+  },
+  {
+   "nome": "CHAVANTES",
+   "codigo": 19050,
+   "bacia": "PARANAPANEMA",
+   "rio": "Paranapanema",
+   "uf": "SP",
+   "arquivo": "fichas/19050.json",
+   "diario": [
+    "2000-01-01",
+    "2026-09-15",
+    9755
+   ],
+   "horario": 1920,
+   "municipio": "Chavantes"
+  },
+  {
+   "nome": "CAPIVARA",
+   "codigo": 19055,
+   "bacia": "PARANAPANEMA",
+   "rio": "Paranapanema",
+   "uf": "SP",
+   "arquivo": "fichas/19055.json",
+   "diario": [
+    "2000-01-01",
+    "2026-09-15",
+    9755
+   ],
+   "horario": 1919,
+   "municipio": "Porecatu"
+  },
+  {
+   "nome": "TRÊS MARIAS",
+   "codigo": 19119,
+   "bacia": "São Francisco",
+   "rio": "São Francisco",
+   "uf": "MG",
+   "arquivo": "fichas/19119.json",
+   "diario": [
+    "2000-01-01",
+    "2026-09-15",
+    9754
+   ],
+   "horario": 1920,
+   "municipio": "Três Marias"
+  },
+  {
+   "nome": "SOBRADINHO",
+   "codigo": 19121,
+   "bacia": "São Francisco",
+   "rio": "São Francisco",
+   "uf": "BA",
+   "arquivo": "fichas/19121.json",
+   "diario": [
+    "2000-01-01",
+    "2026-09-15",
+    9755
+   ],
+   "horario": 1920,
+   "municipio": "Casa Nova"
+  },
+  {
+   "nome": "SERRA DA MESA",
+   "codigo": 19128,
+   "bacia": "Tocantins",
+   "rio": "Tocantins",
+   "uf": "GO",
+   "arquivo": "fichas/19128.json",
+   "diario": [
+    "2000-01-01",
+    "2026-09-15",
+    9755
+   ],
+   "horario": 1917,
+   "municipio": "Cavalcante"
+  }
+ ]
+}

@@ -1,0 +1,318 @@
+/* ---------- corpo ---------- */
+main {
+  padding-block: 26px 60px;
+}
+.rotulo-sec {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ana);
+  margin: 0 0 10px;
+}
+.cartao {
+  background: var(--branco);
+  border-radius: var(--raio);
+  border: 1px solid var(--linha);
+  box-shadow: var(--sombra);
+}
+.pad {
+  padding: 22px 26px;
+}
+.indice {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: rgba(246, 246, 247, 0.96);
+  backdrop-filter: blur(4px);
+  border-bottom: 1px solid var(--linha);
+  margin: 0 -24px 22px;
+  padding: 10px 24px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.indice a {
+  padding: 5px 12px;
+  border-radius: 14px;
+  font-size: 13.5px;
+  color: var(--ana);
+  background: var(--ana-bruma);
+  text-decoration: none;
+}
+.indice a:hover {
+  background: var(--ana);
+  color: #fff;
+}
+.secao {
+  padding: 22px 24px 24px;
+  scroll-margin-top: 64px;
+  position: relative;
+}
+/* contexto e data dentro da faixa fixa de seções (desktop) */
+
+.indice .barra-data {
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  gap: 6px;
+}
+.indice .barra-data .dica {
+  display: none;
+}
+.indice .barra-data .data-ref b {
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--tinta-2);
+}
+.indice .barra-data input[type="date"] {
+  font-size: 13.5px;
+  padding: 3px 6px;
+}
+.indice .barra-data .hoje {
+  font-size: 11.5px;
+  padding: 3px 8px;
+}
+@media (max-width: 1023px) {
+  .indice .barra-data {
+    margin-left: 0;
+  }
+}
+/* downloads: ação acessória, alinhada ao alto à direita da seção, com o peso de uma nota */
+.baixar {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  z-index: 2;
+}
+.baixar button {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 12.5px var(--sans);
+  color: var(--apagado);
+  padding: 4px 8px;
+  border-radius: 3px;
+}
+.baixar button:hover {
+  color: var(--ana);
+  background: var(--ana-gelo);
+}
+.baixar button:focus-visible {
+  outline: 2px solid var(--ana-medio);
+  outline-offset: 1px;
+}
+.baixar svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  opacity: 0.8;
+}
+.baixar button:hover svg {
+  opacity: 1;
+}
+@supports selector(:has(*)) {
+  .secao:has(.baixar) > h2 {
+    padding-right: 120px;
+  }
+}
+@media (max-width: 640px) {
+  .baixar {
+    position: static;
+    justify-content: flex-end;
+    margin: -6px 0 6px;
+  }
+  @supports selector(:has(*)) {
+    .secao:has(.baixar) > h2 {
+      padding-right: 0;
+    }
+  }
+}
+
+.secao > h2,
+.secao .lado > h2 {
+  font-size: 21px;
+  margin: 0 0 2px;
+  color: var(--ana);
+  font-weight: 600;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.secao > h2 small,
+.secao .lado > h2 small {
+  font: 600 13px var(--cond);
+  color: var(--ana-vivo);
+  letter-spacing: 0.08em;
+  margin-right: 0;
+}
+.secao > h2 small::before,
+.secao .lado > h2 small::before {
+  content: "0";
+}
+.secao > p.sub {
+  margin: 0 0 14px;
+  color: var(--tinta-2);
+  font-size: 14px;
+}
+.sub .dica {
+  display: block;
+  margin-top: 3px;
+}
+.explorar {
+  margin-top: 0;
+}
+.rio {
+  fill: none;
+  stroke: #5f8fc0;
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+.rio.apagado,
+.rio.apagada {
+  opacity: 0.15;
+}
+
+#mapa-situacao {
+  height: 600px;
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.card {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+}
+
+.card.fixo {
+  cursor: default;
+}
+.card:hover:not(.fixo) {
+  border-color: var(--ana-medio);
+}
+.card .r {
+  font-size: 12px;
+  color: var(--apagado);
+}
+.card .v {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ana);
+  line-height: 1.1;
+}
+.card .n {
+  font-size: 12px;
+  color: var(--tinta-2);
+}
+.resumo-filtros {
+  font-size: 12.5px;
+  color: var(--apagado);
+  margin: 0;
+}
+
+.acao.sec {
+  background: #fff;
+  color: var(--ana);
+  border: 1px solid var(--ana);
+  padding: 6px 12px;
+  font-size: 13px;
+}
+.acao.sec:hover {
+  background: var(--ana-bruma);
+}
+.pop {
+  font: 13px Arial;
+  min-width: 180px;
+}
+.pop b {
+  display: block;
+  color: var(--ana);
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+.pop .valor {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ana);
+  margin: 2px 0 6px;
+}
+.pop .valor small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--tinta-2);
+}
+.pop .l {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  border-top: 1px solid var(--linha);
+  padding: 3px 0;
+}
+.leaflet-tooltip {
+  border: 1px solid var(--linha-forte);
+  box-shadow: 0 4px 16px rgba(20, 42, 102, 0.16);
+  padding: 8px 10px;
+}
+.leaflet-control-layers {
+  font: 13px Arial;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+  border: 0;
+}
+.data-ref select {
+  font: inherit;
+  color: var(--tinta);
+  border: 1px solid var(--linha-forte);
+  border-radius: 3px;
+  padding: 4px 8px;
+  background: #fff;
+}
+@media (max-width: 860px) {
+  #mapa-situacao {
+    height: 440px;
+  }
+}
+.nota {
+  font-size: 13px;
+  color: var(--apagado);
+  overflow-wrap: anywhere;
+}
+
+/* equivalente */
+.intro {
+  margin: 0 0 22px;
+  padding: 0 0 4px;
+  color: var(--tinta-2);
+  font-size: 15px;
+  line-height: 1.6;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.intro p {
+  margin: 0;
+  text-wrap: pretty;
+}
+.intro p + p {
+  margin-top: 8px;
+}

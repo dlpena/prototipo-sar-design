@@ -1,0 +1,351 @@
+/* ---------- Nordeste e Semiárido ---------- */
+.barra-data {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+}
+.barra-data .data-ref b {
+  color: var(--azul);
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-right: 2px;
+}
+.barra-data select {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--azul);
+  border: 1px solid var(--linha-forte);
+  border-radius: 4px;
+  padding: 5px 8px;
+  background: #fff;
+  cursor: pointer;
+}
+.barra-data input[type="date"] {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--azul);
+  border: 1px solid var(--linha-forte);
+  border-radius: 4px;
+  padding: 4px 8px;
+  background: #fff;
+}
+.barra-data .hoje {
+  border: 1px solid var(--linha-forte);
+  background: #fff;
+  border-radius: 4px;
+  color: var(--azul);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 5px 10px;
+  margin-left: 4px;
+  cursor: pointer;
+}
+.barra-data .hoje:hover {
+  background: var(--fundo);
+  border-color: var(--azul);
+}
+.barra-data .dica {
+  flex: 1 1 260px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--apagado);
+  line-height: 1.4;
+}
+.escala-uf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--tinta-2);
+}
+.escala-uf b {
+  font-weight: 400;
+  margin-right: 10px;
+}
+.escala-uf span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: 12px;
+}
+.escala-uf i {
+  width: 22px;
+  height: 11px;
+  border-radius: 2px;
+  display: inline-block;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+.escala-uf .semi {
+  margin-left: 6px;
+  padding-left: 14px;
+  border-left: 1px solid var(--linha);
+}
+.legenda + .legenda {
+  margin-top: 4px;
+}
+.nv-ico {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+  vertical-align: -1px;
+  flex: none;
+}
+.legenda .nv-ico {
+  margin-right: 0;
+}
+.nv-marca {
+  background: none;
+  border: 0;
+}
+.aviso-nivel {
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border-left: 3px solid var(--ana-medio);
+  background: var(--ana-gelo);
+  font-size: 14px;
+  color: var(--tinta-2);
+  line-height: 1.55;
+  border-radius: 0 3px 3px 0;
+}
+.aviso-nivel b {
+  color: var(--ana);
+}
+.aviso-nivel p {
+  margin: 0;
+}
+.aviso-nivel p + p {
+  margin-top: 6px;
+}
+#tab-uf-niv th:first-child {
+  width: 30%;
+}
+#tab-uf-vol th:first-child {
+  width: 22%;
+}
+#tab-uf-vol td:is(:nth-child(2), :nth-child(3)),
+#tab-uf-niv td:nth-child(2) {
+  white-space: normal;
+}
+#tab-uf-niv td:first-child,
+#tab-uf-vol td:first-child {
+  white-space: normal;
+}
+#tab-uf-niv td:first-child .nm,
+#tab-uf-vol td:first-child .nm {
+  white-space: normal;
+}
+.valores .r .faixa-tag {
+  font-weight: 400;
+  margin-left: 10px;
+  font-size: 12.5px;
+  color: var(--tinta-2);
+  white-space: nowrap;
+}
+.valores .n.vazio {
+  color: var(--apagado);
+  font-size: 20px;
+}
+.valores .c small {
+  color: var(--apagado);
+}
+#g-med {
+  margin-top: 4px;
+}
+.leaflet-control-layers-toggle {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22M12%203%203%208l9%205%209-5-9-5z%22%20fill%3D%22%23283377%22/%3E%3Cpath%20d%3D%22m3%2012%209%205%209-5M3%2016l9%205%209-5%22%20fill%3D%22none%22%20stroke%3D%22%23283377%22%20stroke-width%3D%221.8%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E") !important;
+  background-size: 22px 22px !important;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+#tab-uf-vol th.mini-th,
+#tab-uf-niv th.mini-th {
+  width: 18%;
+}
+#tab-uf-niv th.mini-th {
+  width: 24%;
+}
+.sub-bloco {
+  font-size: 15px;
+  color: var(--ana);
+  margin: 18px 0 6px;
+  font-weight: 700;
+}
+.sub-bloco small {
+  font-weight: 400;
+  color: var(--apagado);
+  font-size: 13px;
+  margin-left: 8px;
+}
+
+#mapa-res-ne {
+  height: 780px;
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+@media (max-width: 980px) {
+  #mapa-res-ne {
+    height: 420px;
+  }
+}
+/* a tabela dos estados tem oito colunas e pede mais largura que o mapa: sem isso aparecia barra de
+   rolagem lateral na tabela, contra a diretriz de não ter rolagem interna (Diego) */
+.grade-ne {
+  display: grid;
+  grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr);
+  gap: 22px;
+  align-items: start;
+}
+.grade-ne > .col-mapa-ne {
+  align-self: center;
+  min-width: 0;
+}
+.col-mapa-ne .escala-uf {
+  margin-bottom: 12px;
+  row-gap: 6px;
+}
+.col-mapa-ne .escala-uf b {
+  flex-basis: 100%;
+  margin: 0 0 2px;
+  font-weight: 600;
+  color: var(--tinta);
+}
+.col-mapa-ne .escala-uf .semi {
+  margin-left: 0;
+  padding-left: 0;
+  border-left: 0;
+}
+
+#mapa-ne svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 760px;
+}
+#mapa-ne .uf-ne {
+  transition:
+    fill-opacity 0.12s,
+    fill 0.12s;
+}
+#mapa-ne .uf-ne:hover,
+#mapa-ne .uf-ne.acesa {
+  fill-opacity: 1;
+  stroke: var(--ana);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+#mapa-ne .uf-ne.apagada {
+  fill-opacity: 0.3;
+}
+#mapa-uf {
+  height: 560px;
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+.bola {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  vertical-align: -1px;
+  margin-right: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+}
+.legenda .bola {
+  margin-right: 6px;
+}
+.legenda .area {
+  display: inline-block;
+  width: 16px;
+  height: 10px;
+  border-radius: 2px;
+  vertical-align: -1px;
+  margin-right: 6px;
+}
+td .dias {
+  display: block;
+  font-size: 11.5px;
+  color: var(--apagado);
+}
+td .obs {
+  display: block;
+  font-size: 11.5px;
+  color: var(--apagado);
+  margin-left: 16px;
+}
+td .dias.velho {
+  color: #b45309;
+  font-weight: 700;
+}
+.equiv .comparacoes {
+  padding: 0 0 0 26px;
+}
+th[data-ord] {
+  cursor: pointer;
+  user-select: none;
+}
+th[data-ord]:hover {
+  color: var(--ana);
+}
+th.ord-asc::after {
+  content: " ▲";
+  font-size: 9px;
+}
+th.ord-desc::after {
+  content: " ▼";
+  font-size: 9px;
+}
+/* a tabela dos estados pede cerca de 705 px com as oito colunas (23/09/2026: só com nível e sem leitura): só acima de
+   1600 px as duas colunas cabem sem rolagem lateral; abaixo disso mapa em cima e tabela embaixo, do jeito que o Diego
+   preferiu na página da bacia */
+@media (max-width: 1600px) {
+  .grade-ne {
+    grid-template-columns: 1fr;
+  }
+  .grade-ne > .col-mapa-ne {
+    width: 100%;
+    max-width: 620px;
+    margin-inline: auto;
+  }
+}
+/* lado a lado, a tabela dá a altura da linha e o mapa se ajusta ao que sobra (Diego, 22/09/2026: em telas largas o mapa
+   crescia com a coluna e ficava mais alto que a tabela). A coluna do mapa não conta para a altura da linha (height:0)
+   e ocupa a altura toda dela (min-height:100%); o desenho cabe no espaço, centrado. */
+@media (min-width: 1601px) {
+  .grade-ne > .col-mapa-ne {
+    align-self: stretch;
+    height: 0;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .col-mapa-ne #mapa-ne {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .col-mapa-ne #mapa-ne svg {
+    height: 100%;
+    max-height: none;
+  }
+}
+@media (max-width: 980px) {
+  #mapa-uf {
+    height: 420px;
+  }
+}

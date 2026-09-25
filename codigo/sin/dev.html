@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAR · Sistema Interligado Nacional</title>
+<meta name="description" content="Protótipo navegável do módulo SIN do novo SAR: reservatório equivalente, mapa e lista das 22 bacias do ONS, e página da bacia do Grande.">
+<link rel="stylesheet" href="assets/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.2/jszip.min.js"></script>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/faixa.css">
+<link rel="stylesheet" href="css/componentes.css">
+<link rel="stylesheet" href="css/dados.css">
+<link rel="stylesheet" href="css/api.css">
+<link rel="stylesheet" href="css/recolhiveis_e_mapa_lista.css">
+<link rel="stylesheet" href="css/inicio.css">
+<link rel="stylesheet" href="css/ne.css">
+<link rel="stylesheet" href="css/bacia_e_ficha.css">
+<link rel="stylesheet" href="css/geral_e_celular.css">
+<link rel="stylesheet" href="css/outros.css">
+<link rel="stylesheet" href="css/tema_b2.css">
+<link rel="stylesheet" href="css/inicio_sem_barra.css">
+<link rel="stylesheet" href="css/admin.css">
+
+</head>
+<body>
+<header class="faixa">
+  <div class="wrap topo">
+    <div class="marca">
+      <span class="logo" role="img" aria-label="ANA - Agência Nacional de Águas e Saneamento Básico"></span>
+      <span class="sistema"><b>SAR</b><span>Sistema de Acompanhamento de Reservatórios</span></span>
+      <span class="selo">Protótipo</span>
+    </div>
+    <nav class="modulos" aria-label="Módulos do SAR">
+      <button type="button" data-rota="inicio">Início</button>
+      <button type="button" data-rota="sin">Sistema Interligado Nacional</button>
+      <button type="button" data-rota="ne">Nordeste e Semiárido</button>
+      <button type="button" data-rota="outros">Outros Sistemas Hídricos</button>
+      <button type="button" data-rota="dados" class="nav-dados">Dados</button>
+      <button type="button" data-rota="admin" class="nav-admin">Administração</button>
+    </nav>
+    <nav class="lateral-indice" aria-label="Seções da página" hidden></nav>
+    <div class="lateral-pe"><span class="selo">Protótipo</span></div>
+  </div>
+</header>
+<div class="area-titulo"><div class="wrap titulo-pag" id="titulo-pag"></div></div>
+
+<main class="wrap" id="conteudo"></main>
+
+<footer>
+  <div class="wrap">
+    <span><b>SAR</b> · Protótipo para discussão interna. Não é o sistema em produção.</span>
+    <span id="rodape-fontes"></span>
+  </div>
+</footer>
+
+
+
+<script type="module">
+  // Página de desenvolvimento: os módulos de js/ carregados direto, sem montagem (servir a pasta mockups/sin com
+  // py -m http.server e abrir dev.html). Os dados e o logotipo, que o montar.py embute na página publicada, são lidos
+  // do servidor; o resto é o mesmo código de prototipo-sin.html.
+  const [dados, admin, logo] = await Promise.all(
+    ["dados_sin.json", "dados_admin.json", "assets/logo_ana_horizontal.svg"].map(u => fetch(u).then(r => r.text()))
+  );
+  for (const [id, texto] of [["dados-sin", dados], ["dados-admin", admin]]) {
+    const marca = Object.assign(document.createElement("script"), { type: "application/json", id });
+    marca.textContent = texto;
+    document.body.append(marca);
+  }
+  document.querySelector(".marca .logo").innerHTML = logo.slice(logo.indexOf("<svg"));
+  await import("./js/principal.js");
+</script>
+</body>
+</html>

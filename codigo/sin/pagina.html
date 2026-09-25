@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAR · Sistema Interligado Nacional</title>
+<meta name="description" content="Protótipo navegável do módulo SIN do novo SAR: reservatório equivalente, mapa e lista das 22 bacias do ONS, e página da bacia do Grande.">
+<style>/*__LEAFLET_CSS__*/</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.2/jszip.min.js"></script>
+<style>
+/*__CSS__*/
+</style>
+
+</head>
+<body>
+<header class="faixa">
+  <div class="wrap topo">
+    <div class="marca">
+      <span class="logo" role="img" aria-label="ANA - Agência Nacional de Águas e Saneamento Básico">/*__LOGO__*/</span>
+      <span class="sistema"><b>SAR</b><span>Sistema de Acompanhamento de Reservatórios</span></span>
+      <span class="selo">Protótipo</span>
+    </div>
+    <nav class="modulos" aria-label="Módulos do SAR">
+      <button type="button" data-rota="inicio">Início</button>
+      <button type="button" data-rota="sin">Sistema Interligado Nacional</button>
+      <button type="button" data-rota="ne">Nordeste e Semiárido</button>
+      <button type="button" data-rota="outros">Outros Sistemas Hídricos</button>
+      <button type="button" data-rota="dados" class="nav-dados">Dados</button>
+      <button type="button" data-rota="admin" class="nav-admin">Administração</button>
+    </nav>
+    <nav class="lateral-indice" aria-label="Seções da página" hidden></nav>
+    <div class="lateral-pe"><span class="selo">Protótipo</span></div>
+  </div>
+</header>
+<div class="area-titulo"><div class="wrap titulo-pag" id="titulo-pag"></div></div>
+
+<main class="wrap" id="conteudo"></main>
+
+<footer>
+  <div class="wrap">
+    <span><b>SAR</b> · Protótipo para discussão interna. Não é o sistema em produção.</span>
+    <span id="rodape-fontes"></span>
+  </div>
+</footer>
+
+<script type="application/json" id="dados-sin">/*__DADOS__*/</script>
+<script type="application/json" id="dados-admin">/*__ADMIN__*/</script>
+<script>
+/*__JS__*/
+</script>
+</body>
+</html>

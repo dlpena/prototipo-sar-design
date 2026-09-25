@@ -1,0 +1,88 @@
+/* documentação da API (#api): bloco de código com quebra de linha (sem rolagem interna), tabelas que viram lista no celular */
+.api-box.bloco code {
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+.api-passos {
+  margin: 4px 0 14px;
+  padding-left: 22px;
+  color: var(--tinta-2);
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+.api-passos li + li {
+  margin-top: 4px;
+}
+.api-txt {
+  color: var(--tinta-2);
+  font-size: 14.5px;
+  line-height: 1.6;
+  margin: 10px 0 0;
+}
+:is(.api-passos, .api-txt, .tab-api) code.in {
+  font:
+    12.5px ui-monospace,
+    Consolas,
+    monospace;
+  background: var(--ana-gelo);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: var(--tinta);
+}
+.api-bloco h3 {
+  font: 500 11px var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--apagado);
+  margin: 20px 0 8px;
+}
+.api-bloco:first-of-type h3 {
+  margin-top: 6px;
+}
+.tab-api {
+  table-layout: fixed;
+  width: 100%;
+}
+.tab-api td {
+  white-space: normal;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .tab-api colgroup,
+  .tab-api thead {
+    display: none;
+  }
+  .tab-api,
+  .tab-api tbody {
+    display: block;
+  }
+  .tab-api tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--linha);
+  }
+  .tab-api td {
+    display: block;
+    border: 0;
+    padding: 0;
+  }
+  .tab-api td[data-r]::before {
+    content: attr(data-r) ": ";
+    color: var(--apagado);
+  }
+}
+@media (max-width: 1180px) {
+  .dados-grade {
+    grid-template-columns: 1fr;
+  }
+  .pedido {
+    position: static;
+  }
+  .pacote {
+    grid-template-columns: 1fr;
+  }
+}
