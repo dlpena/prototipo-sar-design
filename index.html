@@ -6468,11 +6468,12 @@ function graficoBarrasAnos(host, dados, o) {
     host.innerHTML = '<p class="nota" style="padding:14px 0">Sem dados.</p>';
     return;
   }
+  const vr = vals.concat(refsVals(o.refs)); // a escala inclui as linhas de referência
   let lo = 0,
-    hi = o.pct ? Math.max(100, Math.max(...vals)) : Math.max(...vals) * 1.06;
+    hi = o.pct ? Math.max(100, Math.max(...vr)) : Math.max(...vr) * 1.06;
   if (o.relativo) {
-    const a = Math.min(...vals),
-      b = Math.max(...vals),
+    const a = Math.min(...vr),
+      b = Math.max(...vr),
       p = (b - a) * 0.12 || 1;
     lo = a - p;
     hi = b + p;
@@ -6550,6 +6551,7 @@ function graficoBarrasAnos(host, dados, o) {
     vt.textContent = fmt(d.v, o.dec);
     if (comValor) svg.append(vt);
   });
+  desenhaRefs(svg, Y, m.l, W - m.r, o.refs, o.dec, o.unidade); // por cima das barras
   host.append(svg);
 }
 
@@ -11014,7 +11016,8 @@ function paginaFichaNE(cod) {
       <p class="sub" id="sub-f-dia"></p>
       <div class="controles"><fieldset><legend>Variável</legend><select id="var-dia-f" aria-label="Variável">${varsComp.map(opcao).join("")}</select></fieldset></div>
       <div class="graf" id="g-f-dia"></div>
-      ${comoLer(ler("dia"), ler("escala"))}
+      <p class="nota" id="nota-ref-dia" style="margin:10px 0 0"></p>
+      ${comoLer(ler("dia"), ler("escala"), "<b>Referências.</b> No volume em hm³, a linha tracejada cinza marca a capacidade; na cota, a cota máxima do açude, quando cadastrada.")}
     </section>
     <section class="cartao secao" id="fn-ano" aria-labelledby="t-fn-ano">
       ${barraBaixar([
@@ -11258,10 +11261,12 @@ function paginaFichaNE(cod) {
       dec: V.dec,
       unidade: V.u,
       pct: k === "pct",
-      relativo: k !== "pct",
+      relativo: k === "cota" || k === "nivel", // volume (% e hm³) desde zero; cota e nível, escala relativa
       rotulo: `${rotVar(k)} (${V.u}) em ${dBR(dataRef).slice(0, 5)}`,
-      legenda: rotVar(k)
+      legenda: rotVar(k),
+      refs: refsDe(k)
     });
+    $("#nota-ref-dia").textContent = semCotaMax(k).trim();
   }
 
   // 4. ano contra anos anteriores
@@ -11368,7 +11373,7 @@ function paginaFichaNE(cod) {
       [$("#g-f-dia svg")],
       `sar_${u}_mesmo_dia_${dataRef}.png`,
       `${nomeF} · ${rotVar($("#var-dia-f").value)} em ${dBR(dataRef).slice(0, 5)} de cada ano`,
-      LEG_ANOS(+dataRef.slice(0, 4))
+      LEG_ANOS(+dataRef.slice(0, 4)).concat(legRefs($("#var-dia-f").value))
     );
   $("#baixar-f-ano").onclick = () =>
     baixarPNG(
